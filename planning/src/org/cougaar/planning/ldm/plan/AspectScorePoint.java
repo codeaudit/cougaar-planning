@@ -43,6 +43,21 @@ public class AspectScorePoint implements Serializable, Cloneable {
     this.score = score;
   }
 
+  public boolean equals(Object o) {
+    if (o instanceof AspectScorePoint) {
+      AspectScorePoint that = (AspectScorePoint) o;
+      return this.score == that.score && this.value.equals(that.value);
+    }
+    return false;
+  }
+
+  public int hashCode() {
+    long bits = Double.doubleToRawLongBits(score);
+    return (int) (bits & 0xffffffffL)
+      ^ (int) ((bits >> 32) & 0xFFFFFFFFL)
+      ^ value.hashCode();
+  }
+
   public Object clone() {
     return new AspectScorePoint(value, score);
   }

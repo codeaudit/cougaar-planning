@@ -50,6 +50,7 @@ import org.cougaar.planning.ldm.asset.NewPropertyGroup;
 import org.cougaar.planning.ldm.asset.NewRelationshipPG;
 import org.cougaar.planning.ldm.asset.NewTypeIdentificationPG;
 import org.cougaar.planning.ldm.asset.PropertyGroup;
+import org.cougaar.planning.ldm.asset.RelationshipBG;
 import org.cougaar.planning.ldm.measure.Latitude;
 import org.cougaar.planning.ldm.measure.Longitude;
 import org.cougaar.planning.ldm.plan.AspectType;
@@ -252,8 +253,12 @@ public class AssetDataPlugin extends SimplePlugin {
     // initialize the relationship info
     NewRelationshipPG pg = 
       (NewRelationshipPG) myLocalAsset.getRelationshipPG();
-//    RelationshipBG bg = 
-//      new RelationshipBG(pg, (HasRelationships) myLocalAsset);
+
+    // Although we ignore the returned BG, constructing the BG has the side
+    // effect of setting the relationship schedule on the PG if necessary
+    RelationshipBG bg = 
+      new RelationshipBG(pg, (HasRelationships) myLocalAsset);
+
     // this asset is local to the cluster
     pg.setLocal(true);
   }

@@ -48,6 +48,7 @@ import org.cougaar.planning.ldm.plan.NewMPTask;
 import org.cougaar.planning.ldm.plan.NewTask;
 import org.cougaar.planning.ldm.plan.NewWorkflow;
 import org.cougaar.planning.ldm.plan.PlanElement;
+import org.cougaar.planning.ldm.plan.PlanElementImpl;
 import org.cougaar.planning.ldm.plan.Preference;
 import org.cougaar.planning.ldm.plan.Task;
 import org.cougaar.util.Enumerator;
@@ -255,6 +256,46 @@ public class PluginHelper {
             sub.publishAdd(myTask);
         }
     }
+
+  /**
+   * Helper to remove a task from an Expansion.
+   * Removes the task from its workflow if not already done.
+   * When doing so, also recalculate the received result on the Expansion, and publishChange
+   * the Expansion if the result is now different. This permits the Expander Plugin to
+   * copy the new result up the chain.
+   * Note that normally the ReceivedResult would be updated by the LPs when one of the other sub-tasks
+   * got a new AllocationResult. But that may not happen soon enough, or may never happen.
+   * Note that the Plugin is responsible for publishRemoving the Task or re-parenting, as desired.
+   * @param sub BlackboardService through which to do publishChange
+   * @param task sub-task being removed
+   **/
+  public static void removeSubTask(BlackboardService sub, Task task) {
+    // First, remove the task from its workflow, if not already done
+    NewWorkflow wf = (NewWorkflow) task.getWorkflow();
+    if (wf != null) {
+      for (Enumeration tasks = wf.getTasks(); tasks.hasMoreElements(); ) {
+        if (tasks.nextElement() == task) {
+          wf.removeTask(task);
+	  break;
+        }
+      }
+
+      // The workflow now has 1 fewer tasks, so the AR aggregation will usually be different.
+      AllocationResult newRcvAR = wf.aggregateAllocationResults();
+
+      // From this task's workflow, get the parent task's PlanElement - the Expansion
+      PlanElement pe = wf.getParentTask().getPlanElement();
+      AllocationResult currRcvAR = pe.getReceivedResult();
+
+      // If the newly aggregated AR is different, then change it and publishChange the expansion
+      if ((newRcvAR == null && currRcvAR != null) || (newRcvAR != null && ! newRcvAR.isEqual(currRcvAR))) {
+	((PlanElementImpl)pe).setReceivedResult(newRcvAR);
+	sub.publishChange(pe); // PEImpl puts a ReportedResultChangeReport on this transaction
+      }
+      // Caller should publishRemove the task or re-parent it as desired.
+    }
+    // else if Task had no workflow, nothing to do
+  }
 
     // 2 wireaggregation methods -- one for a single parent and one for a
     // Collection of parents

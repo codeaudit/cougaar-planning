@@ -84,16 +84,16 @@ implements LogicProvider, MessageLogicProvider
   {
     if (dir instanceof Task) {
       Task tsk = (Task) dir;
-
       try {
         Task existingTask = logplan.findTask(tsk);
         if (existingTask == null) {
           // only add if it isn't already there.
-	  //System.err.print("!");
           if (tsk.getWorkflow() != null) {
             // Has been marked and the mark remains meaning tsk is the
             // same instance as the sending agent has so we clone it
-            System.out.println("Cloning task from same node " + tsk.getUID());
+            if (logger.isDebugEnabled()) {
+              logger.debug("Cloning task from same node " + tsk.getUID());
+            }
             tsk = cloneAliasedTask(tsk);
           }
           rootplan.add(tsk);
@@ -121,8 +121,7 @@ implements LogicProvider, MessageLogicProvider
           }
         }
       } catch (SubscriberException se) {
-        logger.error("Could not add Task to LogPlan: "+tsk);
-        se.printStackTrace();
+        logger.error("Could not add Task to LogPlan: " + tsk, se);
       }
     }
   }

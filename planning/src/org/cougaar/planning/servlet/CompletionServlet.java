@@ -945,6 +945,7 @@ extends BaseServletComponent
     protected CompletionData getCompletionData() {
       // get tasks
       Collection tasks = getAllTasks();
+      CompletionCalculator cc = getCalculator();
       long nowTime = System.currentTimeMillis();
       double ratio = getRatio(tasks);
       int nTasks = tasks.size();
@@ -964,8 +965,8 @@ extends BaseServletComponent
             if (peEstResult != null) {
               double estConf = peEstResult.getConfidenceRating();
               if (peEstResult.isSuccess()) {
-                if (estConf > 0.99) {
-                  // 100% success
+                if (cc.isConfident(estConf)) {
+                  // Confident
                 } else {
                   result.addUnconfidentTask(
                       makeUnconfidentTask(estConf, ti));
@@ -1000,7 +1001,7 @@ extends BaseServletComponent
             if (peEstResult != null) {
               double estConf = peEstResult.getConfidenceRating();
               if (peEstResult.isSuccess()) {
-                if (estConf > 0.99) {
+                if (cc.isConfident(estConf)) {
                   // 100% success
                 } else {
                   nUnconfidentTasks++;
@@ -1168,6 +1169,7 @@ extends BaseServletComponent
     protected void printCountersAsHTML(CompletionData result) {
       double ratio = result.getRatio();
       String ratioColor;
+      CompletionCalculator cc = getCalculator();
       if (ratio < redThreshold) {
         ratioColor = "red";
       } else if (ratio < yellowThreshold) {
@@ -1235,7 +1237,7 @@ extends BaseServletComponent
           " %</b>)"+
           "\nSubset of estimated successful[");
       out.print(nSuccessfulTasks);
-      out.print("] with 100% confidence: <b>");
+      out.print("] with " + cc.getConfidenceThreshholdString(true) + " : <b>");
       int nUnconfidentTasks = result.getNumberOfUnconfidentTasks();
       int nFullConfidenceTasks = (nSuccessfulTasks - nUnconfidentTasks);
       out.print(nFullConfidenceTasks);
@@ -1250,6 +1252,7 @@ extends BaseServletComponent
     }
 
     protected void printTablesAsHTML(CompletionData result) {
+      CompletionCalculator cc = getCalculator();
       if (result instanceof FullCompletionData) {
         int nUnplannedTasks = result.getNumberOfUnplannedTasks();
         beginTaskHTMLTable(
@@ -1278,7 +1281,7 @@ extends BaseServletComponent
         int nUnconfidentTasks = result.getNumberOfUnconfidentTasks();
         beginTaskHTMLTable(
             ("Unconfident Tasks["+nUnconfidentTasks+"]"),
-            "((Est.isSuccess() == true) &amp;&amp; (Est.Conf. < 100%))");
+            "((Est.isSuccess() == true) &amp;&amp; (" + cc.getConfidenceThreshholdString(false) + ")");
         for (int i = 0; i < nUnconfidentTasks; i++) {
           printAbstractTaskAsHTML(i, result.getUnconfidentTaskAt(i));
         }

@@ -1,3 +1,34 @@
+2003-03-12  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/planning/servlet/PlanViewServlet.java:
+	Usability enhancement
+	Sort UniqueObjects by Type (and then by UID). This collects
+	together all the Assets, OrgActivities simplifying, for example,
+	comparisons from run to run.
+
+	* org/cougaar/planning/plugin/legacy/PluginAdapter.java: 
+	* org/cougaar/planning/servlet/CompletionServlet.java: 
+	Bug #2658 -- Components incompatible with automatic service revocation feature
+	Test for null service before trying to use it.
+
+	* org/cougaar/planning/ldm/PlanningDomain.java: 
+	* org/cougaar/planning/ldm/LDMServiceComponent.java: 
+	* org/cougaar/planning/ldm/AssetInitializerServiceComponent.java:
+	Bug #2658 -- Components incompatible with automatic service revocation feature
+	Test for null service before trying to use it.
+
+2003-02-19  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/planning/servlet/CompletionServlet.java:
+	Bug #2226 -- Refresh and thresholds for all-agents completion servlet display
+	Added refresh and thresholds. Also added display selected agents.
+	
+2003-02-14  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/planning/servlet/CompletionServlet.java:
+	Bug #2226 -- Refresh and thresholds for all-agents completion servlet display
+	Added thresholds and refresh	
+
 2003-02-12  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* org/cougaar/planning/ldm/lps/ReceiveNotificationLP.java:

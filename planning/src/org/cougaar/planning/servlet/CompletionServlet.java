@@ -337,6 +337,8 @@ extends BaseServletComponent
       String viewType = request.getParameter("viewType");
       if (viewType == null) {
         viewDefault(); // default
+      } else if ("viewAgentSubmit".equals(viewType)) {
+        viewAgentSubmit();
       } else if ("viewAgentBig".equals(viewType)) {
         viewAgentBig();
       } else if ("viewAllAgents".equals(viewType)) {
@@ -362,16 +364,26 @@ extends BaseServletComponent
       if (format == FORMAT_HTML) {
         // generate outer frame page:
         //   top:    select "/agent"
+        //   middle: "viewAgentSubmit" buttons
         //   bottom: "viewAgentBig" frame
+        //
+        // Note that the top and middle frames must be on 
+        // the same host, due to javascript security.  Only
+        // the bottom frame is updated by the submit button.
         response.setContentType("text/html");
         this.out = response.getWriter();
         out.print(
-            "<html><head><title>Completion Viewer</title></head>"+
-            "<frameset rows=\"10%,90%\">\n"+
+            "<html><head><title>"+
+            getTitlePrefix()+
+            "Completion Viewer</title></head>"+
+            "<frameset rows=\"10%,12%,78%\">\n"+
             "<frame src=\""+
             "/agents?format=select&suffix="+
             getEncodedAgentName()+
             "\" name=\"agentFrame\">\n"+
+            "<frame src=\"/$"+
+            getEncodedAgentName()+getPath()+
+            "?viewType=viewAgentSubmit\" name=\"viewAgentSubmit\">\n"+
             "<frame src=\"/$"+
             getEncodedAgentName()+getPath()+
             "?viewType=viewAgentBig\" name=\"viewAgentBig\">\n"+
@@ -383,6 +395,68 @@ extends BaseServletComponent
         // for other formats, just get the data
         viewAgentBig();
       }
+    }
+
+    protected void viewAgentSubmit() throws IOException {
+      response.setContentType("text/html");
+      this.out = response.getWriter();
+      // javascript based on PlanViewServlet
+      out.print(
+          "<html>\n"+
+          "<script language=\"JavaScript\">\n"+
+          "<!--\n"+
+          "function mySubmit() {\n"+
+          "  var obj = top.agentFrame.document.agent.name;\n"+
+          "  var encAgent = obj.value;\n"+
+          "  if (encAgent.charAt(0) == '.') {\n"+
+          "    alert(\"Please select an agent name\")\n"+
+          "    return false;\n"+
+          "  }\n"+
+          "  document.myForm.target=\"viewAgentBig\"\n"+
+          "  document.myForm.action=\"/$\"+encAgent+\""+
+          getPath()+"\"\n"+
+          "  return true\n"+
+          "}\n"+
+          "// -->\n"+
+          "</script>\n"+
+          "<head>\n"+
+          "<title>"+
+          getTitlePrefix()+
+          "Completion"+
+          "</title>"+
+          "</head>\n"+
+          "<body>"+
+          "<form name=\"myForm\" method=\"get\" "+
+          "onSubmit=\"return mySubmit()\">\n"+
+          getTitlePrefix()+
+          "Select an agent above, "+
+          "<input type=\"hidden\""+
+          " name=\"viewType\""+
+          " value=\"viewAgentBig\" "+
+          "<input type=\"checkbox\""+
+          " name=\"showTables\""+
+          " value=\"true\" ");
+      if (showTables) {
+        out.print("checked");
+      }
+      out.println(
+          "> show table, \n"+
+          "<input type=\"submit\""+
+          " name=\"formSubmit\""+
+          " value=\"Submit\"><br>");
+      out.println(
+          "<a href=\"/$"+
+          getEncodedAgentName()+getPath()+
+          "?viewType=viewAllAgents"+
+          "\" target=\"_top\">Show all agents.</a>");
+      out.println(
+          "<a href=\"/$"+
+          getEncodedAgentName()+getPath()+
+          "?viewType=viewManyAgents"+
+          "\" target=\"_top\"> Show several selected agents.</a>");
+      out.println("</form>");
+      out.print("</body></html>");
+      out.flush();
     }
 
     private void viewAgentBig() throws IOException {
@@ -690,7 +764,6 @@ extends BaseServletComponent
       boolean selectAll = false;
       boolean selectNone = false;
       String submit = request.getParameter("submit");
-      System.out.println("submit=" + submit);
       if ("Show".equals(submit)) {
         viewSelectedAgents(new ArrayList(selectedAgents), "Selected");
         return;
@@ -1076,63 +1149,12 @@ extends BaseServletComponent
     protected void printCompletionDataAsHTML(CompletionData result) {
       // javascript based on PlanViewServlet
       out.print(
-          "<html>\n"+
-          "<script language=\"JavaScript\">\n"+
-          "<!--\n"+
-          "function mySubmit() {\n"+
-          "  var obj = top.agentFrame.document.agent.name;\n"+
-          "  var encAgent = obj.value;\n"+
-          "  if (encAgent.charAt(0) == '.') {\n"+
-          "    alert(\"Please select an agent name\")\n"+
-          "    return false;\n"+
-          "  }\n"+
-          "  document.myForm.target=\"viewAgentBig\"\n"+
-          "  document.myForm.action=\"/$\"+encAgent+\""+
-          getPath()+"\"\n"+
-          "  return true\n"+
-          "}\n"+
-          "// -->\n"+
-          "</script>\n"+
-          "<head>\n"+
-          "<title>"+
-          getEncodedAgentName()+
-          "</title>"+
-          "</head>\n"+
-          "<body>"+
+          "<html><body>\n"+
           "<h2><center>"+
           getTitlePrefix()+
           "Completion at "+
           getEncodedAgentName()+
-          "</center></h2>\n"+
-          "<form name=\"myForm\" method=\"get\" "+
-          "onSubmit=\"return mySubmit()\">\n"+
-          getTitlePrefix()+
-          "Select an agent above, "+
-          "<input type=\"hidden\""+
-          " name=\"viewType\""+
-          " value=\"viewAgentBig\" "+
-          "<input type=\"checkbox\""+
-          " name=\"showTables\""+
-          " value=\"true\" ");
-      if (showTables) {
-        out.print("checked");
-      }
-      out.println(
-          "> show table, \n"+
-          "<input type=\"submit\""+
-          " name=\"formSubmit\""+
-          " value=\"Reload\"><br>");
-      out.println(
-          "<a href=\"/$"+
-          getEncodedAgentName()+getPath()+
-          "?viewType=viewAllAgents"+
-          "\" target=\"_top\">Show all agents.</a>");
-      out.println(
-          "<a href=\"/$"+
-          getEncodedAgentName()+getPath()+
-          "?viewType=viewManyAgents"+
-          "\" target=\"_top\"> Show several selected agents.</a>");
-      out.println("</form>");
+          "</center></h2>\n");
       printCountersAsHTML(result);
       printTablesAsHTML(result);
       out.print("</body></html>");

@@ -44,7 +44,7 @@ public class AspectLocation extends TypedAspectValue {
         // this bug can easily occur in the thousands, so we
         // only make a fuss this once
         hack_warnedUser = true;
-        org.cougaar.util.log.LoggerFactory.getInstance().createLogger(AspectLocation.class).error(
+        org.cougaar.util.log.LoggerFactory.getInstance().createLogger(AspectLocation.class).warn(
             "BUG 2509: create("+type+", "+o+") with non-location type "+
             (o==null?"null":(o.getClass().getName()+": "+o))+
             "!  This will be the *only* warning!", 

@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Vector;
+import java.util.List;
 
 import org.cougaar.core.agent.MetricsSnapshot;
 import org.cougaar.core.agent.service.alarm.Alarm;
@@ -299,8 +300,8 @@ public abstract class PluginAdapter
 
   public void setParameter(Object param) {
     if (param != null) {
-      if (param instanceof Vector) {
-        parameters = (Vector) param;
+      if (param instanceof List) {
+        parameters = new Vector((List) param);
       } else {
         System.err.println("Warning: "+this+" initialized with non-vector parameter "+param);
       }

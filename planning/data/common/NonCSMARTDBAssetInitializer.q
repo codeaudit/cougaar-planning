@@ -7,10 +7,6 @@ database=${org.cougaar.refconfig.database}
 username=${org.cougaar.refconfig.user}
 password=${org.cougaar.refconfig.password}
 
-queryGeolocLocation.database=${org.cougaar.database}
-queryGeolocLocation.username=${org.cougaar.database.user}
-queryGeolocLocation.password=${org.cougaar.database.password}
-
 queryAgentPrototype = \
  SELECT ORG_CLASS \
    FROM lib_organization \

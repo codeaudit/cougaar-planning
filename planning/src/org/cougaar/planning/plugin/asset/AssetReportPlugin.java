@@ -52,8 +52,8 @@ import org.cougaar.util.UnaryPredicate;
 /**
  * AssetReportPlugin manages REPORTFORDUTY and REPORTFORSERVICE relationships
  * Handles both expansion and allocation of these tasks.
- * @see org.cougaar.core.plugin.legacy.SimplifiedPlugin
- * @see org.cougaar.core.plugin.legacy.SimplifiedPluginTest
+ * @see org.cougaar.planning.plugin.legacy.SimplifiedPlugin
+ * @see org.cougaar.planning.plugin.legacy.SimplifiedPluginTest
  */
 
 public class AssetReportPlugin extends SimplePlugin

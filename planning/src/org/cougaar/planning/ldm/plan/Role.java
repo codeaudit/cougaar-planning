@@ -83,7 +83,7 @@ public final class Role implements Serializable, BeanInfo {
   /** create - creates specified role and its converse. 
    * @throws java.lang.IllegalArgumentException if role or converse already exist.
    * @param roleName String name of the role
-   * @param converseName String name of the converse role
+   * @param converseRoleName String name of the converse role
    */
   public static void create(String roleName, String converseRoleName) {
     synchronized (lock) {

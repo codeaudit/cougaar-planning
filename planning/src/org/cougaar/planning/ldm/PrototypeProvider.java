@@ -25,10 +25,8 @@ import org.cougaar.planning.ldm.asset.Asset;
 
 /**
  * A provider of prototype Assets to the LDM.
- * @see org.cougaar.core.plugin.LDMPluginServesLDM
- * @author  ALPINE <alpine-software@bbn.com>
+ * @see org.cougaar.planning.ldm.LDMPluginServesLDM
  **/
-
 public interface PrototypeProvider extends LDMPluginServesLDM {
   
   /** return the prototype Asset described by aTypeName.

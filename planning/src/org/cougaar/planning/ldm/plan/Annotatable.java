@@ -34,7 +34,7 @@ public interface Annotatable
    * Only the creating plugin of an Annotatable object
    * should use this accessor.
    *
-   * @see org.cougaar.core.plugin.Annotation
+   * @see org.cougaar.planning.ldm.plan.Annotation
    * @return the Annotation or null.
    **/
   Annotation getAnnotation();
@@ -49,7 +49,7 @@ public interface Annotatable
    * Plugins are encouraged but not required to only
    * set the annotation one.
    *
-   * @see org.cougaar.core.plugin.Annotation
+   * @see org.cougaar.planning.ldm.plan.Annotation
    **/
   void setAnnotation(Annotation pluginAnnotation);
 }

@@ -33,7 +33,7 @@ import java.util.Collection;
 public interface NewComposition extends Composition {
   
   /** Set the Aggregation PlanElements of the tasks being combined
-    * @param aggsCollection  The Aggregations
+    * @param aggs  The Aggregations
     * @see org.cougaar.planning.ldm.plan.Aggregation
     */
   void setAggregations(Collection aggs);

@@ -28,9 +28,8 @@ import org.cougaar.planning.ldm.asset.PropertyGroup;
 
 /**
  * A provider of Asset Properties to the LDM.
- * @see org.cougaar.core.plugin.LDMPluginServesLDM
+ * @see org.cougaar.planning.ldm.LDMPluginServesLDM
  **/
-
 public interface LatePropertyProvider extends LDMPluginServesLDM {
   /** Allows the LatePropertyProvider to specify the
    * classes of PropertyGroup for which it can provide values. <p>

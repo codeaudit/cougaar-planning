@@ -112,7 +112,13 @@ public class RelationshipImpl extends ScheduleElementImpl
             getStartTime() == other.getStartTime() &&
             getEndTime() == other.getEndTime());
   }
-
+ 
+  public int hashCode() {
+    return (int) (getStartTime() + (getEndTime() * 1000) + getA().hashCode() + 
+		  getRoleA().hashCode() + getB().hashCode() + 
+		  getRoleB().hashCode());
+  }
+    
   /** Role performed by HasRelationship A
    * @return Role which HasRelationships A performs
    */

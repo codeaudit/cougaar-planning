@@ -46,6 +46,8 @@ import org.cougaar.planning.ldm.plan.NewSchedule;
 import org.cougaar.planning.ldm.plan.Relationship;
 import org.cougaar.planning.ldm.plan.Schedule;
 import org.cougaar.planning.ldm.plan.ScheduleElement;
+
+import org.cougaar.util.TimeSpans;
 import org.cougaar.util.log.Logger;
 import org.cougaar.util.log.Logging;
 

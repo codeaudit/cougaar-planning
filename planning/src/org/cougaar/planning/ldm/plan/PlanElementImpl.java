@@ -373,7 +373,7 @@ public abstract class PlanElementImpl
       if ( curTime  > comdate.getTime() ) {
         // its after the commitment time - shouldn't publish the object
 	// But for now we do so anyhow
-        logger.warn("publishAdd of "+this + (curTime - comdate.getTime()) + " millis past commitmenttime "+comdate + " at curTime: " + (new Date(curTime)) + " by Subscriber " + s);
+        logger.warn("publishAdd of "+this + " " + (curTime - comdate.getTime()) + " millis past commitmenttime "+comdate + " at curTime: " + (new Date(curTime)) + " by Subscriber " + s);
       }
     }
 

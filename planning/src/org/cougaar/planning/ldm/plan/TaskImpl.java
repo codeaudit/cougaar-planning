@@ -829,7 +829,7 @@ public class TaskImpl extends PlanningDirectiveImpl
       if ( curTime > commitmenttime ) {
         // its after the commitment time, should not publish the change 
 	// For now, we do though
-        logger.warn("publishChange of "+this+ (curTime - commitmenttime) + " past commitmenttime "+getCommitmentDate() + " at current time " + (new Date(curTime)) + " by Subscriber " + s);
+        logger.warn("publishChange of "+this+ " " + (curTime - commitmenttime) + " past commitmenttime "+getCommitmentDate() + " at current time " + (new Date(curTime)) + " by Subscriber " + s);
       }
     }
   }

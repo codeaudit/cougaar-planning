@@ -29,7 +29,6 @@ package org.cougaar.planning.ldm.plan;
 
 /** NewDeletion Interface
  * provides setter methods to create a Deletion object
- * @author  ALPINE <alpine-software@bbn.com>
  *
  **/
 

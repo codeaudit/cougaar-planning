@@ -30,7 +30,6 @@ import java.io.IOException;
 /**
  * Classes conforming to this interface can serialize themselves
  * out in XML format.
- * @author Benjamin Lubin; last modified by: $Author: mthome $
  *
  * @since 1/24/01
  **/

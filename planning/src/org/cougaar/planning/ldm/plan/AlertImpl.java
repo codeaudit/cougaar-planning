@@ -28,7 +28,6 @@ package org.cougaar.planning.ldm.plan;
 import org.cougaar.core.util.UID;
 
 /** Alert Implementation
- * @author  ALPINE <alpine-software@bbn.com>
  *
  *
  * Open issues - 

@@ -32,7 +32,6 @@ package org.cougaar.planning.ldm.plan;
  *
  * Implementations are immutable.
  *
- * @author ALPINE <alpine-software@bbn.com>
  **/
  
 public interface Preference extends AspectType, Cloneable 

@@ -32,7 +32,6 @@ import org.cougaar.planning.ldm.asset.Asset;
   * A Transferable Transfer should be used to transfer a Transferable object to
   * another cluster (org asset).
   *
-  * @author  ALPINE <alpine-software@bbn.com>
   *
   */
 public interface TransferableTransfer {

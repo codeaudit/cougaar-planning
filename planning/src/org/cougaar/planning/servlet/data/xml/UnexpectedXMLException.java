@@ -27,7 +27,6 @@ package org.cougaar.planning.servlet.data.xml;
 
 /**
  * An error indicating unexpected XML input
- * @author Benjamin Lubin; last modified by: $Author: mthome $
  *
  * @since 1/24/01
  **/

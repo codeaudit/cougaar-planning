@@ -31,7 +31,6 @@ package org.cougaar.planning.ldm.plan;
  * which represents the Asset that will complete
  * the Task.
  *
- * @author  ALPINE <alpine-software@bbn.com>
  *
  **/
 

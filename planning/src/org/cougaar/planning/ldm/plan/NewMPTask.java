@@ -32,7 +32,6 @@ import java.util.Enumeration;
 	* Provide setters for building MPTask objects.
   * MPTask is a subclass of Task
   * @see org.cougaar.planning.ldm.plan.NewTask
-  * @author  ALPINE <alpine-software@bbn.com>
   *
   **/
 	

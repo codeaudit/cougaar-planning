@@ -31,7 +31,6 @@ package org.cougaar.planning.ldm.plan;
  * ScheduleElementWithValue includes an untyped double value at each
  * element.
  *
- * @author  ALPINE <alpine-software@bbn.com>
  *
  **/
 

@@ -34,7 +34,6 @@ import org.cougaar.util.TimeSpan;
 
 /**
  * A RelationshipImpl is the encapsulation of a time phased relationship
- * @author  ALPINE <alpine-software@bbn.com>
  *
  **/
 

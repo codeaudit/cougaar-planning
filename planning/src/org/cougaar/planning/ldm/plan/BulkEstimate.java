@@ -34,7 +34,6 @@ import java.util.List;
   * of Preference sets and get back a collection of AllocationResults.
   * Each AllocationResult will represent the results of allocating the Task
   * with one of the Preference sets.
-  * @author  ALPINE <alpine-software@bbn.com>
   *
   **/
 

@@ -29,7 +29,6 @@ package org.cougaar.planning.ldm.plan;
 import java.util.Date;
 
 /** Report interface
- * @author  ALPINE <alpine-software@bbn.com>
  *
  **/
 

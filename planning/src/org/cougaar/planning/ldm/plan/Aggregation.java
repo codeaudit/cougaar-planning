@@ -29,7 +29,6 @@ package org.cougaar.planning.ldm.plan;
 /** Aggregation Interface
  * An Aggregation is a kind of PlanElement that
  * merges multiple tasks into a single task.
- * @author  ALPINE <alpine-software@bbn.com>
  *
  **/
 

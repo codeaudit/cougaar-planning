@@ -31,7 +31,6 @@ import org.cougaar.planning.ldm.asset.Asset;
 /**
  * AssignedAvailabilityElement represents the availability to a specific asset
  * for the specified time interval.
- * @author  ALPINE <alpine-software@bbn.com>
  *
  **/
 

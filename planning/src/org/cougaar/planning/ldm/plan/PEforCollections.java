@@ -31,7 +31,6 @@ package org.cougaar.planning.ldm.plan;
 /** PEforCollections Interface -- represents
   * setter methods for the NotificationLP to set the 
   * Reported Result for PlanElements
-  * @author       ALPINE <alpine-software@bbn.com>
   *
   **/
 

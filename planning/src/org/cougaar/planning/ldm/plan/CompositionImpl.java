@@ -41,7 +41,6 @@ import java.util.Vector;
  * An Composition represents the aggregation of multiple tasks
  * into a single task. Compositions are referenced by Aggregation PlanElements.
  *
- * @author  ALPINE <alpine-software@bbn.com>
  *
  **/
 

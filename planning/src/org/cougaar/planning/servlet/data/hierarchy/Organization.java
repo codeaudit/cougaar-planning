@@ -38,7 +38,6 @@ import org.xml.sax.Attributes;
 
 /**
  * Represents the organization data within the hierarchy PSP
- * @author Benjamin Lubin; last modified by: $Author: mthome $
  *
  * @since 1/24/01
  **/

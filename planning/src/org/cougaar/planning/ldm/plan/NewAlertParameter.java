@@ -27,7 +27,6 @@
 package org.cougaar.planning.ldm.plan;
 
 /** NewAlertParameter interface
- * @author  ALPINE <alpine-software@bbn.com>
  *
  *
  * BOZO - Use of AlertParameter is not clearly defined. Object will probably change

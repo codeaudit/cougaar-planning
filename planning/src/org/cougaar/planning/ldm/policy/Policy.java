@@ -41,7 +41,6 @@ import org.cougaar.planning.ldm.plan.Context;
 import org.cougaar.planning.ldm.plan.Transferable;
 
 /** Policy implementation
- * @author  ALPINE <alpine-software@bbn.com>
  *
  **/
 

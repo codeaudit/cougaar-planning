@@ -36,7 +36,6 @@ import org.cougaar.util.TimeSpan;
  * object which may then be queried in various ways to test for
  * overlaps, inclusion, exclusion, etc with other schedules.
  *
- * @author  ALPINE <alpine-software@bbn.com>
  *
  **/
 

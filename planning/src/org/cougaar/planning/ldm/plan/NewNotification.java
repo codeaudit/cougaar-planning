@@ -29,7 +29,6 @@ package org.cougaar.planning.ldm.plan;
 
 /** NewNotification Interface
  * provides setter methods to create a Notification object
- * @author  ALPINE <alpine-software@bbn.com>
  *
  **/
 

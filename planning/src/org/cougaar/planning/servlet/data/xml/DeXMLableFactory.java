@@ -29,7 +29,6 @@ import org.xml.sax.Attributes;
 
 /**
  * Factory that produces sub-objects based on tags and attributes
- * @author Benjamin Lubin; last modified by: $Author: mthome $
  *
  * @since 1/24/01
  **/

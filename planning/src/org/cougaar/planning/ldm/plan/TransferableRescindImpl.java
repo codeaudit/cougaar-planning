@@ -34,7 +34,6 @@ import org.cougaar.core.util.UID;
 
 /** TransferableRescind implementation
  * TransferableRescind allows a transferable to be rescinded from the Plan. 
- * @author  ALPINE <alpine-software@bbn.com>
  *
  **/
 

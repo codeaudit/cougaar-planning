@@ -31,7 +31,6 @@ import org.cougaar.planning.ldm.asset.Asset;
 
 /** NewAssetRescind Interface
  * Provides setter methods for object creation 
- * @author  ALPINE <alpine-software@bbn.com>
  *
  **/
 

@@ -29,7 +29,6 @@ package org.cougaar.planning.ldm.plan;
 /**
  * A LocationScheduleElement is a subclass of ScheduleElement which provides
  * a slot for a location 
- * @author  ALPINE <alpine-software@bbn.com>
  *
  **/
 

@@ -33,7 +33,6 @@ import org.cougaar.util.GenericStateModel;
  * No longer adds any content to GenericStateModel.  Differentiation
  * retained for future expansion.
  *
- * @author  ALPINE <alpine-software@bbn.com>
  *
  */
 

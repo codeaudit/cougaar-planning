@@ -33,7 +33,6 @@ import org.cougaar.planning.ldm.asset.Asset;
   * another cluster (org asset).  This interface provides setters to
   * build a complete object.
   *
-  * @author  ALPINE <alpine-software@bbn.com>
   *
   */
 public interface NewTransferableTransfer extends TransferableTransfer {

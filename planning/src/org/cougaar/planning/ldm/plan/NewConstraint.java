@@ -30,7 +30,6 @@ package org.cougaar.planning.ldm.plan;
  * NewConstraint extends Constraint and provides
  * setter methods for building valid Constraint objects.
  *
- * @author  ALPINE <alpine-software@bbn.com>
  *
  **/
 public interface NewConstraint extends Constraint {

@@ -31,7 +31,6 @@ package org.cougaar.planning.ldm.plan;
   * setter methods for the planelments being monitored by logic providers
   * for possible rolechedule and available schedule conflicts.  Setters are
   * only called by the INFRASTRUCTURE!!! 
-  * @author       ALPINE <alpine-software@bbn.com>
   *
   **/
 

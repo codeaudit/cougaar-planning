@@ -31,7 +31,6 @@ import java.io.Writer;
 
 /**
  * for outputting xml tags
- * @author Benjamin Lubin; last modified by: $Author: mthome $
  *
  * @since 1/24/01
  **/

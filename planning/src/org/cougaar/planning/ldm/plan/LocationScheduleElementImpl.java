@@ -32,7 +32,6 @@ import java.util.Date;
 /**
  * A LocationScheduleElement is an encapsulation of temporal relationships
  * and a location over that time interval.
- * @author  ALPINE <alpine-software@bbn.com>
  *
  **/
 

@@ -35,7 +35,6 @@ import org.cougaar.core.util.UID;
 
 /** TaskRescind implementation
  * TaskRescind allows a task to be rescinded from the Plan. 
- * @author  ALPINE <alpine-software@bbn.com>
  *
  **/
 

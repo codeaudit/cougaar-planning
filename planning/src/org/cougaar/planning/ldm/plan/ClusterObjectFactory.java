@@ -56,7 +56,6 @@ import org.cougaar.util.TimeSpan;
  * The Interface return type are usually not the extending interfaces which
  * contain set-methods (since the object has already been built).
  *
- * @author  ALPINE <alpine-software@bbn.com>
  */
 public interface ClusterObjectFactory {
 	

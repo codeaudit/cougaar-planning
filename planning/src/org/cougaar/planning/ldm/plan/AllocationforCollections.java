@@ -32,7 +32,6 @@ import org.cougaar.core.util.UID;
 /** AllocationforCollections Interface -- represents
   * setter methods for the RemoteClusterAllocationLP and the Rescind
   * LP to keep track of what tasks were to sent out. 
-  * @author       ALPINE <alpine-software@bbn.com>
   *
   **/
 

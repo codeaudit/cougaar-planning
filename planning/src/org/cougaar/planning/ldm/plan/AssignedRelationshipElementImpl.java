@@ -34,7 +34,6 @@ import org.cougaar.planning.ldm.asset.Asset;
  * deadlock problems. Assets in the relationships represented by the
  * ItemIdentification from their ItemIdentificationPG
  *
- * @author  ALPINE <alpine-software@bbn.com>
  *
  **/
 

@@ -29,7 +29,6 @@ package org.cougaar.planning.ldm.policy;
 import org.cougaar.util.UnaryPredicate;
 
 /** 
- * @author  ALPINE <alpine-software@bbn.com>
  *
  **/
 

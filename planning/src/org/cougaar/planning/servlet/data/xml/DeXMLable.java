@@ -42,7 +42,6 @@ import org.xml.sax.Attributes;
  * </PRE>
  * <BR><P>
  * 
- * @author Benjamin Lubin; last modified by: $Author: mthome $
  *
  * @since 1/24/01
  **/

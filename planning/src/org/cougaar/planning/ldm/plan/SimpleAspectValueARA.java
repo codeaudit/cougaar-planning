@@ -58,7 +58,6 @@ import org.cougaar.planning.ldm.asset.Asset;
   * 
   * returns null when there are no subtasks or any task has no result.
   *
-  * @author  ALPINE <alpine-software@bbn.com>
   *
   **/
   public class SimpleAspectValueARA implements AllocationResultAggregator {

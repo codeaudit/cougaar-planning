@@ -30,7 +30,6 @@ import org.cougaar.core.util.UID;
 
 /** PlanningDirective to verify Transferables
  * 
- * @author  ALPINE <alpine-software@bbn.com>
  *
  **/
 public class TransferableVerificationImpl

@@ -47,7 +47,6 @@ import org.cougaar.planning.plugin.legacy.PluginDelegate;
  * the cluster to pass an instance of the predictor embedded in the
  * OrganizationalAsset copy of itself when it hooks up with other clusters.
  *
- * @author  ALPINE <alpine-software@bbn.com>
  *
  */
   

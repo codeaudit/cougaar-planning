@@ -30,7 +30,6 @@ import org.cougaar.planning.ldm.asset.Asset;
 
 /**
  * AssetAssignment Setter Interface
- * @author  ALPINE <alpine-software@bbn.com>
  *
  **/
 	

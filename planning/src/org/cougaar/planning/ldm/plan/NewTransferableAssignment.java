@@ -28,7 +28,6 @@ package org.cougaar.planning.ldm.plan;
 
 /**
   * TransferableAssignment Setter Interface
-  * @author  ALPINE <alpine-software@bbn.com>
   *
   **/
 	

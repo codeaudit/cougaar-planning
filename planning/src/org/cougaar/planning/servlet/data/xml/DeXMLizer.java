@@ -41,7 +41,6 @@ import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * Gets deXMLable objects back from an XML stream
- * @author Benjamin Lubin; last modified by: $Author: mthome $
  *
  * @since 1/24/01
  **/

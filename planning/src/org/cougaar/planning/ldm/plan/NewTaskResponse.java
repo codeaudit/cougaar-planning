@@ -30,7 +30,6 @@ import org.cougaar.core.util.UID;
 
 /** NewNotification Interface
  * provides setter methods to create a Notification object
- * @author  ALPINE <alpine-software@bbn.com>
  *
  **/
 

@@ -32,7 +32,6 @@ import java.util.Enumeration;
   * MPTask is a subclass of Task which has a reference to and is derived from
   * multiple ParentTasks instead of one ParentTask
   * @see org.cougaar.planning.ldm.plan.Task
-  * @author  ALPINE <alpine-software@bbn.com>
   *
   **/
 	

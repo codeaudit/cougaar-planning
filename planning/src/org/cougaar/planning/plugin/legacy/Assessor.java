@@ -33,7 +33,6 @@ import org.cougaar.core.blackboard.PrivilegedClaimant;
  *  ( to include the TriggerManagerPlugin) that may rescind or change
  *  logplan objects another plugin may have created.
  *
- * @author  ALPINE <alpine-software@bbn.com>
  *
  */
 

@@ -28,7 +28,6 @@ package org.cougaar.planning.ldm.plan;
 
 /**
  * NewLocationRangeScheduleElement provides setters to build a complete object.
- * @author  ALPINE <alpine-software@bbn.com>
  *
  **/
 

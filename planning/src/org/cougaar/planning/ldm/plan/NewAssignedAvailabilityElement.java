@@ -32,7 +32,6 @@ import org.cougaar.planning.ldm.asset.Asset;
    * provides setter methods for building valid AssignedAvailabilityElement 
    * objects.
    *
-   * @author  ALPINE <alpine-software@bbn.com>
    *
    **/
  	 

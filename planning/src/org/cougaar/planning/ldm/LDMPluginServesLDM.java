@@ -33,7 +33,6 @@ import org.cougaar.core.component.Component;
  * this marker class.  In addition, they may (also) implement
  * PrototypeProvider and/or PropertyProvider.
  *
- * @author  ALPINE <alpine-software@bbn.com>
  **/
 
 public interface LDMPluginServesLDM extends Component {

@@ -41,7 +41,6 @@ import org.cougaar.util.log.Logger;
  
 /** ExpansionImpl.java
  * Implementation for expansion - a form of PlanElement
- * @author ALPINE <alpine-software@bbn.com>
  *
  */
  

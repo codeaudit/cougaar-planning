@@ -31,7 +31,6 @@ import java.util.Collection;
 /** NewComposition Interface
    * Used to build complete Composition objects.
    *
-   * @author  ALPINE <alpine-software@bbn.com>
    *
    **/
 

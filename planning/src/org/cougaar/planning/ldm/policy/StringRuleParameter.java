@@ -29,7 +29,6 @@ package org.cougaar.planning.ldm.policy;
 
 
 /** 
- * @author  ALPINE <alpine-software@bbn.com>
  *
  **/
 

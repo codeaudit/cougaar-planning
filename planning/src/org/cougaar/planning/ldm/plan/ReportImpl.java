@@ -31,7 +31,6 @@ import java.util.Date;
 import org.cougaar.core.util.UID;
 
 /** Report Implementation
- * @author  ALPINE <alpine-software@bbn.com>
  *
  *
  * Informational report contains a text and an associated date. 

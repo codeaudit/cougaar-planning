@@ -30,7 +30,6 @@ import java.io.Serializable;
 
 /**
  * Implementation of Preference.
- * @author  ALPINE <alpine-software@bbn.com>
  **/
  
 public class PreferenceImpl

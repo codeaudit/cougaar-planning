@@ -35,7 +35,6 @@ package org.cougaar.planning.ldm.plan;
  * which can be asked to respond to plan-related cluster queries (e.g.
  * like ClusterCollectionOfPlanElements)
  *
- * @author  ALPINE <alpine-software@bbn.com>
  *
  */
 

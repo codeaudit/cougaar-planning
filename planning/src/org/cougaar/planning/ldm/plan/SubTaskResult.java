@@ -31,7 +31,6 @@ package org.cougaar.planning.ldm.plan;
    * Allows access to the sub-task's allocation result information
    * used to aggregate this Expansion's latest reported allocationresult
    *
-   * @author  ALPINE <alpine-software@bbn.com>
    *
    **/
 

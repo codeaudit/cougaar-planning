@@ -31,7 +31,6 @@ package org.cougaar.planning.ldm.plan;
  * represents a Workflow that is the result
  * of an expansion of a Task.
  *
- * @author  ALPINE <alpine-software@bbn.com>
  *
  **/
 

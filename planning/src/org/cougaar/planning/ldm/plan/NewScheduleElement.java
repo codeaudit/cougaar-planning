@@ -31,7 +31,6 @@ import java.util.Date;
  /** NewScheduleElement extends ScheduleElement and provides
    * setter methods for building valid ScheduleElement objects.
    *
-   * @author  ALPINE <alpine-software@bbn.com>
    *
    **/
  	 

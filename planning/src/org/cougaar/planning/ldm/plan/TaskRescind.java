@@ -33,5 +33,9 @@ public interface TaskRescind extends PlanningDirective {
    * @return the UID of the task to be rescinded.
    **/
   UID getTaskUID();
-  
+
+  /**
+   * Is this the rescind of a deleted task?
+   **/
+  boolean isDeleted();
 }

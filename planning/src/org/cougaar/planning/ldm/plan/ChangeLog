@@ -1,3 +1,24 @@
+2003-03-21  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* TaskResponseImpl.java: 
+	* TaskResponse.java: 
+	* NewTaskResponse.java: 
+	* NewNotification.java: 
+	* NewDeletion.java: 
+	* DeletionImpl.java: 
+	* Deletion.java:
+	Bug #1096 -- Received tasks are deleted without deleting the remote Allocation
+	Factor the Deletion and Notification interfaces/classes into a
+	base interface/class (TaskResponse) and sub-interfaces/sub-classes.
+
+	* ClusterObjectFactoryImpl.java: 
+	* ClusterObjectFactory.java: 
+	Bug #1096 -- Received tasks are deleted without deleting the remote Allocation
+	Use Task.isDeleted when constructing TaskRescind directives, which
+	now have a deleted field, too. Also add another method for
+	constructing TaskRescind with an additional boolean giving the
+	deleted status of the directive.
+
 2003-03-12  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* ScheduleImpl.java:

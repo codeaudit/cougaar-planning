@@ -34,4 +34,9 @@ public interface NewTaskRescind extends TaskRescind, NewPlanningDirective
    * @param atask - The Task to be rescinded.
    **/
   void setTaskUID(UID uid);
+
+  /**
+   * Sets the deleted status of this rescind
+   **/
+  void setDeleted(boolean newDeleted);
 }

@@ -21,49 +21,52 @@
 
 package org.cougaar.planning.plugin.legacy;
 
-import org.cougaar.core.plugin.*;
-import org.cougaar.planning.ldm.policy.Policy;
-import org.cougaar.planning.ldm.policy.RuleParameter;
-import org.cougaar.planning.ldm.policy.PredicateRuleParameter;
-import org.cougaar.planning.ldm.policy.IntegerRuleParameter;
-import org.cougaar.planning.ldm.policy.LongRuleParameter;
-import org.cougaar.planning.ldm.policy.RuleParameterIllegalValueException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.text.SimpleDateFormat;
+import java.util.SortedSet;
 import java.util.TimeZone;
+import java.util.TreeSet;
 import org.cougaar.core.agent.service.alarm.Alarm;
-import org.cougaar.planning.ldm.plan.PlanElementSet;
-import org.cougaar.core.blackboard.Subscription;
-import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.blackboard.CollectionSubscription;
+import org.cougaar.core.blackboard.Subscription;
+import org.cougaar.core.logging.LoggingServiceWithPrefix;
+import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.persist.PersistenceNotEnabledException;
-import org.cougaar.planning.ldm.asset.ClusterPG;
+import org.cougaar.core.plugin.*;
+import org.cougaar.core.service.LoggingService;
+import org.cougaar.core.util.UID;
 import org.cougaar.planning.ldm.asset.Asset;
+import org.cougaar.planning.ldm.asset.ClusterPG;
 import org.cougaar.planning.ldm.plan.Allocation;
 import org.cougaar.planning.ldm.plan.AllocationforCollections;
 import org.cougaar.planning.ldm.plan.AspectType;
-import org.cougaar.planning.ldm.plan.PlanElement;
-import org.cougaar.planning.ldm.plan.Expansion;
-import org.cougaar.planning.ldm.plan.Workflow;
-import org.cougaar.planning.ldm.plan.NewWorkflow;
-import org.cougaar.planning.ldm.plan.NewConstraint;
 import org.cougaar.planning.ldm.plan.Constraint;
-import org.cougaar.planning.ldm.plan.Task;
-import org.cougaar.planning.ldm.plan.NewTask;
+import org.cougaar.planning.ldm.plan.Expansion;
 import org.cougaar.planning.ldm.plan.MPTask;
+import org.cougaar.planning.ldm.plan.NewConstraint;
+import org.cougaar.planning.ldm.plan.NewTask;
+import org.cougaar.planning.ldm.plan.NewWorkflow;
+import org.cougaar.planning.ldm.plan.PlanElement;
+import org.cougaar.planning.ldm.plan.PlanElementSet;
+import org.cougaar.planning.ldm.plan.Task;
 import org.cougaar.planning.ldm.plan.Verb;
+import org.cougaar.planning.ldm.plan.Workflow;
+import org.cougaar.planning.ldm.policy.IntegerRuleParameter;
+import org.cougaar.planning.ldm.policy.LongRuleParameter;
+import org.cougaar.planning.ldm.policy.Policy;
+import org.cougaar.planning.ldm.policy.PredicateRuleParameter;
+import org.cougaar.planning.ldm.policy.RuleParameter;
+import org.cougaar.planning.ldm.policy.RuleParameterIllegalValueException;
 import org.cougaar.planning.plugin.util.PluginHelper;
-import org.cougaar.util.UnaryPredicate;
 import org.cougaar.util.SingleElementEnumeration;
-import org.cougaar.core.util.UID;
+import org.cougaar.util.UnaryPredicate;
+import org.cougaar.util.log.Logger;
 
 /**
  * DeletionPlugin provides generic deletion services to a cluster.
@@ -277,11 +280,10 @@ public class DeletionPlugin extends SimplePlugin {
         }
     }
 
-    private static final int DELETION_DELAY_PARAM  = 0;
-    private static final int DELETION_PERIOD_PARAM = 1;
-    private static final int DELETION_PHASE_PARAM = 2;
-    private static final int ARCHIVING_ENABLED_PARAM = 3;
-    private static final int DEBUG_PARAM = 4;
+    private static final String DELETION_DELAY_PREFIX  = "deletionDelay=";
+    private static final String DELETION_PERIOD_PREFIX = "deletionPeriod=";
+    private static final String DELETION_PHASE_PREFIX = "deletionPhase=";
+    private static final String ARCHIVING_ENABLED_PREFIX = "archivingEnabled=";
 
     // Default times are to check every week and delete tasks older
     // than 15 days. The checks occur at times that are zero modulo
@@ -291,7 +293,6 @@ public class DeletionPlugin extends SimplePlugin {
     private static final long DEFAULT_DELETION_DELAY  =  15 * 86400000L;
     private static final long DEFAULT_DELETION_PHASE = 0L;
     private static final boolean DEFAULT_ARCHIVING_ENABLED = true;
-    private static final boolean DEFAULT_DEBUG = false;
 
     private static final long subscriptionExpirationTime = 10L * 60L * 1000L;
 
@@ -329,31 +330,6 @@ public class DeletionPlugin extends SimplePlugin {
         }
     });
 
-    private CollectionSubscription deletionPolicies;
-    private CollectionSubscription deletionSchedulePolicies;
-
-    private static java.io.PrintWriter logFile = null;
-    private static boolean DEBUG = false;
-
-    static {
-        try {
-            logFile =
-                new java.io.PrintWriter(new java.io.FileWriter("deletion.log"));
-        } catch (java.io.IOException e) {
-            System.err.println(e);
-        }
-    }
-
-    private void debug(String s) {
-        s = getMessageAddress() + ": " + s;
-        if (logFile != null) {
-            synchronized (logFile) {
-                logFile.println(s);
-            }
-        }
-        System.out.println(s);
-    }
-
     private class DeletablePlanElementsPredicate implements UnaryPredicate {
         public boolean execute(Object o) {
             if (o instanceof PlanElement) {
@@ -367,7 +343,7 @@ public class DeletionPlugin extends SimplePlugin {
                         MessageAddress destination = cpg.getMessageAddress();
                         if (destination == null) return true; // Can't be remote w null destination
                         Task remoteTask = ((AllocationforCollections) alloc).getAllocationTask();
-                        return remoteTask.isDeleted(); // Can delete if remote task is deleted
+                        return remoteTask == null || remoteTask.isDeleted(); // Can delete if remote task is deleted or non-existent
                     }
                     if (pe instanceof Expansion) {
                         Expansion exp = (Expansion) pe;
@@ -380,8 +356,39 @@ public class DeletionPlugin extends SimplePlugin {
         }
     }
 
-    public DeletionPlugin() {
-        super();
+    private CollectionSubscription deletionPolicies;
+    private CollectionSubscription deletionSchedulePolicies;
+
+    private LoggingService logger;
+
+    public void setLoggingService(LoggingService ls) {
+        logger = ls;
+    }
+
+    public void load() {
+        super.load();
+        if (!(logger instanceof LoggingServiceWithPrefix)) {
+            logger = LoggingServiceWithPrefix.add(logger, getMessageAddress().toString() + ": ");
+        }
+    }
+
+    private long parseLongParameter(String param, String prefix, long dflt) {
+        if (param.startsWith(prefix)) {
+            try {
+                return parseInterval(param.substring(prefix.length()));
+            } catch (Exception e) {
+                if (logger.isWarnEnabled()) logger.warn("Could not parseInterval " + param);
+                return dflt;
+            }
+        }
+        return dflt;
+    }
+
+    private boolean parseBooleanParameter(String param, String prefix, boolean dflt) {
+        if (param.startsWith(prefix)) {
+            return Boolean.valueOf(param.substring(prefix.length())).booleanValue();
+        }
+        return dflt;
     }
 
     /**
@@ -394,20 +401,12 @@ public class DeletionPlugin extends SimplePlugin {
         long deletionPeriod = DEFAULT_DELETION_PERIOD;
         long deletionPhase = DEFAULT_DELETION_PHASE;
         archivingEnabled = DEFAULT_ARCHIVING_ENABLED;
-        DEBUG = DEFAULT_DEBUG;
-        List params = getParameters();
-        switch (params.size()) {
-        default:
-            DEBUG = ((String) params.get(DEBUG_PARAM)).equals("true");
-        case DEBUG_PARAM:
-            archivingEnabled = ((String) params.get(ARCHIVING_ENABLED_PARAM)).equals("true");
-        case ARCHIVING_ENABLED_PARAM:
-            deletionPhase = parseInterval((String) params.get(DELETION_PHASE_PARAM));
-        case DELETION_PHASE_PARAM:
-            deletionPeriod = parseInterval((String) params.get(DELETION_PERIOD_PARAM));
-        case DELETION_PERIOD_PARAM:
-            deletionDelay = parseInterval((String) params.get(DELETION_DELAY_PARAM));
-        case DELETION_DELAY_PARAM:
+        for (Iterator i = getParameters().iterator(); i.hasNext(); ) {
+            String param = (String) i.next();
+            deletionDelay = parseLongParameter(param, DELETION_DELAY_PREFIX, deletionDelay);
+            deletionPeriod = parseLongParameter(param, DELETION_PERIOD_PREFIX, deletionPeriod);
+            deletionPhase = parseLongParameter(param, DELETION_PHASE_PREFIX, deletionPhase);
+            archivingEnabled = parseBooleanParameter(param, ARCHIVING_ENABLED_PREFIX, archivingEnabled);
         }
         deletionPolicies =
             (CollectionSubscription) subscribe(deletionPolicyPredicate, false);
@@ -483,19 +482,19 @@ public class DeletionPlugin extends SimplePlugin {
     public void execute() {
         now = currentTimeMillis();
         if (alarm.hasExpired()) { // Time to make the donuts
-//              System.out.println("Time to make the donuts");
+            if (logger.isInfoEnabled()) logger.info("Time to make the donuts");
             if (archivingEnabled) {
                 try {
                     getBlackboardService().persistNow(); // Record our state
                 } catch (PersistenceNotEnabledException pnee) {
                     pnee.printStackTrace();
-                    System.err.println("Archiving disabled");
+                    logger.error("Archiving disabled");
                     archivingEnabled = false;
                 }
             }
             checkDeletablePlanElements();
             setAlarm();
-            if (DEBUG) {
+            if (logger.isDebugEnabled()) {
                 if (++wakeCount > 4) {
                     wakeCount = 0;
                     printAllPEs();
@@ -513,7 +512,7 @@ public class DeletionPlugin extends SimplePlugin {
         long now = currentTimeMillis();
         long nextAlarm = theDeletionSchedulePolicy.getNextDeletionTime(now);
         long delay = nextAlarm - now;
-//          System.out.println("Make the donuts in " + delay + "msec.");
+        if (logger.isDebugEnabled()) logger.debug("Make the donuts in " + delay + "msec.");
         alarm = wakeAfter(delay);
     }
 
@@ -584,7 +583,7 @@ public class DeletionPlugin extends SimplePlugin {
     private void checkDeletablePlanElements() {
         Collection c = query(deletablePlanElementsPredicate);
         if (c.size() > 0) {
-            if (DEBUG) debug("Found " + c.size() + " deletable PlanElements");
+            if (logger.isDebugEnabled()) logger.debug("Found " + c.size() + " deletable PlanElements");
             for (Iterator i = c.iterator(); i.hasNext(); ) {
                 checkPlanElement((PlanElement) i.next());
             }
@@ -598,14 +597,14 @@ public class DeletionPlugin extends SimplePlugin {
             }
         });
         if (!c.isEmpty()) {
-            debug("Undeletable Tasks");
+            logger.debug("Undeletable Tasks");
             for (Iterator i = c.iterator(); i.hasNext(); ) {
                 PlanElement pe = (PlanElement) i.next();
                 String reason = canDelete(pe);
                 if (reason == null) {
-                    debug(pe.getTask().getUID() + " " + pe.getTask().getVerb() + ": Deletable");
+                    logger.debug(pe.getTask().getUID() + " " + pe.getTask().getVerb() + ": Deletable");
                 } else {
-                    debug(pe.getTask().getUID() + " " + pe.getTask().getVerb() + ": " + reason);
+                    logger.debug(pe.getTask().getUID() + " " + pe.getTask().getVerb() + ": " + reason);
                 }
             }
         }
@@ -701,36 +700,39 @@ public class DeletionPlugin extends SimplePlugin {
 //      }
 
     private void delete(Task task) {
-        if (DEBUG) debug("Deleting " + task);
+        if (logger.isDebugEnabled()) logger.debug("Deleting " + task);
         ((NewTask) task).setDeleted(true);  // Prevent LP from propagating deletion
         if (task instanceof MPTask) {
             // Delete multiple parent tasks
             MPTask mpTask =(MPTask) task;
-            if (DEBUG) debug("Task is MPTask, deleting parents");
+            if (logger.isDebugEnabled()) logger.debug("Task is MPTask, deleting parents");
             for (Enumeration e = mpTask.getParentTasks(); e.hasMoreElements(); ) {
                 Task parent = (Task) e.nextElement();
                 delete(parent);    // ppe is always an Aggregation
             }
-            if (DEBUG) debug("All parents deleted");
+            if (logger.isDebugEnabled()) logger.debug("All parents deleted");
         } else {
-            if (DEBUG) debug("Checking parent");
+            if (logger.isDebugEnabled()) logger.debug("Checking parent");
             UID ptuid = task.getParentTaskUID();
             if (ptuid == null) {
-                if (DEBUG) debug("Deleting root");
+                if (logger.isInfoEnabled()) logger.info("Deleting root " + task.getUID());
                 deleteRootTask(task);
             } else {
                 PlanElement ppe = peSet.findPlanElement(ptuid);
                 if (ppe == null) { // Parent is in another cluster
-                                // Nothing further to do
-                    if (DEBUG) debug("Parent " + ptuid + " not found");
-                    deleteRootTask(task);
+                    // Delete the task
+                    if (logger.isDebugEnabled()) logger.debug("Parent " + ptuid + " is remote, deleting task"
+                                                              + task.getUID());
+                    deleteReceivedTask(task);
                 } else {
                     if (ppe instanceof Expansion) {
-                        if (DEBUG) debug("Parent is expansion, deleting subtask");
+                        if (logger.isInfoEnabled()) logger.info("Parent is expansion of "
+                                                                + ptuid
+                                                                + ", deleting subtask "
+                                                                + task.getUID());
                         deleteSubtask((Expansion) ppe, task);
                     } else {
-                        if (DEBUG) debug("Parent is expansion, deleting subtask");
-                        if (DEBUG) debug("Parent is other, propagating");
+                        if (logger.isDebugEnabled()) logger.debug("Parent is other, propagating");
                         delete(ppe.getTask()); // Not sure this is possible, but parallels "isDeleteAllowed"
                     }
                 }
@@ -739,6 +741,10 @@ public class DeletionPlugin extends SimplePlugin {
     }
 
     private void deleteRootTask(Task task) {
+        publishRemove(task);
+    }
+
+    private void deleteReceivedTask(Task task) {
         publishRemove(task);
     }
 
@@ -772,10 +778,10 @@ public class DeletionPlugin extends SimplePlugin {
 
     private boolean isTimeToDelete(PlanElement pe) {
         long et = computeExpirationTime(pe);
-//  	if (DEBUG) debug("Expiration time is " + new java.util.Date(et));
+//  	if (logger.isDebugEnabled()) logger.debug("Expiration time is " + new java.util.Date(et));
         boolean result = et == 0L || et < now;
 //          if (result) {
-//              if (DEBUG) debug("isTimeToDelete: " + new java.util.Date(et));
+//              if (logger.isDebugEnabled()) logger.debug("isTimeToDelete: " + new java.util.Date(et));
 //          }
         return result;
     }

@@ -43,6 +43,7 @@ import org.cougaar.planning.ldm.lps.ReceiveTaskLP;
 import org.cougaar.planning.ldm.lps.RemoteClusterAllocationLP;
 import org.cougaar.planning.ldm.lps.RescindLP;
 import org.cougaar.planning.service.LDMService;
+import org.cougaar.core.service.AlarmService;
 
 /**
  * This is the "planning" domain, which defines planning
@@ -55,6 +56,7 @@ public class PlanningDomain extends DomainAdapter {
   private AgentIdentificationService agentIdService;
   private MessageAddress self;
   private LDMService ldmService;
+  private AlarmService alarmService;
 
   public String getDomainName() {
     return PLANNING_NAME;
@@ -71,6 +73,10 @@ public class PlanningDomain extends DomainAdapter {
 
   public void setLDMService(LDMService ldmService) {
     this.ldmService = ldmService;
+  }
+
+  public void setAlarmService(AlarmService alarmService) {
+    this.alarmService = alarmService;
   }
 
   public void load() {
@@ -127,7 +133,7 @@ public class PlanningDomain extends DomainAdapter {
     addLogicProvider(new ReceiveAssetVerificationLP(rootplan, logplan, ldmf));
     addLogicProvider(new ReceiveAssetRescindLP(rootplan, logplan, ldmf));
     addLogicProvider(new ReceiveNotificationLP(rootplan, logplan, ldmf));
-    addLogicProvider(new ReceiveDeletionLP(logplan, self));
+    addLogicProvider(new ReceiveDeletionLP(rootplan, logplan, ldmf, self));
     addLogicProvider(new ReceiveRescindLP(rootplan, logplan));
     addLogicProvider(new ReceiveTaskLP(rootplan, logplan));
     
@@ -135,7 +141,7 @@ public class PlanningDomain extends DomainAdapter {
     addLogicProvider(new AssetTransferLP(rootplan, logplan, ldmf, self));    
     addLogicProvider(new NotificationLP(rootplan, logplan, ldmf, self));
     addLogicProvider(new DeletionLP(rootplan, ldmf, self));
-    addLogicProvider(new RemoteClusterAllocationLP(rootplan, ldmf, self));
+    addLogicProvider(new RemoteClusterAllocationLP(rootplan, ldmf, self, alarmService));
     addLogicProvider(new PreferenceChangeLP(rootplan));
     addLogicProvider(new RescindLP(rootplan, logplan, ldmf));
     

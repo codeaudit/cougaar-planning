@@ -30,25 +30,10 @@ import java.util.Enumeration;
  * The Notification will inlcude the task and the allocationresult
  **/
 
-public interface Notification extends PlanningDirective {
-
-  /**
-   * Returns the task the notification is in reference to.
-   * @return Task
-   **/
-  UID getTaskUID();
-   
+public interface Notification extends TaskResponse {
   /**
    * Returns the estimated allocation result from below
    * @return AllocationResult
    **/
   AllocationResult getAllocationResult();
-   
-  /** Get the child task's UID that was disposed.  It's parent task is getTask();
-   * Useful for keeping track of which subtask of an Expansion caused
-   * the re-aggregation of the Expansion's reported allocationresult.
-   * @return UID
-   */
-  UID getChildTaskUID();
-   
 }

@@ -290,7 +290,11 @@ public class ClusterObjectFactoryImpl implements ClusterObjectFactory {
   }
 
   public TaskRescind newTaskRescind(UID taskUID, MessageAddress destination){
-    return new TaskRescindImpl(cid, destination, getRealityPlan(), taskUID);
+    return new TaskRescindImpl(cid, destination, getRealityPlan(), taskUID, false);
+  }
+
+  public TaskRescind newTaskRescind(UID taskUID, MessageAddress destination, boolean deleted){
+    return new TaskRescindImpl(cid, destination, getRealityPlan(), taskUID, deleted);
   }
 
   public AssetRescind newAssetRescind(Asset asset, Asset rescindeeAsset,

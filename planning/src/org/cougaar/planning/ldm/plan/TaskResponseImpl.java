@@ -34,47 +34,73 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 
-/** An implementation of org.cougaar.Notification
+/** An implementation of org.cougaar.TaskResponse
  */
-public class NotificationImpl extends TaskResponseImpl
-  implements Notification, NewNotification
+public class TaskResponseImpl extends PlanningDirectiveImpl
+  implements TaskResponse, NewTaskResponse
 {
                 
-  private AllocationResult allocresult;
+  private UID taskUID; 
+  private UID childUID;
                 
   //no-arg constructor
-  public NotificationImpl() {
+  public TaskResponseImpl () {
     super();
   }
 
-  //constructor that takes the Task, AllocationResult, and Plan
-  public NotificationImpl(Task t, AllocationResult ar, Plan plan) {
-    super(t, plan);
-    allocresult = ar;
+  //constructor that takes the Task and Plan
+  public TaskResponseImpl(Task t, Plan plan) {
+    taskUID = t.getUID();
+    setPlan(plan);
   }
                 
-  public NotificationImpl(UID tuid, AllocationResult ar, Plan plan) {
-    super(tuid, plan);
-    allocresult = ar;
+  public TaskResponseImpl(UID tuid, Plan plan) {
+    taskUID = tuid;
+    setPlan(plan);
   }
 
-  /** implementation of the Notification interface */
+  /** implementation of the TaskResponse interface */
                 
-  /**
-   * Returns the estimated allocation result from below
-   * @return AllocationResult
+  /** 
+   * Returns the task UID the notification is in reference to.
+   * @return Task 
    **/
-  public AllocationResult getAllocationResult() {
-    return allocresult;
+                
+  public UID getTaskUID() {
+    return taskUID;
   }
   
-  // implementation methods for the NewNotification interface
-                
-  /** Sets the combined estiamted allocationresult from below
-    * @param ar - The AllocationResult for the Task.
+  /** Get the child task's UID that was disposed.  It's parent task is getTask();
+    * Useful for keeping track of which subtask of an Expansion caused
+    * the re-aggregation of the Expansion's reported allocationresult.
+    * @return UID
     */
-  public void setAllocationResult(AllocationResult ar) {
-    allocresult = ar;
+  public UID getChildTaskUID() {
+    return childUID;
+  }
+  
+  // implementation methods for the NewTaskResponse interface
+
+  /** 
+   * Sets the task the notification is in reference to.
+   * @param t 
+   **/
+                
+  public void setTask(Task t) {
+    taskUID = t.getUID();
+  }
+
+  public void setTaskUID(UID tuid) {
+    taskUID = tuid;
+  }
+  
+  /** Sets the child task's UID that was disposed.  It's parent task is getTask();
+    * Useful for keeping track of which subtask of an Expansion caused
+    * the re-aggregation of the Expansion's reported allocationresult.
+    * @param thechildUID
+    */
+  public void setChildTaskUID(UID thechildUID) {
+    childUID = thechildUID;
   }
                     
   /** Always serialize Notifications with TaskProxy
@@ -85,9 +111,5 @@ public class NotificationImpl extends TaskResponseImpl
 
   private void readObject(ObjectInputStream stream) throws ClassNotFoundException, IOException {
     stream.defaultReadObject();
-  }
-
-  public String toString() {
-    return "<Notification for child " + getChildTaskUID() + " of " + getTaskUID() + ">";
   }
 }

@@ -43,6 +43,7 @@ public class TaskRescindImpl
 {
 
   private UID taskUID = null;
+  private boolean deleted;      // Signifies that the task being rescinded is deleted.
         
   /** @param src
    * @param dest
@@ -53,13 +54,17 @@ public class TaskRescindImpl
     super.setDestination(dest);
     super.setPlan(plan);
     taskUID = t.getUID();
+    deleted = t.isDeleted();
   }
 
-  public TaskRescindImpl(MessageAddress src, MessageAddress dest, Plan plan, UID tuid) {
+  public TaskRescindImpl(MessageAddress src, MessageAddress dest, Plan plan,
+                         UID tuid, boolean deleted)
+  {
     super.setSource(src);
     super.setDestination(dest);
     super.setPlan(plan);
-    taskUID = tuid;
+    this.taskUID = tuid;
+    this.deleted = deleted;
   }
 
   /**
@@ -86,7 +91,14 @@ public class TaskRescindImpl
   public void setTaskUID(UID tuid) {
     taskUID = tuid;
   }
-       
+
+  public void setDeleted(boolean newDeleted) {
+    deleted = newDeleted;
+  }
+
+  public boolean isDeleted() {
+    return deleted;
+  }
    
   private void writeObject(ObjectOutputStream stream) throws IOException {
     stream.defaultWriteObject();

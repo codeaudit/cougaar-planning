@@ -181,7 +181,6 @@ implements LogicProvider, EnvelopeLogicProvider {
       if (cid != null) {
         Task rt = ((AllocationforCollections) all).getAllocationTask();
         if (rt != null) {
-          if (rt.isDeleted()) return; // Already deleted
           TaskRescind trm = ldmf.newTaskRescind(rt, cid);
           ((AllocationforCollections) all).setAllocationTask(null);
           rootplan.sendDirective((Directive) trm);

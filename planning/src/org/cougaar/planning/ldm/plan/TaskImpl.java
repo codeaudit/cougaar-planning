@@ -584,6 +584,9 @@ public class TaskImpl extends PlanningDirectiveImpl
       buf.append(" ");
       buf.append(getCommitmentDate().toString());
     }
+    if (isDeleted()) {
+      buf.append(" deleted");
+    }
     if (preferences != null && preferences.size()!=0) {
       buf.append(" ");
       buf.append(preferences.toString());

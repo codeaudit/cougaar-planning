@@ -31,11 +31,5 @@ import java.util.Enumeration;
  *
  **/
 
-public interface NewDeletion extends Deletion, NewPlanningDirective {
-		
-  /** 
-   * Sets the task the deletion is in reference to.
-   * @param uid The UID of the Task to be referenced in the Deletion. 
-   **/
-  void setTaskUID(UID uid);
+public interface NewDeletion extends Deletion, NewTaskResponse {
 }

@@ -30,11 +30,5 @@ import java.util.Enumeration;
  * The Deletion will task and parent task uids
  **/
 
-public interface Deletion extends PlanningDirective {
-
-  /**
-   * Returns the task the deletion is in reference to.
-   * @return Task
-   **/
-  UID getTaskUID();
+public interface Deletion extends TaskResponse {
 }

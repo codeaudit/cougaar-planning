@@ -36,49 +36,25 @@ import java.io.Serializable;
 
 /** An implementation of org.cougaar.Deletion
  */
-public class DeletionImpl extends PlanningDirectiveImpl
+public class DeletionImpl extends TaskResponseImpl
   implements Deletion, NewDeletion
 {
-                
-  private UID taskUID; 
-                
   //no-arg constructor
   public DeletionImpl () {
     super();
   }
 
   //constructor that takes the Task, AllocationResult, and Plan
-  public DeletionImpl (Task t, Plan plan) {
-    taskUID = t.getUID();
-    setPlan(plan);
+  public DeletionImpl(Task t, Plan plan) {
+    super(t, plan);
   }
                 
-  public DeletionImpl (UID tuid, Plan plan) {
-    taskUID = tuid;
-    setPlan(plan);
+  public DeletionImpl(UID tuid, Plan plan) {
+    super(tuid, plan);
   }
 
-  /** implementations of the Deletion interface */
-                
-  /** 
-   * Returns the task UID the deletion is in reference to.
-   * @return Task 
-   **/
-                
-  public UID getTaskUID() {
-    return taskUID;
-  }
-  
-  // implementation methods for the NewDeletion interface
-
-  /** 
-   * Sets the uid of the task the deletion is in reference to.
-   * @param tuid
-   **/
-                
-  public void setTaskUID(UID tuid) {
-    taskUID = tuid;
-  }
+  // The implementation of the Deletion interface is empty because it
+  // defines no new methods
 
   /** Always serialize Deletions with TaskProxy
    */
@@ -91,6 +67,6 @@ public class DeletionImpl extends PlanningDirectiveImpl
   }
 
   public String toString() {
-    return "<Deletion for " + taskUID+">";
+    return "<Deletion for " + getTaskUID() + ">";
   }
 }

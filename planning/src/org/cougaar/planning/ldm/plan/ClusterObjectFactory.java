@@ -325,6 +325,7 @@ public interface ClusterObjectFactory {
   
   /** Build a TaskRescind Message.  This message is only sent by
    *	CCRescind - NOT PLUGINS!!!.
+   *    The deleted status is taken from the task
    *	@param task - The Task to be rescinded
    *	@param destination - The Cluster to send the TaskRescind Message to.
    *	@return TaskRescind
@@ -333,11 +334,22 @@ public interface ClusterObjectFactory {
 
   /** Build a TaskRescind Message.  This message is only sent by
    *	CCRescind - NOT PLUGINS!!!.
+   *    The deleted status is assumed to be false
    *	@param taskUID - The UID of the Task to be rescinded
    *	@param destination - The Cluster to send the TaskRescind Message to.
    *	@return TaskRescind
    **/
   TaskRescind newTaskRescind(UID taskUID, MessageAddress destination);
+
+  /** Build a TaskRescind Message.  This message is only sent by
+   *	CCRescind - NOT PLUGINS!!!.
+   *    The deleted status is explicitly specifed by the deleted parameter
+   *	@param taskUID - The UID of the Task to be rescinded
+   *	@param destination - The Cluster to send the TaskRescind Message to.
+   *    @param deleted - Mark the TaskRescind as referring to a deleted task.
+   *	@return TaskRescind
+   **/
+  TaskRescind newTaskRescind(UID taskUID, MessageAddress destination, boolean deleted);
   
   /** Build an AssetRescind Message.  This message is only sent by
    *	CCRescind - NOT PLUGINS!!!.

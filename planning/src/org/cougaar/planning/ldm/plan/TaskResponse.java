@@ -25,15 +25,26 @@ import org.cougaar.core.util.UID;
 
 import java.util.Enumeration;
 
-/** NewNotification Interface
- * provides setter methods to create a Notification object
- * @author  ALPINE <alpine-software@bbn.com>
- *
+/**
+ * TaskResponse interface is the base interface of responses to a task
+ * that was sent to an agent and serves to identify the task. The
+ * Notification and Deletion responses extend this interface.
  **/
 
-public interface NewNotification extends Notification, NewTaskResponse {
-  /** Sets the combined estiamted allocationresult from below
-   * @param ar - The AllocationResult for the Task.
+public interface TaskResponse extends PlanningDirective {
+
+  /**
+   * Returns the task the response is in reference to (the parent
+   * task).
+   * @return Task
    **/
-  void setAllocationResult(AllocationResult ar);
+  UID getTaskUID();
+   
+  /** Get the child task's UID that was disposed. It's parent task is
+   * identified by getTaskUID(); Useful for keeping track of which
+   * subtask of an Expansion caused the re-aggregation of the
+   * Expansion's reported allocationresult.
+   * @return UID
+   */
+  UID getChildTaskUID();
 }

@@ -25,7 +25,7 @@ import org.cougaar.core.blackboard.*;
 import org.cougaar.core.agent.*;
 import org.cougaar.planning.ldm.*;
 import org.cougaar.core.domain.*;
-
+import org.cougaar.planning.plugin.util.PluginHelper;
 import org.cougaar.planning.ldm.plan.PlanElement;
 import org.cougaar.planning.ldm.plan.Allocation;
 import org.cougaar.planning.ldm.asset.Asset;
@@ -42,6 +42,7 @@ import org.cougaar.util.log.*;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Enumeration;
+import org.cougaar.core.service.AlarmService;
 
 
 /** RemoteClusterAllocationLogicProvider class provides the logic to capture 
@@ -59,17 +60,25 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
   private final RootPlan rootplan;
   private final PlanningFactory ldmf;
   private final MessageAddress self;
+  private final AlarmService alarmService;
 
   public RemoteClusterAllocationLP(
       RootPlan rootplan,
       PlanningFactory ldmf,
-      MessageAddress self) {
+      MessageAddress self,
+      AlarmService alarmService)
+  {
     this.rootplan = rootplan;
     this.ldmf = ldmf;
     this.self = self;
+    this.alarmService = alarmService;
   }
 
   public void init() {
+  }
+
+  private long currentTimeMillis() {
+    return alarmService.currentTimeMillis();
   }
 
   private void examine(Object obj, Collection changes) {
@@ -82,6 +91,7 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
     if (cpg == null) return;
     MessageAddress destination = cpg.getMessageAddress();
     if (destination == null) return;
+    if (!taskShouldBeSent(task)) return; // In past
 
     // see if we're reissuing the task... if so, we'll just use it.
     Task copytask = ((AllocationforCollections)all).getAllocationTask();
@@ -142,7 +152,7 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
     while (enum.hasMoreElements()) {
       AllocationforCollections alloc = (AllocationforCollections) enum.nextElement();
       Task remoteTask = alloc.getAllocationTask();
-      if (remoteTask != null) {
+      if (remoteTask != null && taskShouldBeSent(remoteTask)) {
         if (logger.isInfoEnabled()) {
           Task localTask = alloc.getTask();
           logger.info(
@@ -157,6 +167,23 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
     if (logger.isInfoEnabled()) {
       logger.info(self+": Reconciled");
     }
+  }
+
+  private boolean taskShouldBeSent(Task task) {
+    double et;
+    try {
+      et = PluginHelper.getEndTime(task);
+    } catch (RuntimeException re) {
+      et = Double.NaN;
+    }
+    if (Double.isNaN(et))
+      try {
+        et = PluginHelper.getStartTime(task);
+      } catch (RuntimeException re) {
+        et = Double.NaN;
+      }
+    if (Double.isNaN(et)) return true; // Can't tell, send it
+    return ((long) et) >= currentTimeMillis();
   }
 
   private Task prepareNewTask(Task task, MessageAddress dest) {

@@ -74,6 +74,9 @@ implements LogicProvider, MessageLogicProvider
    * estimated allocation result for the plan element of the task. We
    * do this by publishing a change of the plan element (if it
    * exists).
+   * Also, the received task may have been deleted. If so, complete
+   * the deletion process by actually removing the task from the
+   * blackboard.
    **/
   public void execute(Directive dir, Collection changes)
   {
@@ -86,6 +89,13 @@ implements LogicProvider, MessageLogicProvider
           // only add if it isn't already there.
 	  //System.err.print("!");
           rootplan.add(tsk);
+        } else if (tsk.isDeleted()) {
+          if (existingTask.isDeleted()) {
+            rootplan.remove(existingTask); // Complete the removal
+          } else {
+            // Whoops! We must have restarted and reverted to a
+            // pre-deletion state.
+          }
         } else if (tsk == existingTask) {
           rootplan.change(existingTask, changes);
         } else {

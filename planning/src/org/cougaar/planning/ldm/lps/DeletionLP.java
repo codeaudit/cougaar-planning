@@ -21,25 +21,19 @@
 
 package org.cougaar.planning.ldm.lps;
 
-import org.cougaar.core.mts.MessageAddress;
-import org.cougaar.planning.ldm.*;
-import org.cougaar.core.blackboard.*;
-
+import java.util.Collection;
+import java.util.Enumeration;
 import org.cougaar.core.agent.*;
-
+import org.cougaar.core.blackboard.*;
 import org.cougaar.core.domain.*;
-
+import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.core.util.UID;
+import org.cougaar.planning.ldm.*;
 import org.cougaar.planning.ldm.plan.NewDeletion;
 import org.cougaar.planning.ldm.plan.Task;
-
-import org.cougaar.core.util.UID;
-
 import org.cougaar.util.UnaryPredicate;
 import org.cougaar.util.log.Logger;
 import org.cougaar.util.log.Logging;
-
-import java.util.Enumeration;
-import java.util.Collection;
 
 
 /** RescindLogicProvider class provides the logic to capture 
@@ -61,7 +55,8 @@ implements LogicProvider, EnvelopeLogicProvider
   public DeletionLP(
       RootPlan rootplan,
       PlanningFactory ldmf,
-      MessageAddress self) {
+      MessageAddress self)
+  {
     this.rootplan = rootplan;
     this.ldmf = ldmf;
     this.self = self;
@@ -85,15 +80,15 @@ implements LogicProvider, EnvelopeLogicProvider
           if (ptuid != null) {
             MessageAddress dst = task.getSource();
             if (!dst.equals(self)) {
+              // Parent task is in another agent so we do our thing
               NewDeletion nd = ldmf.newDeletion();
               nd.setTaskUID(ptuid);
               nd.setPlan(task.getPlan());
               nd.setSource(self);
               nd.setDestination(dst);
 	      if (logger.isDebugEnabled()) {
-		logger.debug(self + ": sendDeletion to " + dst + " for task " + ptuid);
+		logger.debug(self + ": send Deletion to " + dst + " for task " + ptuid);
 	      }
-
               rootplan.sendDirective(nd);
             }
           }

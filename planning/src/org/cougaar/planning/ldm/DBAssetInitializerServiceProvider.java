@@ -53,6 +53,9 @@ public class DBAssetInitializerServiceProvider implements ServiceProvider {
   private final Logger logger;
 
   public DBAssetInitializerServiceProvider(DBInitializerService dbInit) {
+    if (dbInit == null)
+      throw new IllegalArgumentException("Null DBInitializerService passed to DBAssetInitializerServiceProvider constructor.");
+
     this.dbInit = dbInit;
     this.logger = Logging.getLogger(getClass());
   }

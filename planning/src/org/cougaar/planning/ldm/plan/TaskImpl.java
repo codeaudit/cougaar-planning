@@ -634,8 +634,8 @@ public class TaskImpl extends PlanningDirectiveImpl
 
     stream.writeObject(directObject);
     writeArrayList(stream, phrases);
-    stream.writeObject(workflow);
     if (stream instanceof org.cougaar.core.persist.PersistenceOutputStream) {
+      stream.writeObject(workflow);
       stream.writeObject(myAnnotation);
       stream.writeObject(observableAspects);
     } else {
@@ -651,8 +651,8 @@ public class TaskImpl extends PlanningDirectiveImpl
     stream.defaultReadObject();
     directObject = (Asset) stream.readObject();
     phrases = readArrayList(stream);
-    workflow = (Workflow) stream.readObject();
     if (stream instanceof org.cougaar.core.persist.PersistenceInputStream) {
+      workflow = (Workflow) stream.readObject();
       myAnnotation = (Annotation) stream.readObject();
       observableAspects = (HashSet) stream.readObject();
     } else {

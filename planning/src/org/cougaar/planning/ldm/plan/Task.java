@@ -157,10 +157,15 @@ public interface Task
     */
   byte getPriority();
   
-  /** WARNING: This method may return null if the commitment date is undefined
-    * Get the Commitment date of this task.
-    * After this date, the task is not allowed to be rescinded
-    * or re-planned (change in preferences).
+  /** WARNING: This method may return null if the commitment date is undefined.
+    * The task commitment date of a task represents the date past which the planning
+    * module will warn if the task is changed or removed.  Commitment dates in the planning
+    * domain are used to note the last possible date that a task could be changed before
+    * the supplier has committed resources to fill or commit the task. E.g. If a supplier
+    * has an order and ship lead time of 3 days, then the task's commitment date should be
+    * atleast 3 days before the desired delivery date (usually represented with an end
+    * date preference).
+    * @return Date The Commitment date of this task.
     */
   Date getCommitmentDate();
 

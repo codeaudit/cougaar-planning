@@ -45,11 +45,9 @@ import org.cougaar.util.log.Logger;
 import org.cougaar.util.log.Logging;
 
 /**
- * Sample LogicProvider for use by ClusterDispatcher to
  * take an incoming Deletion Directive and
  * perform Modification to the LOGPLAN
  **/
-
 public class ReceiveDeletionLP
 implements LogicProvider, MessageLogicProvider
 {

@@ -32,37 +32,41 @@ import org.cougaar.planning.ldm.plan.Task;
 import org.cougaar.planning.ldm.plan.Verb;
 import org.cougaar.util.UnaryPredicate;
 
+/**
+ * Not usually used predicate for Allocations of tasks of certain Verb
+ * @see PredicateFactory
+ */
 public class AllocationsPredicate  implements UnaryPredicate, NewAllocationsPredicate {
     
-    private Verb myVerb;
+  private Verb myVerb;
 
-    public AllocationsPredicate() {
-    }
+  public AllocationsPredicate() {
+  }
 
-    /** Overloaded constructor for using from the scripts. 
-     *  Discouraged to use from plugins directly.
-     */
-    public AllocationsPredicate( Verb ver ) {
-	myVerb = ver;
-    }
+  /** Overloaded constructor for using from the scripts. 
+   *  Discouraged to use from plugins directly.
+   */
+  public AllocationsPredicate( Verb ver ) {
+    myVerb = ver;
+  }
 
-    public void setVerb( Verb vb ) {
-	myVerb = vb;
-    }
+  public void setVerb( Verb vb ) {
+    myVerb = vb;
+  }
 
-    public boolean execute(Object o) {
-	if (o instanceof PlanElement) {
-	    Task t = ((PlanElement)o).getTask();
-	    if (t.getVerb().equals( myVerb )) {
+  public boolean execute(Object o) {
+    if (o instanceof PlanElement) {
+      Task t = ((PlanElement)o).getTask();
+      if (t.getVerb().equals( myVerb )) {
 
-		// if the PlanElement is for the correct kind of task - make sure its an allocation
-		PlanElement p = ( PlanElement )o;
-		if ( p instanceof Allocation) {
-		    return true;
-		}
-
-	    }
+	// if the PlanElement is for the correct kind of task - make sure its an allocation
+	PlanElement p = ( PlanElement )o;
+	if ( p instanceof Allocation) {
+	  return true;
 	}
-	return false;
+
+      }
     }
+    return false;
+  }
 }

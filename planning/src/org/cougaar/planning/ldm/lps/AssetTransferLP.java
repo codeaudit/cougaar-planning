@@ -107,7 +107,7 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
    *             == PlanElement with an Allocation to an agent ADDED to LogPlan
    *
    * If the test returned true i.e. it was an AssetTransfer...
-   * create an AssetAssignment task and send itto a remote Cluster 
+   * create an AssetAssignment task and send it to a remote Agent 
    **/
   public void execute(EnvelopeTuple o, Collection changes) {
     Object obj;
@@ -149,7 +149,7 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
   // RestartLogicProvider implementation
 
   /**
-   * Cluster restart handler. Resend all our assets to the restarted
+   * Agent restart handler. Resend all our assets to the restarted
    * agent marking them as "REPEAT". Also send AssetVerification
    * messages for all the assets we have received from the restarted
    * agent. The restarted agent will rescind them if they are no

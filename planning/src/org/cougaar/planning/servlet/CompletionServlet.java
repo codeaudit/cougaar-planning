@@ -1152,7 +1152,7 @@ extends BaseServletComponent
         return;
       }
       toAbsTask.setUID(sTaskUID);
-      String sourceClusterId = 
+      String sourceAgentId = 
         formURLEncode(task.getSource().getAddress());
       toAbsTask.setUID_URL(
           getTaskUID_URL(getEncodedAgentName(), sTaskUID));
@@ -1162,7 +1162,7 @@ extends BaseServletComponent
       if (spTaskUID != null) {
         toAbsTask.setParentUID(spTaskUID);
         toAbsTask.setParentUID_URL(
-            getTaskUID_URL(sourceClusterId, spTaskUID));
+            getTaskUID_URL(sourceAgentId, spTaskUID));
       }
       // set plan element
       toAbsTask.setPlanElement(getPlanElement(task.getPlanElement()));
@@ -1176,7 +1176,7 @@ extends BaseServletComponent
      * Assumes that the TASKS.PSP URL is fixed at "/tasks".
      */
     protected String getTaskUID_URL(
-        String clusterId, String sTaskUID) {
+        String agentId, String sTaskUID) {
       /*
         // FIXME prefix with base URL?
         
@@ -1190,7 +1190,7 @@ extends BaseServletComponent
       */
       return 
         "/$"+
-        clusterId+
+        agentId+
         "/tasks?mode=3&uid="+
         sTaskUID;
     }

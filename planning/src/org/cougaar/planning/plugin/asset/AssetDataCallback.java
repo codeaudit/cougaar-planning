@@ -32,6 +32,10 @@ import org.cougaar.planning.ldm.asset.NewPropertyGroup;
 import org.cougaar.planning.ldm.asset.PropertyGroup;
 import org.cougaar.util.ConfigFinder;
 
+/**
+ * Callback provided by AssetDataPlugin (or extension) to AssetDataReader implementation.
+ * Typically the implementation is an inner class to the Plugin.
+ */
 public interface AssetDataCallback {
     ConfigFinder getConfigFinder();
     void createMyLocalAsset(String assetClassName);

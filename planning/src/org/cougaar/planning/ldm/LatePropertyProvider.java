@@ -61,7 +61,7 @@ public interface LatePropertyProvider extends LDMPluginServesLDM {
    * set in the asset. <P>
    *
    * The time parameter allows specification of the time point of
-   * interest.  The time may be specified as an actual alp time, or
+   * interest.  The time may be specified as an actual Cougaar time, or
    * as LdmServesClient.UNSPECIFIED_TIME. <P>
    *
    * A LatePropertyProvider may, at its option, fill in other property

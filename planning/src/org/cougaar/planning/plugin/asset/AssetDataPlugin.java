@@ -86,8 +86,10 @@ import org.cougaar.util.TimeSpan;
 import org.cougaar.util.UnaryPredicate;
 
 /**
- * Generic part of plugin to create local asset and the Report tasks
- * associated with all the local asset's relationships. Local asset must have ClusterPG and 
+ * Generic plugin to create a local asset and the Report tasks
+ * associated with all the local asset's relationships. 
+ *
+ * Local asset must have ClusterPG and 
  * RelationshipPG, Presumption is that the 'other' assets in all the 
  * relationships have both Cluster and Relationship PGs.
  * Currently assumes that each Agent has exactly 1 local asset.
@@ -103,8 +105,8 @@ import org.cougaar.util.UnaryPredicate;
  * 
  * Parameter format -
  * Relationship:MessageAddress=<ClusterPG.getMessageAddress of other asset>,\
- * ItemIdentification=<ItemIdentificatioPG.getItemIdentification of other asset>,\
- * TypeIdentification=<TypeIdentificatioPG.getTypeIdentification of other asset>,\
+ * ItemIdentification=<ItemIdentificationPG.getItemIdentification of other asset>,\
+ * TypeIdentification=<TypeIdentificationPG.getTypeIdentification of other asset>,\
  * Role=<Role performed by the local asset>\
  * StartTime=<Date relationship starts>\
  * EndTime=<Date relations ends>

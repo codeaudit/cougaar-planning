@@ -27,18 +27,26 @@
 package org.cougaar.planning;
 
 
+/**
+ * Define standard Planning domain constants for use by Plugins and LPs.
+ * Most domains will define a set of constants. Here they are Verbs and Prepositions.
+ */
 public interface Constants {
 
+  
   interface Verb {
-    // ALPINE defined verb types
+    // Cougaar Planning defined verb types
     // Keep in alphabetical order
+
+    /** The Verb for an Entity to Report "up" to another **/
     String REPORT = "Report";
 
     org.cougaar.planning.ldm.plan.Verb Report= org.cougaar.planning.ldm.plan.Verb.get(REPORT);
   }
 
+  /** Prepositions for use in PrepositionalPhrases off of Tasks **/
   interface Preposition {
-    // ALPINE defined prepositions
+    // Cougaar Planning defined prepositions
     String WITH        = "With"; 	// typically used for the OPlan object
     String TO          = "To"; 	// typically used for a destination geoloc
     String FROM        = "From"; 	// typically used for an origin geoloc

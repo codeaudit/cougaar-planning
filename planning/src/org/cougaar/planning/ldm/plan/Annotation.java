@@ -31,7 +31,7 @@ import java.io.Serializable;
 /** 
  * An Infrastructure-opaque type used for tagging various blackboard objects 
  * with Plugin-specific information.  The infrastructure will never copy
- * or transmit Annotations between clusters, but will save them when 
+ * or transmit Annotations between agents, but will save them when 
  * persisting (hence the extends Serializable).
  *
  * Annotations may be attached to appropriate plan objects at object

@@ -48,7 +48,7 @@ public interface LDMService extends Service {
   //
 
   /** Get a reference to the LDM object.  
-   * @todo This should be refactored for Cougaar 9.4.
+   * @todo This should be refactored
    **/
   LDMServesPlugin getLDM();
 

@@ -672,7 +672,7 @@ public abstract class PluginAdapter
   
   
   //
-  // cluster
+  // agent
   // 
 
   protected final MessageAddress getAgentIdentifier() {
@@ -993,7 +993,7 @@ public abstract class PluginAdapter
    * based on the value of threadingChoice.
    * The default choice is to use a SharedThreading model, which
    * shares thread of execution with others of the same sort in
-   * the cluster.
+   * the agent.
    * Most plugins can ignore this altogether.  Most that
    * want to select different behavior should
    * call chooseThreadingModel() in their constructer.
@@ -1071,7 +1071,7 @@ public abstract class PluginAdapter
   }
 
   /** 
-   * Shares a Thread with other SharedThreading plugins in the same cluster.
+   * Shares a Thread with other SharedThreading plugins in the same agent.
    * <p>
    * There are two callbacks:<ul>
    *   <li>the subscription watcher, to track blackboard activity</li>

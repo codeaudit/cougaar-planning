@@ -42,7 +42,7 @@ import org.cougaar.util.log.Logging;
  * Report tasks associated with all the local asset's relationships.
  * Local asset must have ClusterPG and RelationshipPG, Presumption is
  * that the 'other' assets in all the relationships have both Cluster
- * and Relationship PGs. Currently assumes that each Cluster has
+ * and Relationship PGs. Currently assumes that each Agent has
  * exactly 1 local asset.
  *
  * Format:

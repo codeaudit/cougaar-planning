@@ -50,12 +50,10 @@ import org.cougaar.util.log.Logger;
 import org.cougaar.util.log.Logging;
 
 /**
-  * Sample LogicProvider for use by ClusterDispatcher to
-  * take an incoming AssetAssignment Directive and
-  * add Asset to the LogPlan w/side-effect of also disseminating to
+  * take an incoming AssetVerification Directive and
+  * confirm Asset on the LogPlan w/side-effect of also disseminating to
   * other subscribers.
   **/
-
 public class ReceiveAssetVerificationLP
 implements LogicProvider, MessageLogicProvider
 {
@@ -184,9 +182,9 @@ implements LogicProvider, MessageLogicProvider
     
     Collection localRelationships = 
       localAsset.getRelationshipSchedule()
-      .getMatchingRelationships(assignee,
-                                av.getSchedule().getStartTime(),
-                                av.getSchedule().getEndTime());
+      .getMatchingRelationships(assignee, 
+				TimeSpans.getSpan(av.getSchedule().getStartTime(), 
+						  av.getSchedule().getEndTime()));
     String assetID = av.getAsset().getItemIdentificationPG().getItemIdentification();
     String assigneeID = av.getAssignee().getItemIdentificationPG().getItemIdentification();
     

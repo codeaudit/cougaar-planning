@@ -54,7 +54,7 @@ implements PluginStateModel,  Component {
   }
 
 
-  /** Notice which Cluster we are.
+  /** Notice which Agent we are.
    * also transit to LOADED.
    *  @exception org.cougaar.util.StateModelException If Cannot transition to new state.  
    **/

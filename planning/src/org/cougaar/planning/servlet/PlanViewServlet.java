@@ -200,7 +200,7 @@ extends HttpServlet
     public static final String MODE = "mode";
     public static final int MODE_FRAME                        =  0;
     public static final int MODE_ALL_TASKS                    =  1;
-    public static final int MODE_CLUSTERS                     =  2;
+    public static final int MODE_AGENTS                     =  2;
     public static final int MODE_TASK_DETAILS                 =  3;
     public static final int MODE_TASKS_SUMMARY                =  4;
     public static final int MODE_PLAN_ELEMENT_DETAILS         =  5;
@@ -358,7 +358,7 @@ extends HttpServlet
           case MODE_ALL_ASSETS:
             displayAllAssets();
             break;
-          case MODE_CLUSTERS:
+          case MODE_AGENTS:
           case MODE_SEARCH:
             displaySearch();
             break;
@@ -532,7 +532,7 @@ extends HttpServlet
           "</head>\n"+
           "<body  bgcolor=\"#F0F0F0\">\n"+
           "<b>");
-      // link to cluster
+      // link to agent
       printLinkToTasksSummary();
       out.print(
           "</b><br>\n"+
@@ -899,7 +899,7 @@ extends HttpServlet
           "</head>\n"+
           "<body  bgcolor=\"#F0F0F0\">\n"+
           "<b>");
-      // link to cluster
+      // link to agent
       printLinkToTasksSummary();
       out.print(
           "</b><br>\n");
@@ -1085,7 +1085,7 @@ extends HttpServlet
           "</head>\n"+
           "<body bgcolor=\"#F0F0F0\">\n"+
           "<b>");
-      // link to cluster
+      // link to agent
       printLinkToTasksSummary();
       out.print(
           "</b><br>\n"+
@@ -1289,7 +1289,7 @@ extends HttpServlet
      * displaySearch.
      * <p>
      * Uses JavaScript to set the FORM action, since the user selects
-     * the cluster _after_ page load and the action must point to the
+     * the agent _after_ page load and the action must point to the
      * correct Agent's URL.
      */
     private void displaySearch()
@@ -1520,7 +1520,7 @@ extends HttpServlet
         out.print(
             " View</title>"+
             "</head>\n<body bgcolor=\"#F0F0F0\">\n<b>");
-        // link to cluster
+        // link to agent
         printLinkToTasksSummary();
         out.print(
             "</b><br>\n"+
@@ -1808,7 +1808,7 @@ extends HttpServlet
           "</noscript>\n"+
           "<form name=\"myForm\" method=\"get\" "+
           "target=\"predResults\" onSubmit=\"return mySubmit()\">\n"+
-          "Search cluster <input type=\"text\" name=\"formAgent\" value=\"");
+          "Search agent <input type=\"text\" name=\"formAgent\" value=\"");
       out.print(support.getEncodedAgentName());
       out.print("\"><br>\n");
       if (nTemplatePreds > 0) {
@@ -2535,7 +2535,7 @@ extends HttpServlet
             "</font>"+
             "</li>\n");
         if (isRemoteAgent) {
-          // link to task in other cluster
+          // link to task in other agent
           String encRemoteAgentID = 
             support.encodeAgentName(remoteAgentID);
           UID allocTaskUID = ((AllocationforCollections)ac).getAllocationTaskUID();
@@ -3164,7 +3164,7 @@ extends HttpServlet
     /** BEGIN PRINTLINK ROUTINES **/
 
     /**
-     * print link to task summary at this cluster.
+     * print link to task summary at this agent.
      */
 
     private void printLinkToTasksSummary()
@@ -3174,14 +3174,14 @@ extends HttpServlet
     }
 
     /**
-     * print link to task summary for given cluster
+     * print link to task summary for given agent
      */
     private void printLinkToTasksSummary(
         String encodedAgentName)
     {
       if (encodedAgentName != null) {
         out.print("<a href=\"/$");
-        // link to cluster
+        // link to agent
         out.print(encodedAgentName);
         out.print(support.getPath());
         out.print(
@@ -3194,7 +3194,7 @@ extends HttpServlet
         out.print(
             "</a>");
       } else {
-        out.print("<font color=red>Unknown cluster</font>");
+        out.print("<font color=red>Unknown agent</font>");
       }
     }
 
@@ -3205,7 +3205,7 @@ extends HttpServlet
     private static final byte _FLAG_SORT    = (1 << 3);
 
     /**
-     * printLinkToAllTasks for the local cluster.
+     * printLinkToAllTasks for the local agent.
      */
     private void printLinkToAllTasks(
         String verb, int limit, int numTasks, boolean verbose)
@@ -3309,12 +3309,12 @@ extends HttpServlet
         }
         out.print("</a>");
       } else {
-        out.print("<font color=red>Unknown cluster</font>");
+        out.print("<font color=red>Unknown agent</font>");
       }
     }
 
     /**
-     * printLinkToAllPlanElements for the local cluster.
+     * printLinkToAllPlanElements for the local agent.
      */
     private void printLinkToAllPlanElements(
         int limit, int numPlanElements, boolean verbose)
@@ -3379,12 +3379,12 @@ extends HttpServlet
         }
         out.print("</a>");
       } else {
-        out.print("<font color=red>Unknown cluster</font>");
+        out.print("<font color=red>Unknown agent</font>");
       }
     }
 
     /**
-     * printLinkToAllAssets for the local cluster.
+     * printLinkToAllAssets for the local agent.
      */
     private void printLinkToAllAssets(
         int limit, int numAssets, boolean verbose)
@@ -3449,12 +3449,12 @@ extends HttpServlet
         }
         out.print("</a>");
       } else {
-        out.print("<font color=red>Unknown cluster</font>");
+        out.print("<font color=red>Unknown agent</font>");
       }
     }
 
     /**
-     * printLinkToAllUniqueObjects for the local cluster.
+     * printLinkToAllUniqueObjects for the local agent.
      */
     private void printLinkToAllUniqueObjects(
         int limit, int numUniqueObjects, boolean verbose)
@@ -3519,7 +3519,7 @@ extends HttpServlet
         }
         out.print("</a>");
       } else {
-        out.print("<font color=red>Unknown cluster</font>");
+        out.print("<font color=red>Unknown agent</font>");
       }
     }
 
@@ -3538,10 +3538,10 @@ extends HttpServlet
           ((ptUID = ptU.toString()) == null)) {
         out.print("<font color=red>parent not unique</font>");
       } else {
-        MessageAddress tClusterID = task.getSource();
+        MessageAddress tAgentID = task.getSource();
         String ptEncodedAgentName;
-        if ((tClusterID == null) ||
-            ((ptEncodedAgentName = tClusterID.toString()) == null)) {
+        if ((tAgentID == null) ||
+            ((ptEncodedAgentName = tAgentID.toString()) == null)) {
           ptEncodedAgentName = support.getEncodedAgentName();
         } else {
           ptEncodedAgentName = support.encodeAgentName(ptEncodedAgentName);
@@ -3567,7 +3567,7 @@ extends HttpServlet
     /**
      * printLinkToLocalTask.
      * <p>
-     * Tasks that stay in the current cluster.
+     * Tasks that stay in the current agent.
      */
     private void printLinkToLocalTask(Task task)
     {
@@ -3580,7 +3580,7 @@ extends HttpServlet
      * printLinkToTask.
      * <p>
      * This method attempts to works around task forwarding across
-     * clusters in the "Down" sense, i.e. allocations.
+     * agents in the "Down" sense, i.e. allocations.
      */
     private void printLinkToTask(
         UID taskU, 
@@ -3616,7 +3616,7 @@ extends HttpServlet
     /**
      * printLinkToPlanElement.
      * <p>
-     * PlanElements stay in their cluster
+     * PlanElements stay in their agent
      */
     private void printLinkToPlanElement(PlanElement pe)
     {
@@ -3740,7 +3740,7 @@ extends HttpServlet
     /**
      * printLinkToXML.
      * <p>
-     * XML objects stay in cluster.
+     * XML objects stay in agent.
      **/
     private void printLinkToXML(
         UniqueObject uo, boolean asHTML)
@@ -3759,7 +3759,7 @@ extends HttpServlet
     /**
      * printLinkToXML.
      * <p>
-     * XML objects stay in cluster.
+     * XML objects stay in agent.
      **/
     private void printLinkToXML(
         Object xo, boolean asHTML)
@@ -3901,7 +3901,7 @@ extends HttpServlet
         } else if (io instanceof Schedule) {
           out.print(io.getClass().getName());
         } else if (io instanceof MessageAddress) {
-          out.print("CID: \"");
+          out.print("AID: \"");
           out.print(((MessageAddress)io).toString());
           out.print("\"");
         } else if (io instanceof AssetTransfer) {

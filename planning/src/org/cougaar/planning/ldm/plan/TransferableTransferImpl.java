@@ -28,18 +28,16 @@ package org.cougaar.planning.ldm.plan;
 
 import org.cougaar.planning.ldm.asset.Asset;
 
-/** TransferableTransferImpl
+/**
   * A Transferable Transfer should be used to transfer a Transferable object to
-  * another cluster (org asset).
-  *
-  *
+  * another agent (org asset).
   */
 public class TransferableTransferImpl
   implements TransferableTransfer, NewTransferableTransfer, java.io.Serializable
 {
   
   private Transferable thetransferable;
-  private Asset thecluster;
+  private Asset theagent;
   
   /** no-arg constructor - use the setters in the NewTransferableTransfer Interface
     * to build a complete object
@@ -50,7 +48,7 @@ public class TransferableTransferImpl
   
   /** Simple constructor 
     * @param aTransferable - the Transferable being sent
-    * @param anAsset - An Organization Asset representing the Cluster that the Transferable is being sent to
+    * @param anAsset - An Organization Asset representing the Agent that the Transferable is being sent to
     */
   public TransferableTransferImpl(Transferable aTransferable, Asset anAsset) {
     super();
@@ -67,11 +65,11 @@ public class TransferableTransferImpl
   
   /** The Asset the transferable is being sent to.  For now
     * the Assets should always be of type Organization, representing
-    * another Cluster.
+    * another Agent.
     * @return Asset
     */
   public Asset getAsset() {
-    return thecluster;
+    return theagent;
   }
   
   /** The Transferable being sent
@@ -83,15 +81,15 @@ public class TransferableTransferImpl
   
   /** The Asset the transferable is being sent to.  For now
     * the Assets should always be of type Organization, representing
-    * another Cluster.
+    * another Agent.
     * @param anAsset
     */
   public void setAsset(Asset anAsset) {
     // double check that this is an org asset for now
     if (anAsset.getClusterPG() != null) {
-      thecluster = anAsset;
+      theagent = anAsset;
     } else {
-      throw new IllegalArgumentException("TransferableTransfer.setAsset(anAsset) expects an Asset of with a clusterPG!");
+      throw new IllegalArgumentException("TransferableTransfer.setAsset(anAsset) expects an Asset with a clusterPG!");
     }
   }
   

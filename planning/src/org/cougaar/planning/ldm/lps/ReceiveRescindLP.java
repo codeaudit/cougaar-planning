@@ -41,7 +41,6 @@ import org.cougaar.util.log.Logger;
 import org.cougaar.util.log.Logging;
 
 /**
-  * LogicProvider for use by ClusterDispatcher to
   * take an incoming Rescind Directive and
   * perform Modification to the LOGPLAN
   * 
@@ -49,7 +48,6 @@ import org.cougaar.util.log.Logging;
   *   address the that task.  Any cascade effect is then handled by
   *   RescindLP.
   **/
-
 public class ReceiveRescindLP
 implements LogicProvider, MessageLogicProvider
 {

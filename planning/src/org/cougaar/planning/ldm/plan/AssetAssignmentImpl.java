@@ -34,10 +34,9 @@ import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.planning.ldm.asset.Asset;
  
 
-/** AssetAssignmentImpl implementation
- * skeleton implementation of assetassignment
+/** 
+ * Skeleton implementation of AssetAssignment
  */
-
 public class AssetAssignmentImpl extends PlanningDirectiveImpl
   implements AssetAssignment, NewAssetAssignment
 {
@@ -69,7 +68,7 @@ public class AssetAssignmentImpl extends PlanningDirectiveImpl
   */
 		
   //constructor that takes the Asset, the plan, the schedule
-  // the source cluster and the destination asset
+  // the source agent and the destination asset
   public AssetAssignmentImpl (Asset as, Plan p, Schedule s, 
                               MessageAddress sc, Asset da) {
     assignedAsset = as;

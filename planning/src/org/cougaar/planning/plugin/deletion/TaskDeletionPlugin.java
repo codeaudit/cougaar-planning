@@ -58,7 +58,7 @@ import org.cougaar.util.Filters;
 import org.cougaar.util.UnaryPredicate;
 
 /**
- * DeletionPlugin provides generic deletion services to a cluster.
+ * DeletionPlugin provides generic deletion services to a agent.
  * These consist of:
  *
  * Identification of deletable Allocations to non-org assets
@@ -333,7 +333,7 @@ public class TaskDeletionPlugin extends DeletionPlugin {
       if (ptuid == null)
         return true; // Can always delete a root task
       PlanElement ppe = peSet.findPlanElement(ptuid);
-      if (ppe == null) { // Parent is in another cluster
+      if (ppe == null) { // Parent is in another agent
         return true; // It's ok to delete it
       }
       if (ppe instanceof Expansion) {
@@ -375,7 +375,7 @@ public class TaskDeletionPlugin extends DeletionPlugin {
         numDeletedTasks++;
       } else {
         PlanElement ppe = peSet.findPlanElement(ptuid);
-        if (ppe == null) { // Parent is in another cluster
+        if (ppe == null) { // Parent is in another agent
           // Delete the task
           if (logger.isDebugEnabled())
             logger.debug(

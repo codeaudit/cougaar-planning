@@ -39,7 +39,7 @@ import org.cougaar.util.UnaryPredicate;
 
 /**
  * This plugin manages triggers that have been created in a given
- * cluster.  It sets up a subscription for all policies, and
+ * agent.  It sets up a subscription for all policies, and
  * subscribes to them. It then generates subscriptions for
  * predicate-based Monitors and sets up timers for time-based
  * Monitors. When the execute method is called, it Executes any

@@ -28,13 +28,11 @@ package org.cougaar.planning.ldm.plan;
 
 import org.cougaar.planning.ldm.asset.Asset;
 
-/** NewTransferableTransfer Interface
-  * A Transferable Transfer should be used to transfer a Transferable object to
-  * another cluster (org asset).  This interface provides setters to
-  * build a complete object.
-  *
-  *
-  */
+/**
+ * A Transferable Transfer should be used to transfer a Transferable object to
+ * another agent (entity asset).  This interface provides setters to
+ * build a complete object.
+ */
 public interface NewTransferableTransfer extends TransferableTransfer {
   
   /** The Transferable being sent
@@ -44,7 +42,7 @@ public interface NewTransferableTransfer extends TransferableTransfer {
   
   /** The Asset the transferable is being sent to.  For now
     * the Assets should always be of type Organization, representing
-    * another Cluster.
+    * another Agent.
     * @param anAsset
     */
   void setAsset(Asset anAsset);

@@ -32,12 +32,8 @@ package org.cougaar.planning.ldm.plan;
  *  Allocations).
  *
  * A future version of Plan may include an accessor to get an object
- * which can be asked to respond to plan-related cluster queries (e.g.
- * like ClusterCollectionOfPlanElements)
- *
- *
+ * which can be asked to respond to plan-related agent queries
  */
-
 public interface Plan 
 { 
   /**@return String Name of Plan */

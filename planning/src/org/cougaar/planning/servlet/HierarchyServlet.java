@@ -114,7 +114,7 @@ public class HierarchyServlet
 	      "Show organization hierarchy for:<p>\n"+
 	      "&nbsp;&nbsp;<INPUT TYPE=\"radio\" NAME=\"recurse\" "+
 	      "VALUE=\"true\" CHECKED>"+
-	      "&nbsp;All related clusters<p>\n"+
+	      "&nbsp;All related agents<p>\n"+
 	      "&nbsp;&nbsp;<INPUT TYPE=\"radio\" NAME=\"recurse\" "+
 	      "VALUE=\"false\">"+
 	      "&nbsp;Just ");

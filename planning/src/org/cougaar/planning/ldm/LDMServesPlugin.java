@@ -62,7 +62,7 @@ public interface LDMServesPlugin extends PrototypeRegistryService {
    **/
   ClassLoader getLDMClassLoader();
 
-  /** The current cluster's CID */
+  /** The current agent's Address */
   MessageAddress getMessageAddress();
   
   UIDServer getUIDServer();

@@ -141,7 +141,7 @@ public class DefaultPrototypeProviderPlugin
       // here test out UIDService 
       anID = uidService.nextUID();
       //System.out.println(anID);
-      //     System.out.println("cluster id = " + uidService.getMessageAddress());
+      //     System.out.println("agent id = " + uidService.getMessageAddress());
     } catch (Exception e) {
       // cannot really throw any of these exceptions.
     }

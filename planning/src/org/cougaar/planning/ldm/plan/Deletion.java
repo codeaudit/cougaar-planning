@@ -27,10 +27,9 @@
 package org.cougaar.planning.ldm.plan;
 
 
-/** Deletion Interface
- * Deletion is a message that a task sent to another cluster has been deleted.
+/**
+ * Deletion is a message that a task sent to another agent has been deleted.
  * The Deletion will task and parent task uids
  **/
-
 public interface Deletion extends TaskResponse {
 }

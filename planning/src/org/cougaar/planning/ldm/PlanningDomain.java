@@ -53,7 +53,7 @@ import org.cougaar.planning.service.LDMService;
 
 /**
  * This is the "planning" domain, which defines planning
- * data types (Task, PlanElement, etc) and related LPs.
+ * data types (Task, PlanElement, etc) and loads related LPs.
  */
 public class PlanningDomain extends DomainAdapter {
   public static final String PLANNING_NAME = "planning";

@@ -26,7 +26,9 @@
 
 package org.cougaar.planning.plugin.asset;
 
-
+/**
+ * Interface for classes that know how to read asset data from some media 
+ */
 public interface AssetDataReader {
     void readAsset(String agentId, AssetDataCallback cb);
 }

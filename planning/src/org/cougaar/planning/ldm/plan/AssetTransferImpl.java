@@ -39,17 +39,16 @@ import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.util.log.Logger;
 
-/** AssetTransferImpl.java
- * Implementation for assetTransfer
+/**
+ * Implementation for AssetTransfer
  */
- 
 public class AssetTransferImpl extends PlanElementImpl 
   implements AssetTransfer, RoleScheduleConflicts
 {
  
   private transient Asset asset;     // changed to transient : Persistence
   private transient Asset assigneeAsset;
-  private MessageAddress assignerCluster;
+  private MessageAddress assignerAgent;
   private Schedule assetSchedule;
   private Role theRole;
   private transient boolean potentialconflict = false;
@@ -67,8 +66,8 @@ public class AssetTransferImpl extends PlanElementImpl
    * @param t
    * @param a  The asset being transferred
    * @param s  The schedule representing the time frame that the asset is being transferred for.
-   * @param to  The Cluster that will receive this asset for use
-   * @param from  The Cluster that is provided this asset for use
+   * @param to  The Agent that will receive this asset for use
+   * @param from  The Agent that is provided this asset for use
    */
   public AssetTransferImpl(Plan p, Task t, Asset a, Schedule s, Asset to, MessageAddress from) {
     super(p, t);
@@ -87,8 +86,8 @@ public class AssetTransferImpl extends PlanElementImpl
    * @param t
    * @param a  The asset being transferred
    * @param s  The schedule representing the time frame that the asset is being transferred for.
-   * @param to  The Cluster that will receive this asset for use
-   * @param from  The Cluster that is provided this asset for use
+   * @param to  The Agent that will receive this asset for use
+   * @param from  The Agent that is provided this asset for use
    * @param estimatedresult
    * @param aRole
    */
@@ -122,12 +121,12 @@ public class AssetTransferImpl extends PlanElementImpl
     return assigneeAsset;
   }
   
-  /** Returns the Cluster that the asset is assigned from.
+  /** Returns the Agent that the asset is assigned from.
    * @return MessageAddress representing the source of the asset
    */
  	
   public MessageAddress getAssignor() {
-    return assignerCluster;
+    return assignerAgent;
   }
  
   /** Returns the Schedule for the "ownership" of the asset being transfered.
@@ -191,12 +190,12 @@ public class AssetTransferImpl extends PlanElementImpl
     assigneeAsset = toAsset;
   }
   
-  /** Sets the Cluster that the asset is assigned from.
-   * @param aCluster
+  /** Sets the Agent that the asset is assigned from.
+   * @param aAgent
    */
  	
-  private void setAssignor(MessageAddress aCluster) {
-    assignerCluster = aCluster;
+  private void setAssignor(MessageAddress aAgent) {
+    assignerAgent = aAgent;
   }
  
   /** Sets the Schedule for the "ownership" of the asset being transfered.
@@ -293,7 +292,7 @@ public class AssetTransferImpl extends PlanElementImpl
   }
 
   public String toString() {
-    return "[Transfer of "+asset+" from "+assignerCluster+" to "+assigneeAsset+"]";
+    return "[Transfer of "+asset+" from "+assignerAgent+" to "+assigneeAsset+"]";
   }
 
   // beaninfo

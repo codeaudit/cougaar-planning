@@ -37,6 +37,9 @@ import org.cougaar.planning.ldm.PlanningFactory;
 import org.cougaar.planning.service.LDMService;
 import org.cougaar.util.ConfigFinder;
 
+/**
+ * Basic servlet base class for servlets that need blackboard access.
+ **/
 public class BlackboardServletComponent 
 extends SimpleServletComponent 
 implements BlackboardClient

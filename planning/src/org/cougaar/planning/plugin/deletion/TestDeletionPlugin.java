@@ -80,7 +80,7 @@ import org.cougaar.util.UnaryPredicate;
  * Root tasks have no OfType preposition.
  * Expansion of root tasks yields subtasks having OfType phrase
  * Aggregation of subtasks produce tasks at the next level. These
- * tasks have no OfType if they are to be allocated to another cluster
+ * tasks have no OfType if they are to be allocated to another agent
  **/
 public class TestDeletionPlugin extends SimplePlugin {
     /** Subscriptions to tasks **/
@@ -121,7 +121,7 @@ public class TestDeletionPlugin extends SimplePlugin {
     private static final String SUBTYPE = "Type";
 
     private static final int N_SUBTYPES = 3;
-    private static final int TYPE_ROOT = 1; // The subtype that is forwarded to another cluster
+    private static final int TYPE_ROOT = 1; // The subtype that is forwarded to another agent
 
     /** The preposition used to specify task duration **/
     private static final String DURATION = "OfDuration";

@@ -34,14 +34,13 @@ import java.util.List;
 import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.util.UnaryPredicate;
 
-/** RoleSchedule Implementation
+/**
  * A RoleSchedule is a representation of an asset's scheduled
  * commitments. These commitments(plan elements) are stored
  * in a collection.  RoleSchedules do not travel with an
- * asset accross cluster boundaries, therefore, the roleschedule 
- * is only valid while that asset is assigned to the current cluster.
+ * asset accross agent boundaries, therefore, the roleschedule 
+ * is only valid while that asset is assigned to the current agent.
  **/
-
 public class RoleScheduleImpl 
   extends ScheduleImpl
   implements RoleSchedule, NewRoleSchedule
@@ -68,7 +67,7 @@ public class RoleScheduleImpl
   /** SHOULD *ONLY* BE CALLED BY THE ASSET CREATOR or THE ASSETTRANSFER LP!
    * set the availableschedule
    * @param avschedule - the schedule that the asset is assigned 
-   * or available to this cluster
+   * or available to this agent
    **/
   public void setAvailableSchedule(Schedule avschedule) {
     availableschedule = avschedule;
@@ -80,7 +79,7 @@ public class RoleScheduleImpl
   }
 
   /**
-   *  ALPINE INTERNAL METHOD - SHOULD NEVER BE CALLED BY A PLUGIN
+   *  Cougaar INTERNAL METHOD - SHOULD NEVER BE CALLED BY A PLUGIN
    *  add a single planelement to the roleschedule container
    *  @param aPlanElement PlanElement to add
    *  @deprecated Use add(Object aPlanElement) instead.
@@ -90,7 +89,7 @@ public class RoleScheduleImpl
   }
 	
   /**
-   *  ALPINE INTERNAL METHOD - SHOULD NEVER BE CALLED BY A PLUGIN
+   *  Cougaar INTERNAL METHOD - SHOULD NEVER BE CALLED BY A PLUGIN
    *  remove a single planelement from the roleschedule container
    *  @param aPlanElement PlanElement to remove
    *  @deprecated Use remove(Object aPlanElement) instead.

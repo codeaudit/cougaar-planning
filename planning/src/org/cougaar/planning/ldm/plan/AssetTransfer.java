@@ -28,56 +28,58 @@ package org.cougaar.planning.ldm.plan;
 import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.planning.ldm.asset.Asset;
 
-/** AssetTransfer Interface
+/** 
+ * AssetTransfer Interface
  * An AssetTransfer is a type of PlanElement
- * which represents an Asset being assigned to another Cluster for use.
+ * which represents an Asset being assigned to another Agent for use.
  * An AssetAssignment PlanningDirective is closely related
  *
  **/
-
 public interface AssetTransfer extends PlanElement {
 	
-  /** Returns an Asset that has certain capabilities.
-   * This Asset is being assigned to a cluster for use.
+  /** 
+   * Returns an Asset that has certain capabilities.
+   * This Asset is being assigned to a agent for use.
    *
-   * @return org.cougaar.planning.ldm.asset.Asset - a physical entity or cluster that is assigned to a Cluster.
-   **/
-		
+   * @return org.cougaar.planning.ldm.asset.Asset - a physical entity or agent that is assigned to a Agent.
+   */		
   Asset getAsset();
  	
-  /** Returns the Asset to which the asset is being assigned.
+  /** 
+   * Returns the Asset to which the asset is being assigned.
    * @return Asset representing the destination asset
-   */
- 	
+   */ 	
   Asset getAssignee();
  
-  /** Returns the Cluster from which the asset was assigned.
+  /** 
+   * Returns the Agent from which the asset was assigned.
    * @return MessageAddress representing the source of the asset
-   */
- 	
+   */ 	
   MessageAddress getAssignor();
  
-  /** Returns the Schedule for the "ownership" of the asset being transfered.
+  /** 
+   * Returns the Schedule for the "ownership" of the asset being transfered.
    *  @return Schedule
    */
   Schedule getSchedule();
   
-  /** Checks to see if there is a potential conflict with another allocation
-    * or asset transfer involving the same asset.
-    * Will return true if there is a potential conflict.
-    * Will return false if there is NOT a potential conflict.
-    * @return boolean
-    */
+  /** 
+   * Checks to see if there is a potential conflict with another allocation
+   * or asset transfer involving the same asset.
+   * Will return true if there is a potential conflict.
+   * Will return false if there is NOT a potential conflict.
+   * @return boolean
+   */
   boolean isPotentialConflict();
   
-  /** Checks to see if there is a potential conflict with the asset's
-    * available schedule.  ( Asset.getRoleSchedule().getAvailableSchedule() )
-    * Will return true if there is a potential conflict.
-    * @return boolean
-    */
+  /**
+   * Checks to see if there is a potential conflict with the asset's
+   * available schedule.  ( Asset.getRoleSchedule().getAvailableSchedule() )
+   * Will return true if there is a potential conflict.
+   * @return boolean
+   */
   boolean isAssetAvailabilityConflict();
 
- 
   /**
    * request that the destination organization be re-contacted due 
    * to changes in the transferred asset (e.g. Organization predictor
@@ -89,14 +91,12 @@ public interface AssetTransfer extends PlanElement {
   /** infrastructure hook for resetting AssetChange flag **/
   void resetAssetChangeIndicated();
 
-  /** is there an unprocessed asset change pending?
-   **/
+  /** is there an unprocessed asset change pending? **/
   boolean isAssetChangeIndicated();
   
-  /** Return the Role this Asset is performing while transferred.
+  /** 
+   * Return the Role this Asset is performing while transferred.
    *  @return Role
-   **/
+   */
   Role getRole();
-  
-      
 }

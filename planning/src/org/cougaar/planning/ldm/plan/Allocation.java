@@ -26,23 +26,20 @@
 
 package org.cougaar.planning.ldm.plan;
 
-/** Allocation Interface
+/** 
+ * Allocation Interface
  * An Allocation is a type of PlanElement
  * which represents the Asset that will complete
  * the Task.
- *
- *
- **/
-
+ */
 public interface Allocation extends PlanElement {
 	
   /** Returns an Asset that has certain capabilities.
    * This Asset is assigned to complete the Task that is
    * matched with the Allocation in the PlanElement.
    *
-   * @return Asset - a physical entity or cluster that is assigned to perform the Task.
+   * @return Asset - a physical entity or agent that is assigned to perform the Task.
    **/
-		
   org.cougaar.planning.ldm.asset.Asset getAsset();
    
   /** Checks to see if there is a potential conflict with another allocation

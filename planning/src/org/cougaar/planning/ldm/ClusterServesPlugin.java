@@ -34,7 +34,7 @@ import org.cougaar.util.ConfigFinder;
 
 /**
  * ClusterServesPlugin is the API which plugins may use to access
- * cluster-level services.
+ * agent-level services.
  **/
 public interface ClusterServesPlugin {
 
@@ -54,7 +54,7 @@ public interface ClusterServesPlugin {
 
   /**
    * @return MessageAddress the MessageAddress associated with 
-   * the Cluster where the Plugin is plugged in.
+   * the Agent where the Plugin is plugged in.
    */
   MessageAddress getMessageAddress();
         
@@ -63,7 +63,7 @@ public interface ClusterServesPlugin {
   //
 
   /**
-   * @return the cluster's ConfigFinder instance.
+   * @return the agent's ConfigFinder instance.
    **/
   ConfigFinder getConfigFinder();
 

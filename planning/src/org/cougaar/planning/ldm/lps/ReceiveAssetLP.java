@@ -63,12 +63,10 @@ import org.cougaar.util.log.Logging;
 
 
 /**
-  * Sample LogicProvider for use by ClusterDispatcher to
-  * take an incoming AssetAssignment Directive and
-  * add Asset to the LogPlan w/side-effect of also disseminating to
-  * other subscribers.
-  **/
-
+ * take an incoming AssetAssignment Directive and
+ * add Asset to the LogPlan w/side-effect of also disseminating to
+ * other subscribers.
+ **/
 public class ReceiveAssetLP
 implements LogicProvider, MessageLogicProvider {
   private static Logger logBase = Logging.getLogger(ReceiveAssetLP.class);

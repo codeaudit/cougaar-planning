@@ -34,7 +34,7 @@ import java.io.Serializable;
  * for resources within a single logplan.
  *
  * A Context must be Serializable and will be both persisted and
- * transferred between clusters.  Instances should be small and 
+ * transferred between agents.  Instances should be small and 
  * relatively self-contained.
  *
  * Example: in the COUGAAR domain, the Context of a task will

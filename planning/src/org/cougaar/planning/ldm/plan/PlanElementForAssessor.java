@@ -28,19 +28,18 @@
 package org.cougaar.planning.ldm.plan;
 
 /** Special Interface to PlanElement for Assessors only.
- * In particular, only plugins which provide alp-external access
+ * In particular, only plugins which provide cougaar-external access
  * to a given asset should call these methods.  For example, the 
  * infrastructure relies on this interface to propagate allocation
- * information between clusters for organizations.
+ * information between agents for organizations.
  *
  * Note that while all PlanElements implement this interface,
  * PlanElement does not extend this interface, thus forcing 
  * Assessors to cast to this class. 
  *
  * In no case should a plugin cast PlanElements to any type
- * in the alp package tree.
+ * in the cougaar planning package tree.
  **/
-
 public interface PlanElementForAssessor extends PlanElement {
   
   /** @param rcvres set the received AllocationResult object associated 

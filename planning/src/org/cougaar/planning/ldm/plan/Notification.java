@@ -27,11 +27,10 @@
 package org.cougaar.planning.ldm.plan;
 
 
-/** Notification Interface
- * Notification is a response to a task that was sent to a cluster.
+/** 
+ * Notification is a response to a task that was sent to a agent.
  * The Notification will inlcude the task and the allocationresult
  **/
-
 public interface Notification extends TaskResponse {
   /**
    * Returns the estimated allocation result from below

@@ -30,33 +30,40 @@ import org.cougaar.planning.ldm.plan.Task;
 import org.cougaar.planning.ldm.plan.Verb;
 import org.cougaar.util.UnaryPredicate;
 
+/**
+ * Not usually used predicate for Tasks of certain Verb with no Expansion
+ * @see PredicateFactory
+ */
 public class ExpandableTasksPredicate implements UnaryPredicate, NewExpandableTasksPredicate {
     
-    private Verb myVerb;
+  private Verb myVerb;
 
-    public ExpandableTasksPredicate() {
-    }
+  public ExpandableTasksPredicate() {
+  }
 
-    /** Overloaded constructor for using from the scripts. 
-     *  Discouraged to use from plugins directly.
-     */
-    public ExpandableTasksPredicate( Verb ver ) {
-	myVerb = ver;
-    }
+  /** Overloaded constructor for using from the scripts. 
+   *  Discouraged to use from plugins directly.
+   */
+  public ExpandableTasksPredicate( Verb ver ) {
+    myVerb = ver;
+  }
 
-    public void setVerb( Verb vb ) {
-	myVerb = vb;
-    }
+  public void setVerb( Verb vb ) {
+    myVerb = vb;
+  }
     
-    public boolean execute(Object o) {
-	if ( o instanceof Task ) {
-	    Task t = ( Task ) o;
-		if ( (t.getWorkflow() == null) &&
-		     (t.getPlanElement() == null) &&
-		     (t.getVerb().equals( myVerb ) )  ) {
-		    return true;
-		}
-	}
-	return false;
+  public boolean execute(Object o) {
+    if ( o instanceof Task ) {
+      Task t = ( Task ) o;
+      // WARNING: Predicates that look at these slots on a Task
+      // will behave oddly when the task later has these slots filled in-
+      // later changes to the Task will not trigger the subscription
+      if ( (t.getWorkflow() == null) &&
+	   (t.getPlanElement() == null) &&
+	   (t.getVerb().equals( myVerb ) )  ) {
+	return true;
+      }
     }
+    return false;
+  }
 }

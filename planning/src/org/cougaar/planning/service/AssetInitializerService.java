@@ -30,7 +30,7 @@ import org.cougaar.core.component.Service;
 import org.cougaar.planning.plugin.asset.AssetDataReader;
 
 /**
- * Planning asset configuration service.
+ * Planning asset configuration service. Used to specify how Assets, particularly Entity assets, are loaded into the system (XML, database, ?).
  * <p>
  * @see org.cougaar.planning.plugin.asset.AssetDataPlugin
  */

@@ -29,13 +29,12 @@ package org.cougaar.planning.ldm.plan;
 import org.cougaar.planning.ldm.asset.Asset;
 
 /**
- * Verification Interface Verification is a response to an asset
- * transfer that was sent to a cluster.  The Verification will include
- * the asset the asset that was transferred. Thiis only actually used
+ * Verification is a response to an asset
+ * transfer that was sent to a agent.  The Verification will include
+ * the asset the asset that was transferred. This only actually used
  * to verify if an apparent transfer transfer is still valid after a
- * cluster restarts.
+ * agent restarts.
  **/
-
 public interface NewAssetVerification extends AssetVerification, NewPlanningDirective {
   void setAsset(Asset asset);
   

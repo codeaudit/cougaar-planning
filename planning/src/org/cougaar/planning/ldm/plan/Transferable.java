@@ -29,21 +29,20 @@ package org.cougaar.planning.ldm.plan;
 import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.util.UniqueObject;
 
-/** Transferable 
- *
+/**
  * Interface that describes the methods an object needs to be
- * transfered from one cluster to another using the Transferable Logic
+ * transfered from one agent to another using the Transferable Logic
  * Providers
  **/
 public interface Transferable extends Cloneable, UniqueObject {
   /** A Transferable must be fully cloneable, otherwise unwanted side effects
-   * may show up when object replicas are on clusters in the same VM
+   * may show up when object replicas are on agents in the same VM
    **/
   Object clone();
 
   /** 
    * A "close enough" version of equals() used by the Logic Provider
-   * to find the local version of an object transfered from another cluster
+   * to find the local version of an object transfered from another agent
    **/
   boolean same(Transferable other);
 

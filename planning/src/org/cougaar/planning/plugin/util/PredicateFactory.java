@@ -29,6 +29,11 @@ package org.cougaar.planning.plugin.util;
 import org.cougaar.planning.ldm.PlanningFactory;
 import org.cougaar.planning.ldm.plan.Verb;
 
+/**
+ * Not typically used factory for Predicates. Intended for use from
+ * script-based plugins. It's better usage to create your own
+ * predicates directly from your plugin.
+ */
 public class PredicateFactory {
     
   public static NewExpandableTasksPredicate newExpandableTasksPredicate() {

@@ -36,8 +36,8 @@ import org.cougaar.planning.ldm.asset.Asset;
  * A RoleSchedule is a representation of an asset's scheduled
  * commitments. These commitments(plan elements) are stored
  * in a Collection.  RoleSchedules do not travel with an
- * asset accross cluster boundaries, therefore, the roleschedule 
- * is only valid while that asset is assigned to the current cluster.
+ * asset across agent boundaries, therefore, the roleschedule 
+ * is only valid while that asset is assigned to the current agent.
  **/
 
 public interface RoleSchedule 
@@ -80,11 +80,11 @@ public interface RoleSchedule
   Enumeration getRoleScheduleElements();
   
   /** The AvailableSchedule represents the time period that this asset
-   * is assigned to a cluster for use.  It does not represent any usage
+   * is assigned to a agent for use.  It does not represent any usage
    * of this asset - that information is elsewhere in the RoleSchedule.
    *
    * @return the schedule marking the availability time frame for the asset
-   * in this cluster.
+   * in this agent.
    **/
   Schedule getAvailableSchedule();
   

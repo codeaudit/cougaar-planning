@@ -75,7 +75,7 @@ public class TaskImpl extends PlanningDirectiveImpl
   private byte priority = Priority.UNDEFINED;
   private UID parentUID;
   private UID uid = null;
-  // plan elements don't cross cluster boundaries
+  // plan elements don't cross agent boundaries
   private transient PlanElement myPE;
   // initialize to null unitl we fully implement
   private long commitmenttime = 0;

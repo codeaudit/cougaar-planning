@@ -29,12 +29,11 @@ package org.cougaar.planning.ldm.plan;
 
 import org.cougaar.core.util.UID;
 
-/** AllocationforCollections Interface -- represents
-  * setter methods for the RemoteClusterAllocationLP and the Rescind
-  * LP to keep track of what tasks were to sent out. 
-  *
-  **/
-
+/** 
+ * AllocationforCollections Interface -- represents
+ * setter methods for the RemoteAllocationLP and the RescindLP 
+ * to keep track of what tasks were to sent out. 
+ */
 public interface AllocationforCollections extends PEforCollections, Allocation {
   UID getAllocationTaskUID();
   void setAllocationTask(Task t);

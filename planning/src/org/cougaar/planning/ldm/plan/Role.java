@@ -54,8 +54,8 @@ public final class Role implements Serializable, BeanInfo {
 
 
   /** String holder for logical name.
-   * No guarantee the string name is unique -- within the Cluster, much less
-   * within the society of Clusters.
+   * No guarantee the string name is unique -- within the Agent, much less
+   * within the society of Agents.
    **/
   private String name;
   private String nameConverse;

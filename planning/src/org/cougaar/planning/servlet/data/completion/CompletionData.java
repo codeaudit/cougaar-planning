@@ -52,6 +52,9 @@ public abstract class CompletionData implements XMLable, DeXMLable, Serializable
   protected long timeMillis;
   protected double ratio;
   protected int numTasks;
+  protected int numRootProjectSupplyTasks;
+  private int numRootSupplyTasks;
+  private int numRootTransportTasks;
 
   //Constructors:
   ///////////////
@@ -75,6 +78,18 @@ public abstract class CompletionData implements XMLable, DeXMLable, Serializable
     this.numTasks = numTasks;
   }
 
+  public void setNumberOfRootProjectSupplyTasks(int numTasks) {
+    numRootProjectSupplyTasks = numTasks;
+  }
+
+  public void setNumberOfRootTransportTasks(int numTasks) {
+    numRootTransportTasks = numTasks;
+  }
+
+  public void setNumberOfRootSupplyTasks(int numTasks) {
+    numRootSupplyTasks = numTasks;
+  }
+
   //Getters:
   //////////
 
@@ -89,6 +104,18 @@ public abstract class CompletionData implements XMLable, DeXMLable, Serializable
 
   public int getNumberOfTasks() {
     return numTasks;
+  }
+
+  public int getNumberOfRootProjectSupplyTasks() {
+    return numRootProjectSupplyTasks;
+  }
+
+  public int getNumberOfRootSupplyTasks() {
+    return numRootSupplyTasks;
+  }
+
+  public int getNumberOfRootTransportTasks() {
+    return numRootTransportTasks;
   }
 
   public abstract int getNumberOfUnplannedTasks();

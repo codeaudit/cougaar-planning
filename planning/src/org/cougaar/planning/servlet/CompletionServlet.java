@@ -53,14 +53,7 @@ import org.cougaar.core.service.wp.WhitePagesService;
 import org.cougaar.core.servlet.BaseServletComponent;
 import org.cougaar.core.util.UID;
 import org.cougaar.core.wp.ListAllAgents;
-import org.cougaar.planning.ldm.plan.Aggregation;
-import org.cougaar.planning.ldm.plan.Allocation;
-import org.cougaar.planning.ldm.plan.AllocationResult;
-import org.cougaar.planning.ldm.plan.AssetTransfer;
-import org.cougaar.planning.ldm.plan.Disposition;
-import org.cougaar.planning.ldm.plan.Expansion;
-import org.cougaar.planning.ldm.plan.PlanElement;
-import org.cougaar.planning.ldm.plan.Task;
+import org.cougaar.planning.ldm.plan.*;
 import org.cougaar.planning.plugin.completion.CompletionCalculator;
 import org.cougaar.planning.servlet.data.completion.AbstractTask;
 import org.cougaar.planning.servlet.data.completion.CompletionData;
@@ -72,6 +65,8 @@ import org.cougaar.planning.servlet.data.completion.UnestimatedTask;
 import org.cougaar.planning.servlet.data.completion.UnplannedTask;
 import org.cougaar.planning.servlet.data.xml.XMLWriter;
 import org.cougaar.util.UnaryPredicate;
+import org.cougaar.util.Filters;
+import org.cougaar.glm.ldm.Constants;
 
 /**
  * A <code>Servlet</code>, loaded by the 
@@ -83,11 +78,35 @@ public class CompletionServlet
 extends BaseServletComponent
 {
   protected static final UnaryPredicate TASK_PRED =
-    new UnaryPredicate() {
-      public boolean execute(Object o) {
-        return (o instanceof Task);
+      new UnaryPredicate() {
+        public boolean execute(Object o) {
+          return (o instanceof Task);
+        }
+      };
+
+  protected static class RootTaskPredicate implements UnaryPredicate {
+    private Verb rootVerb;
+    private Verb parentVerb;
+
+    public RootTaskPredicate(Verb rootVerb, Verb parentVerb) {
+      this.rootVerb = rootVerb;
+      this.parentVerb = parentVerb;
+    }
+    public boolean execute(Object o) {
+      if (o instanceof Task) {
+        Task t = (Task) o;
+        Verb verb = null;
+        Workflow wf = null;
+        Task parentTask = null;
+        if (t != null && (verb = t.getVerb()) != null && verb.equals(rootVerb)) {
+          if ((wf = t.getWorkflow()) != null && (parentTask = wf.getParentTask()) != null) {
+            return parentTask.getVerb().equals(parentVerb);
+          }
+        }
       }
-    };
+      return false;
+    }
+  }
 
   protected static final String[] iframeBrowsers = {
     "mozilla/5",
@@ -114,6 +133,13 @@ extends BaseServletComponent
   protected CompletionCalculator calc;
   protected final Object lock = new Object();
   protected LoggingService logger;
+
+  protected static UnaryPredicate projectSupplyRootTaskPred =
+      new RootTaskPredicate(Constants.Verb.ProjectSupply, Constants.Verb.GenerateProjections);
+  protected static UnaryPredicate supplyRootTaskPred =
+      new RootTaskPredicate(Constants.Verb.Supply, Constants.Verb.GenerateProjections);
+  protected static UnaryPredicate transportRootTaskPred =
+      new RootTaskPredicate(Constants.Verb.Transport, Constants.Verb.DetermineRequirements);
 
   public CompletionServlet() {
     super();
@@ -461,7 +487,7 @@ extends BaseServletComponent
       out.flush();
     }
 
-    private void viewAgentBig() throws IOException {
+    private void viewAgentBig() {
       // get result
       CompletionData result = getCompletionData();
 
@@ -662,7 +688,7 @@ extends BaseServletComponent
                       + redThreshold
                       + "&yellowThreshold="
                       + yellowThreshold
-                      + "\" scrolling=\"no\" width=300 height=90>"
+                      + "\" scrolling=\"no\" width=300 height=151>"
                       + agentName
                       + "</iframe>");
         }
@@ -838,6 +864,10 @@ extends BaseServletComponent
       int nTasks = result.getNumberOfTasks();
       int nUnplannedTasks = result.getNumberOfUnplannedTasks();
       int nPlannedTasks = (nTasks - nUnplannedTasks);
+      int nRootProjectSupplyTasks = result.getNumberOfRootProjectSupplyTasks();
+      int nRootSupplyTasks = result.getNumberOfRootSupplyTasks();
+      int nRootTransportTasks = result.getNumberOfRootTransportTasks();
+
       double percentPlannedTasks =
         ((nTasks > 0) ? 
          (1.0 * nPlannedTasks) / nTasks :
@@ -892,7 +922,10 @@ extends BaseServletComponent
       out.println(formatLabel("Tasks:") + formatInteger(nTasks));
       out.println(formatLabel("Planned:")        + formatInteger(nPlannedTasks)        + "(" + formatPercent(percentPlannedTasks)        + ")");
       out.println(formatLabel("Successful:")     + formatInteger(nSuccessfulTasks)     + "(" + formatPercent(percentSuccessfulTasks)     + ")");
-      out.println(formatLabel("Completed:")      + formatInteger(nFullConfidenceTasks) + "(" + formatPercent(percentFullConfidenceTasks) + ")</pre>");
+      out.println(formatLabel("Completed:")      + formatInteger(nFullConfidenceTasks) + "(" + formatPercent(percentFullConfidenceTasks) + ")");
+      out.println(formatLabel("Root Proj Supply Tasks:") + formatInteger(nRootProjectSupplyTasks));
+      out.println(formatLabel("Root Supply Tasks:") + formatInteger(nRootSupplyTasks));
+      out.println(formatLabel("Root Transport Tasks:") + formatInteger(nRootTransportTasks) + "</pre>");
       out.println("</body>\n</html>");
     }
 
@@ -946,6 +979,10 @@ extends BaseServletComponent
       return cc.calculate(objs);
     }
 
+    public Collection filterTasks(Collection allTasks, UnaryPredicate predicate) {
+      return Filters.filter(allTasks, predicate);
+    }
+
     protected CompletionData getCompletionData() {
       // get tasks
       Collection tasks = getAllTasks();
@@ -953,6 +990,10 @@ extends BaseServletComponent
       long nowTime = System.currentTimeMillis();
       double ratio = getRatio(tasks);
       int nTasks = tasks.size();
+      int nRootProjectSupplyTasks = filterTasks(tasks, projectSupplyRootTaskPred).size();
+      int nRootSupplyTasks = filterTasks(tasks, supplyRootTaskPred).size();
+      int nRootTransportTasks = filterTasks(tasks, transportRootTaskPred).size();
+
       Iterator taskIter = tasks.iterator();
       if (showTables) {
         // create and initialize our result
@@ -960,6 +1001,10 @@ extends BaseServletComponent
         result.setNumberOfTasks(nTasks);
         result.setRatio(ratio);
         result.setTimeMillis(nowTime);
+        result.setNumberOfRootProjectSupplyTasks(nRootProjectSupplyTasks);
+        result.setNumberOfRootSupplyTasks(nRootSupplyTasks);
+        result.setNumberOfRootTransportTasks(nRootTransportTasks);
+
         // examine tasks
         for (int i = 0; i < nTasks; i++) {
           Task ti = (Task)taskIter.next();
@@ -992,6 +1037,9 @@ extends BaseServletComponent
         result.setNumberOfTasks(nTasks);
         result.setRatio(ratio);
         result.setTimeMillis(nowTime);
+        result.setNumberOfRootProjectSupplyTasks(nRootProjectSupplyTasks);
+        result.setNumberOfRootSupplyTasks(nRootSupplyTasks);
+        result.setNumberOfRootTransportTasks(nRootTransportTasks);
         // examine tasks
         int nUnplannedTasks = 0;
         int nUnestimatedTasks = 0;
@@ -1252,6 +1300,12 @@ extends BaseServletComponent
          0.0);
       out.print(percentFullConfidenceTasks);
       out.print(" %</b>)\n");
+      out.print("</b>"+"\nNumber of Root ProjectSupply Tasks: <b>");
+      out.print(result.getNumberOfRootProjectSupplyTasks());
+      out.print("</b>"+"\nNumber of Root Supply Tasks: <b>");
+      out.print(result.getNumberOfRootSupplyTasks());
+      out.print("</b>"+"\nNumber of Root Transport Tasks: <b>");
+      out.print(result.getNumberOfRootTransportTasks());
       out.print("</pre>\n");
     }
 

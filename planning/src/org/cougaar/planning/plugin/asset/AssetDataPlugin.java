@@ -82,6 +82,7 @@ import org.cougaar.util.ConfigFinder;
 import org.cougaar.util.Reflect;
 import org.cougaar.util.StateModelException;
 import org.cougaar.util.TimeSpan;
+import org.cougaar.util.UnaryPredicate;
 
 /**
  * Generic part of plugin to create local asset and the Report tasks
@@ -143,20 +144,7 @@ public class AssetDataPlugin extends SimplePlugin {
       myLogger = LoggingService.NULL;
     }
 
-
-    if (!didRehydrate()) {
-      try {
-        openTransaction();
-        processAssets();
-      } catch (Exception e) {
-        synchronized (System.err) {
-          myLogger.error(getMessageAddress().toString()+"/"+this+" caught "+e);
-          e.printStackTrace();
-        }
-      } finally {
-        closeTransactionDontReset();
-      }
-    }
+    initAssets();
   }
 
   public void execute() {
@@ -185,6 +173,60 @@ public class AssetDataPlugin extends SimplePlugin {
       } */
   }
 
+
+  protected void initAssets() {
+    try {
+      openTransaction();
+
+      // Look to see whether we've already created the local asset
+      if (didRehydrate()) {
+	Collection queryCollection = getBlackboardService().query(new UnaryPredicate() {
+	  public boolean execute(Object o) {
+	    return (o instanceof LocalAssetInfo);
+	  }
+	});
+	
+	if (!queryCollection.isEmpty()) {
+	  final Object key = 
+	    ((LocalAssetInfo) queryCollection.iterator().next()).getKey();
+	  
+	  if (queryCollection.size() > 1) {
+	    myLogger.warn(getAgentIdentifier() + 
+			  " found " + queryCollection.size() + 
+			  " keys for the local Asset." +
+			  " Using - " + key);
+	  }
+	  
+	  Collection assetCollection = getBlackboardService().query(new UnaryPredicate() {
+	    public boolean execute(Object o) {
+	      return ((o instanceof Asset) &&
+		    (((Asset) o).getKey().equals(key)));
+	    }
+	  });
+	  
+	  if (!assetCollection.isEmpty()) {
+	    myLocalAsset = (Asset) assetCollection.iterator().next();
+	    myAssetClassName = 
+	      myAssetInitializerService.getAgentPrototype(getMessageAddress().getAddress());
+	  } else {
+	    myLogger.warn(getAgentIdentifier() + 
+			  " Did not find local asset for key " + key);
+	  }
+	}
+      }
+      
+      if (myLocalAsset == null) {
+        processAssets();
+      } 
+    } catch (Exception e) {
+      synchronized (System.err) {
+	myLogger.error(getMessageAddress().toString()+"/"+this+" caught "+e);
+	e.printStackTrace();
+      }
+    } finally {
+      closeTransactionDontReset();
+    }
+  }
 
   /**
    * Parses the prototype-ini file and in the process sets up
@@ -233,6 +275,8 @@ public class AssetDataPlugin extends SimplePlugin {
       }
 
       publishAdd(myLocalAsset);
+      LocalAssetInfo localAssetInfo = new LocalAssetInfo(myLocalAsset);
+      publishAdd(localAssetInfo);
 
       // Put the assets for this cluster into array
       for (Iterator iterator = myRelationships.iterator(); 
@@ -987,6 +1031,25 @@ public class AssetDataPlugin extends SimplePlugin {
       AssetDataPlugin.this.addRelationship(typeId, itemId, otherClusterId, roleName, start, end);
     }
   }
+
+  private static class LocalAssetInfo implements java.io.Serializable {
+    private Object myKey = null;
+
+    public LocalAssetInfo(Asset localAsset) {
+      myKey = localAsset.getKey();
+    }
+
+    public LocalAssetInfo() {
+    }
+
+    public Object getKey() {
+      return myKey;
+    }
+
+    public void setKey(Object key) {
+      myKey = key;
+    }
+  }   
 }
 
 

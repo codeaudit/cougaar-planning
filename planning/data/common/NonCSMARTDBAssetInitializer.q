@@ -3,9 +3,9 @@
 # to read asset definitions from the CSMART03 reference
 # database.
 # See org.cougaar.planning.ldm.asset.NonCSMARTDBInitializerServiceImpl
-database=${org.cougaar.configuration.database}
-username=${org.cougaar.configuration.user}
-password=${org.cougaar.configuration.password}
+database=${org.cougaar.refconfig.database}
+username=${org.cougaar.refconfig.user}
+password=${org.cougaar.refconfig.password}
 
 queryGeolocLocation.database=${org.cougaar.database}
 queryGeolocLocation.username=${org.cougaar.database.user}

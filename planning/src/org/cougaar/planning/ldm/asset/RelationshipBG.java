@@ -35,6 +35,11 @@ public class RelationshipBG implements PGDelegate {
   public RelationshipBG() {
   }
 
+  /**
+   *  Note that simply constructing this BG may have a side effect
+   * on the input PG (setting the relationship schedule if not set)
+   * @see #init
+   **/
   public RelationshipBG(NewRelationshipPG pg, 
                         HasRelationships hasRelationships) {
     init(pg, hasRelationships);

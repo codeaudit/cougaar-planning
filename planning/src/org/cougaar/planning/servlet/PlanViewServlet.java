@@ -2453,13 +2453,13 @@ extends HttpServlet
           // link to task in other cluster
           String encRemoteAgentID = 
             support.encodeAgentName(remoteAgentID);
-          Task allocTask = ((AllocationforCollections)ac).getAllocationTask();
+          UID allocTaskUID = ((AllocationforCollections)ac).getAllocationTaskUID();
           out.print(
               "<li>"+
               "<font size=small color=mediumblue>"+
               "AllocTask= ");
           printLinkToTask(
-              allocTask, 
+              allocTaskUID, 
               encRemoteAgentID);
           out.print(
               "</font>"+
@@ -3485,7 +3485,7 @@ extends HttpServlet
     private void printLinkToLocalTask(Task task)
     {
       printLinkToTask(
-          task, 
+          task == null ? null : task.getUID(), 
           support.getEncodedAgentName());
     }
 
@@ -3496,21 +3496,21 @@ extends HttpServlet
      * clusters in the "Down" sense, i.e. allocations.
      */
     private void printLinkToTask(
-        Task task, 
+        UID taskU, 
         String atEncodedAgentName)
     {
-      UID taskU;
       String taskUID;
-      if (task == null) {
+      if (taskU == null) {
         out.print("<font color=red>null</font>");
-      } else if (((taskU = task.getUID()) == null) ||
-          ((taskUID = taskU.toString()) == null)) {
-        out.print("<font color=red>not unique</font>");
       } else {
-        out.print("<a href=\"/$");
-        out.print(atEncodedAgentName);
-        out.print(support.getPath());
-        out.print(
+        taskUID = taskU.toString();
+        if (taskUID == null) {
+          out.print("<font color=red>not unique</font>");
+        } else {
+          out.print("<a href=\"/$");
+          out.print(atEncodedAgentName);
+          out.print(support.getPath());
+          out.print(
             "?"+
             MODE+
             "="+
@@ -3518,10 +3518,11 @@ extends HttpServlet
             "&"+
             ITEM_UID+
             "=");
-        out.print(encodeUID(taskUID));
-        out.print("\" target=\"itemFrame\">");
-        out.print(taskUID);
-        out.print("</a>");
+          out.print(encodeUID(taskUID));
+          out.print("\" target=\"itemFrame\">");
+          out.print(taskUID);
+          out.print("</a>");
+        }
       }
     }
 

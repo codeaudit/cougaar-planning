@@ -65,7 +65,11 @@ implements Component
 
   public void setAgentIdentificationService(AgentIdentificationService ais) {
     this.ais = ais;
-    this.agentId = ais.getMessageAddress();
+    if (ais == null) {
+      // Revocation
+    } else {
+      this.agentId = ais.getMessageAddress();
+    }
   }
   public void setPrototypeRegistryService(PrototypeRegistryService prs) {
     this.prs = prs;

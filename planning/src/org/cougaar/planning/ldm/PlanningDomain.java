@@ -62,7 +62,11 @@ public class PlanningDomain extends DomainAdapter {
 
   public void setAgentIdentificationService(AgentIdentificationService ais) {
     this.agentIdService = ais;
-    this.self = ais.getMessageAddress();
+    if (ais == null) {
+      // Revocation
+    } else {
+      this.self = ais.getMessageAddress();
+    }
   }
 
   public void setLDMService(LDMService ldmService) {
@@ -123,7 +127,7 @@ public class PlanningDomain extends DomainAdapter {
     addLogicProvider(new ReceiveAssetVerificationLP(rootplan, logplan, ldmf));
     addLogicProvider(new ReceiveAssetRescindLP(rootplan, logplan, ldmf));
     addLogicProvider(new ReceiveNotificationLP(rootplan, logplan, ldmf));
-    addLogicProvider(new ReceiveDeletionLP(logplan));
+    addLogicProvider(new ReceiveDeletionLP(logplan, self));
     addLogicProvider(new ReceiveRescindLP(rootplan, logplan));
     addLogicProvider(new ReceiveTaskLP(rootplan, logplan));
     

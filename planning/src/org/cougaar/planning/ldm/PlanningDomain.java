@@ -93,7 +93,7 @@ public class PlanningDomain extends DomainAdapter {
   }
 
   public void unload() {
-    ServiceBroker sb = getBindingSite().getServiceBroker();
+    ServiceBroker sb = getServiceBroker();
     if (agentIdService != null) {
       sb.releaseService(this, AgentIdentificationService.class, agentIdService);
       agentIdService = null;

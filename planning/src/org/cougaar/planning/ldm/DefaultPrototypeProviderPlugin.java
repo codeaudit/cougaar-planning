@@ -59,15 +59,15 @@ public class DefaultPrototypeProviderPlugin
   
     // get the domain service  	
     if (ldmf == null) {
-      domainService = (DomainService) getBindingSite().getServiceBroker().getService(
+      domainService = (DomainService) getServiceBroker().getService(
           this, DomainService.class, null);
       
       // get the registry service  	
-      protregService = (PrototypeRegistryService) getBindingSite().getServiceBroker().getService(
+      protregService = (PrototypeRegistryService) getServiceBroker().getService(
           this, PrototypeRegistryService.class, null);
       
       // get the UIDService   	
-      uidService = (UIDService) getBindingSite().getServiceBroker().getService(
+      uidService = (UIDService) getServiceBroker().getService(
           this, UIDService.class, null);
     }
     //use the services

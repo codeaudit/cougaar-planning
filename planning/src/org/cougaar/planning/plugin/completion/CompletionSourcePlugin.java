@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.Date;
 import java.util.SortedSet;
 import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.component.ServiceBroker;
@@ -187,8 +188,8 @@ public abstract class CompletionSourcePlugin extends CompletionPlugin {
     if (haveServices()) {
       checkTargets();
       checkSelfLaggard(true);
-      startTimer(SHORT_CHECK_TARGETS_INTERVAL);
-      timerTimeout = System.currentTimeMillis() + SHORT_CHECK_TARGETS_INTERVAL;
+      resetTimer(SHORT_CHECK_TARGETS_INTERVAL);
+      timerTimeout = System.currentTimeMillis() + SHORT_CHECK_TARGETS_INTERVAL + TIMER_SLACK;
     } else {
       timerTimeout = 0L;
     }
@@ -197,15 +198,19 @@ public abstract class CompletionSourcePlugin extends CompletionPlugin {
   public void execute() {
     if (haveServices()) {
       now = System.currentTimeMillis();
-      boolean timerExpired = timerExpired();
+      boolean timerExpired = !hasUnexpiredTimer(); // should we execute now?
       if (!timerExpired) {
         if (timerTimeout > 0L && now > timerTimeout) {
-          logger.error("Timer failed to fire");
+          // this shouldn't hapen
+          long actual = getTimerExpirationTime();
+          logger.error("Timer failed to fire: now="+(new Date(now))+"  timeout="+(new Date(timerTimeout))+
+                       "  realTrigger="+(new Date(actual)));
           timerExpired = true;
         }
       }
+
       if (timerExpired) {
-        cancelTimer();
+        //cancelTimer();  // using resetTimer now, no need to cancel.
         if (now > nextCheckTargetsTime) {
           if (checkTargets()) {
             checkSelfLaggard(true);
@@ -221,7 +226,7 @@ public abstract class CompletionSourcePlugin extends CompletionPlugin {
           checkSelfLaggard(false);
           checkLaggards();
         }
-        startTimer(UPDATE_INTERVAL);
+        resetTimer(UPDATE_INTERVAL);
         timerTimeout = System.currentTimeMillis() + UPDATE_INTERVAL + TIMER_SLACK;
       }
     }

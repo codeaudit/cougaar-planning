@@ -88,7 +88,13 @@ public class AspectLocation extends TypedAspectValue {
   }
 
   public String toString() {
-    return Float.toString(floatValue())+"["+getType()+"]";
+    return loc_value+"["+getType()+"]";
+  }
+
+  public boolean nearlyEquals(Object o) {
+    return
+      (o instanceof AspectValue &&
+       this.equals((AspectValue) o));
   }
 
   public boolean equals(AspectValue v) {

@@ -93,7 +93,7 @@ implements LogicProvider, MessageLogicProvider
           if (tsk.getWorkflow() != null) {
             // Has been marked and the mark remains meaning tsk is the
             // same instance as the sending agent has so we clone it
-            System.out.println("Cloning task alias received from same node");
+            System.out.println("Cloning task from same node " + tsk.getUID());
             tsk = cloneAliasedTask(tsk);
           }
           rootplan.add(tsk);
@@ -105,6 +105,7 @@ implements LogicProvider, MessageLogicProvider
             // pre-deletion state.
           }
         } else if (tsk == existingTask) {
+          // This never happens any more
           rootplan.change(existingTask, changes);
         } else {
           Preference[] newPreferences = ((TaskImpl) tsk).getPreferencesAsArray();
@@ -127,17 +128,28 @@ implements LogicProvider, MessageLogicProvider
   }
 
   private Task cloneAliasedTask(final Task task) {
-    final Task[] result = new Task[1];
-    ClusterContextTable.withClusterContext(task.getDestination(), new Runnable() {
+    final byte[][] result1 = new byte[1][];
+    ClusterContextTable.withMessageContext(task.getSource(), task.getSource(), task.getDestination(), new Runnable() {
         public void run() {
           try {
-            result[0] = (Task) SerializationUtils.fromByteArray(SerializationUtils.toByteArray(task));
+            result1[0] = SerializationUtils.toByteArray(task);
           } catch (Exception e) {
             logger.error("Failed to clone aliased task");
-            result[0] = task;
           }
         }
       });
-    return result[0];
+    if (result1[0] == null) return task;
+    final Task[] result2 = new Task[1];
+    ClusterContextTable.withMessageContext(task.getDestination(), task.getSource(), task.getDestination(), new Runnable() {
+        public void run() {
+          try {
+            result2[0] = (Task) SerializationUtils.fromByteArray(SerializationUtils.toByteArray(task));
+          } catch (Exception e) {
+            logger.error("Failed to clone aliased task");
+            result2[0] = task;
+          }
+        }
+      });
+    return result2[0];
   }
 }

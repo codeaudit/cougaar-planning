@@ -150,8 +150,17 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
   
   static final void createNotification(UID ptuid, Task t, AllocationResult ar, Collection changes, RootPlan rootplan, LogPlan logplan, PlanningFactory ldmf, MessageAddress self) {
 
-    if (logger.isDebugEnabled())
-      logger.debug("Doing checkNotification for PE: " + t.getPlanElement().getUID());
+    if (logger.isDebugEnabled()) {
+      PlanElement pe = null;
+      if (t != null) {
+	pe = t.getPlanElement();
+	if (pe != null) {
+          logger.debug("Doing checkNotification for PE: " + pe);
+        }
+      } else {
+	logger.warn("Got null Task in createNotification?!");
+      }
+    }
 
     MessageAddress dest = t.getSource();
     if (self == dest || self.equals(dest)) {

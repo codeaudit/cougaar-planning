@@ -392,11 +392,11 @@ implements Component
         "Node("+nodeName+")"+Constants.PATH_SEPR+
         "Destination("+agentName+")"+Constants.PATH_SEPR;
       cpuPath =
-        agentPath+Constants.CPU_LOAD_AVG_1_SEC_AVG;
+        agentPath+Constants.CPU_LOAD_AVG+"("+Constants._1_SEC_AVG+")";
       toMsgPath =
-        destPath+Constants.MSG_TO_10_SEC_AVG;
+        destPath+Constants.MSG_TO+"("+Constants._10_SEC_AVG+")";
       fromMsgPath =
-        destPath+Constants.MSG_FROM_10_SEC_AVG;
+        destPath+Constants.MSG_FROM+"("+Constants._10_SEC_AVG+")";
     }
     if (messageWatcherService != null && agentId != null) {
       myMessageWatcher = new MessageWatcher(agentId);

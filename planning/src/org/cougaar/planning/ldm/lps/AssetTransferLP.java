@@ -409,24 +409,20 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
 		   changeAvailabilityRequired + 
 		   " for AssetTransfer - " + at +
 		   " transfering asset - " + localTransferringAsset +
-		   " receiving asset - " + receivingAsset);
+		   " receiving asset - " + receivingAsset + 
+		   " local receiving asset - " + localReceivingAsset);
     }
 
-    if (localReceivingAsset == null) {
-      rootplan.add(receivingAsset);
-    } else if (changeRelationshipRequired) {
-      Collection changes = new ArrayList();
-      changes.add(new RelationshipSchedule.RelationshipScheduleChangeReport());
-      rootplan.change(localTransferringAsset, changes);
+    publishAsset(receivingAsset, 
+		 (localReceivingAsset == null),
+		 changeRelationshipRequired,
+		 changeAvailabilityRequired);
 
-      changes.clear();
-      changes.add(new RelationshipSchedule.RelationshipScheduleChangeReport());
-      rootplan.change(receivingAsset, changes);
-    } else if (changeAvailabilityRequired) {
-      rootplan.change(localTransferringAsset, null);
-      rootplan.change(receivingAsset, null);
-    }
-    
+    publishAsset(localTransferringAsset,
+		 false, // local asset already exists on the blackboard
+		 changeRelationshipRequired,
+		 changeAvailabilityRequired);
+
     return true;
   }
 
@@ -701,6 +697,38 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
     }
   }
 
+  private void publishAsset(Asset asset, 
+			    boolean newAsset,
+			    boolean changeRelationshipRequired,
+			    boolean changeAvailabilityRequired) {
+
+    if (newAsset) {
+      rootplan.add(asset);
+      if (logger.isDebugEnabled()) {
+	logger.debug("publishAsset: publish added " + asset + 
+		     " uid = " + asset.getUID());
+      }
+    } else  {
+      boolean publishRequired = false;
+      Collection changes = null;
+
+      if (changeRelationshipRequired) {
+	changes = new ArrayList();
+	changes.add(new RelationshipSchedule.RelationshipScheduleChangeReport());
+	publishRequired = true;
+      } else if (changeAvailabilityRequired) {
+	publishRequired = true;
+      }
+      
+      if (publishRequired) {
+	if (logger.isDebugEnabled()) {
+	  logger.debug("publishAsset: publish changed " + asset + 
+		       " uid = " + asset.getUID());
+	}
+	rootplan.change(asset, changes);
+      }
+    }
+  }
 }
 
 

@@ -247,12 +247,12 @@ public class ReceiveTaskLP
 	  // 3: Compare context
           Context existingContext = existingTask.getContext();
           Context tskContext = tsk.getContext();
-          if (logger.isWarnEnabled()) {
+          if (logger.isInfoEnabled()) {
             if (existingContext == null) {
-              logger.warn("existingTask has null context: " + existingTask);
+              logger.info("existingTask has null context: " + existingTask);
             }
             if (tskContext == null) {
-              logger.warn("received Task has null context: " + tsk);
+              logger.info("received Task has null context: " + tsk);
             }
           }
           if (((existingContext != null) && !existingContext.equals(tskContext)) ||

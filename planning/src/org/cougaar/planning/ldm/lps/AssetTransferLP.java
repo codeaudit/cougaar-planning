@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Vector;
 
 import org.cougaar.core.blackboard.AnonymousChangeReport;
 import org.cougaar.core.blackboard.ChangeReport;
@@ -40,6 +41,9 @@ import org.cougaar.planning.ldm.LogPlan;
 import org.cougaar.planning.ldm.PlanningFactory;
 import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.planning.ldm.asset.ClusterPG;
+import org.cougaar.planning.ldm.asset.LocalPG;
+import org.cougaar.planning.ldm.asset.PropertyGroup;
+import org.cougaar.planning.ldm.asset.PropertyGroupSchedule;
 import org.cougaar.planning.ldm.plan.AssetAssignment;
 import org.cougaar.planning.ldm.plan.AssetTransfer;
 import org.cougaar.planning.ldm.plan.AssignedAvailabilityElement;
@@ -242,7 +246,25 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
     /* copy the asset so we don't share roleschedule across
      * agent boundaries.
      */
-    naa.setAsset(ldmf.cloneInstance(at.getAsset()));
+    Asset transferredAsset = ldmf.cloneInstance(at.getAsset());
+    Vector transferredPGs = transferredAsset.fetchAllProperties();
+
+    // Remove all LocalPGs - these shouldn't go out of the agent.
+    for (Iterator pgIterator = transferredPGs.iterator();
+	 pgIterator.hasNext();) {
+      Object next = pgIterator.next();
+      
+      //Don't propagate LocalPGs
+      if (next instanceof LocalPG) {
+	if (next instanceof PropertyGroup) {
+	  transferredAsset.removeOtherPropertyGroup(next.getClass());
+	} else if (next instanceof PropertyGroupSchedule) {
+	  transferredAsset.removeOtherPropertyGroupSchedule(next.getClass());
+	}
+      }
+    }
+
+    naa.setAsset(transferredAsset);
     
     naa.setPlan(ldmf.getRealityPlan());
     

@@ -490,8 +490,13 @@ public class WorkflowImpl
       stream.writeObject(currentARA);
     }
     if (stream instanceof org.cougaar.core.persist.PersistenceOutputStream) {
-        stream.writeObject(myAnnotation);
+      stream.writeObject(myAnnotation);
+      // Probably superfluous since no plugin should be running, but
+      // logically required to match against the other accesses of
+      // this field.
+      synchronized (this) {
         stream.writeObject(changedSubtasks);
+      }
     }
   }
 

@@ -110,8 +110,7 @@ public class PlanningDomain extends DomainAdapter {
   }
 
   protected void loadLPs() {
-    DomainBindingSite domainBS = (DomainBindingSite) getBindingSite();
-    RootPlan rootplan = (RootPlan) domainBS.getXPlanForDomain("root");
+    RootPlan rootplan = (RootPlan) getXPlanForDomain("root");
     if (rootplan == null) {
       throw new RuntimeException("Missing \"root\" plan!");
     }

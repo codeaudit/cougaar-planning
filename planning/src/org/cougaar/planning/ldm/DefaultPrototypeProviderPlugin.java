@@ -26,7 +26,6 @@ import org.cougaar.core.component.ServiceBroker;
 import org.cougaar.core.component.ServiceRevokedEvent;
 import org.cougaar.core.component.ServiceRevokedListener;
 import org.cougaar.core.plugin.ComponentPlugin;
-import org.cougaar.core.plugin.PluginBindingSite;
 import org.cougaar.core.plugin.*;
 import org.cougaar.core.service.DomainService;
 import org.cougaar.planning.service.PrototypeRegistryService;

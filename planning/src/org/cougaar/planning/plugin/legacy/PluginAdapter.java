@@ -43,6 +43,7 @@ import org.cougaar.core.component.BindingSite;
 import org.cougaar.core.component.Component;
 import org.cougaar.core.component.ServiceBroker;
 import org.cougaar.core.domain.Factory;
+import org.cougaar.core.service.AgentIdentificationService;
 import org.cougaar.core.service.AlarmService;
 import org.cougaar.core.service.BlackboardService;
 import org.cougaar.core.service.DemoControlService;
@@ -84,12 +85,21 @@ public abstract class PluginAdapter
 
   private PluginBindingSite bindingSite = null;
 
-  public final void setBindingSite(BindingSite bs) {
-    if (bs instanceof PluginBindingSite) {
-      bindingSite = (PluginBindingSite) bs;
-    } else {
-      throw new RuntimeException("Tried to load "+this+" into "+bs);
-    }
+  public final void setBindingSite(final BindingSite bs) {
+    this.bindingSite = new PluginBindingSite() {
+      public MessageAddress getAgentIdentifier() {
+        return PluginAdapter.this.getAgentIdentifier();
+      }
+      public ConfigFinder getConfigFinder() {
+        return PluginAdapter.this.getConfigFinder();
+      }
+      public ServiceBroker getServiceBroker() {
+        return bs.getServiceBroker();
+      }
+      public void requestStop() {
+        bs.requestStop();
+      }
+    };
   }
 
   protected final PluginBindingSite getBindingSite() {
@@ -99,6 +109,12 @@ public abstract class PluginAdapter
   //
   // extra services
   //
+
+  private MessageAddress agentId = null;
+  public final void setAgentIdentificationService(
+      AgentIdentificationService ais) {
+    this.agentId = ais.getMessageAddress();
+  }
 
   private LDMService ldmService = null;
   public final void setLDMService(LDMService s) {
@@ -389,8 +405,6 @@ public abstract class PluginAdapter
   /** Safely return our BlackboardService 
    * Plugin.load() must have completed in order 
    * for the value to be defined.
-   * This method is public as it is part of the API required by PluginBindingSite to
-   * support the threading models.
    **/
   public final BlackboardService getBlackboardService() {
     return theBlackboard;
@@ -408,7 +422,7 @@ public abstract class PluginAdapter
 
   private ClusterServesPlugin dummyCluster = new ClusterServesPlugin() {
       // real ones
-      public ConfigFinder getConfigFinder() { return ((PluginBindingSite) getBindingSite()).getConfigFinder(); }
+      public ConfigFinder getConfigFinder() { return PluginAdapter.this.getConfigFinder(); }
       public MessageAddress getMessageAddress() { return PluginAdapter.this.getMessageAddress();}
       public UIDServer getUIDServer() { return PluginAdapter.this.getUIDServer(); }
       public LDMServesPlugin getLDM() { return PluginAdapter.this.getLDM(); }
@@ -438,7 +452,7 @@ public abstract class PluginAdapter
     };
 
   protected ConfigFinder getConfigFinder() {
-    return ((PluginBindingSite) getBindingSite()).getConfigFinder();
+    return ConfigFinder.getInstance();
   }
 
   // 
@@ -682,7 +696,7 @@ public abstract class PluginAdapter
   // 
 
   protected final MessageAddress getAgentIdentifier() {
-    return ((PluginBindingSite) getBindingSite()).getAgentIdentifier();
+    return agentId;
   }
   protected final MessageAddress getMessageAddress() {
     return getAgentIdentifier();
@@ -762,7 +776,7 @@ public abstract class PluginAdapter
       return PluginAdapter.this.getFactory(s);
     }
     public MessageAddress getMessageAddress() {
-      return ((PluginBindingSite) getBindingSite()).getAgentIdentifier();
+      return PluginAdapter.this.getAgentIdentifier();
     }
     public MetricsSnapshot getMetricsSnapshot() {
       return PluginAdapter.this.getMetricsSnapshot();
@@ -990,7 +1004,6 @@ public abstract class PluginAdapter
 
   /** Set the current choice of threading model.  Will have no effect if
    * the threading model has already been acted on.
-   * @deprecated call PluginBindingSite.setThreadingChoice(m) instead.
    **/
   protected final void chooseThreadingModel(int m) {
     setThreadingChoice(m);

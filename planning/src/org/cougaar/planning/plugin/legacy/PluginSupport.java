@@ -23,6 +23,10 @@ package org.cougaar.planning.plugin.legacy;
 
 import org.cougaar.core.plugin.*;
 import org.cougaar.core.component.BindingSite;
+import org.cougaar.core.component.ServiceBroker;
+import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.core.service.AgentIdentificationService;
+import org.cougaar.util.ConfigFinder;
 import org.cougaar.util.GenericStateModelAdapter;
 
   /** 
@@ -35,15 +39,34 @@ public abstract class PluginSupport
 {
 
   private PluginBindingSite pluginBindingSite = null;
-  /**
-   * Found by introspection
-   **/
-  public void setBindingSite(BindingSite bs) {
-    if (bs instanceof PluginBindingSite) {
-      pluginBindingSite = (PluginBindingSite)bs;
-    } else {
-      throw new RuntimeException("Tried to load "+this+" into "+bs);
-    }
+
+  public void setBindingSite(final BindingSite bs) {
+    pluginBindingSite = new PluginBindingSite() {
+      public MessageAddress getAgentIdentifier() {
+        return PluginSupport.this.getAgentIdentifier();
+      }
+      public ConfigFinder getConfigFinder() {
+        return PluginSupport.this.getConfigFinder();
+      }
+      public ServiceBroker getServiceBroker() {
+        return bs.getServiceBroker();
+      }
+      public void requestStop() {
+        bs.requestStop();
+      }
+    };
+  }
+
+  private MessageAddress agentId = null;
+  public final void setAgentIdentificationService(
+      AgentIdentificationService ais) {
+    this.agentId = ais.getMessageAddress();
+  }
+  public MessageAddress getAgentIdentifier() {
+    return agentId;
+  }
+  public ConfigFinder getConfigFinder() {
+    return ConfigFinder.getInstance();
   }
 
   protected final PluginBindingSite getBindingSite() {

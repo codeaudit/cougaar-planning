@@ -43,6 +43,7 @@ import org.cougaar.core.component.ComponentDescription;
 import org.cougaar.core.service.AgentContainmentService;
 
 import org.cougaar.core.node.NodeIdentificationService;
+import org.cougaar.core.service.AgentIdentificationService;
 import org.cougaar.core.service.MessageTransportService;
 import org.cougaar.core.servlet.BaseServletComponent;
 import org.cougaar.util.StringUtility;
@@ -132,10 +133,14 @@ extends BaseServletComponent
 
   // aquire services:
   public void load() {
-    // FIXME need AgentIdentificationService
-    org.cougaar.core.plugin.PluginBindingSite pbs =
-      (org.cougaar.core.plugin.PluginBindingSite) bindingSite;
-    this.agentId = pbs.getAgentIdentifier();
+    AgentIdentificationService ais = (AgentIdentificationService)
+      serviceBroker.getService(
+          this, AgentIdentificationService.class, null);
+    if (ais != null) {
+      this.agentId = ais.getMessageAddress();
+      serviceBroker.releaseService(
+          this, AgentIdentificationService.class, ais);
+    }
 
     // get the nodeId
     this.nodeIdService = (NodeIdentificationService)

@@ -25,7 +25,6 @@ import org.cougaar.core.blackboard.BlackboardClient;
 import org.cougaar.core.component.BindingSite;
 import org.cougaar.planning.ldm.LDMServesPlugin;
 import org.cougaar.planning.service.LDMService;
-import org.cougaar.core.plugin.PluginBindingSite;
 import org.cougaar.core.service.BlackboardQueryService;
 import org.cougaar.core.service.BlackboardService;
 import org.cougaar.core.service.LoggingService;
@@ -57,7 +56,7 @@ implements BlackboardClient
     return ldmService;
   }
   protected ConfigFinder getConfigFinder() {
-    return ((PluginBindingSite) bindingSite).getConfigFinder();
+    return ConfigFinder.getInstance();
   }
 
 

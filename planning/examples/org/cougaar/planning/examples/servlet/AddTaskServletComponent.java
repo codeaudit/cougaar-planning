@@ -29,7 +29,6 @@ import javax.servlet.http.*;
 import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.blackboard.BlackboardClient;
 import org.cougaar.core.component.*;
-import org.cougaar.core.plugin.PluginBindingSite;
 import org.cougaar.core.service.*;
 import org.cougaar.core.servlet.BaseServletComponent;
 
@@ -47,10 +46,14 @@ implements BlackboardClient
   private PlanningFactory ldmf;
 
   public void load() {
-    // FIXME need AgentIdentificationService
-    PluginBindingSite pbs =
-      (PluginBindingSite) bindingSite;
-    this.agentId = pbs.getAgentIdentifier();
+    AgentIdentificationService ais = (AgentIdentificationService)
+      serviceBroker.getService(
+          this, AgentIdentificationService.class, null);
+    if (ais != null) {
+      this.agentId = ais.getMessageAddress();
+      serviceBroker.releaseService(
+          this, AgentIdentificationService.class, ais);
+    }
 
     super.load();
   }

@@ -75,6 +75,8 @@ import org.cougaar.util.log.Logging;
  *
  * Attempts to do a complete LogPlan rescind walk, not depending on
  * being re-called to do the "next" level of rescind.
+ * @property org.cougaar.planning.ldm.lps.RescindLP.checkBadTask defaults to true: When true, check for consistent Task & PEs on publishAdd/Remove
+ * @property org.cougaar.planning.ldm.lps.RescindLP.removeBadTask. When this & checkBadTask are true, will also remove bad Tasks/PEs if the above checks suggest it. Defaults to true.
  **/
 public class RescindLP
   implements LogicProvider, EnvelopeLogicProvider {

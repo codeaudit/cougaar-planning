@@ -30,12 +30,15 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import javax.servlet.Servlet;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -47,6 +50,7 @@ import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.planning.plugin.completion.CompletionCalculator;
 import org.cougaar.core.service.AgentIdentificationService;
 import org.cougaar.core.service.BlackboardQueryService;
+import org.cougaar.core.service.LoggingService;
 import org.cougaar.core.service.wp.WhitePagesService;
 import org.cougaar.core.servlet.BaseServletComponent;
 import org.cougaar.core.util.UID;
@@ -93,7 +97,11 @@ extends BaseServletComponent
     "msie 6"
   };
 
-  protected static final int MAX_AGENT_FRAMES = 17;
+  protected static final double DEFAULT_RED_THRESHOLD = 0.89;
+
+  protected static final double DEFAULT_YELLOW_THRESHOLD = 0.99;
+
+  protected static final int MAX_AGENT_FRAMES = 18;
 
   protected String path;
 
@@ -107,6 +115,7 @@ extends BaseServletComponent
 
   protected CompletionCalculator calc;
   protected final Object lock = new Object();
+  protected LoggingService logger;
 
   public CompletionServlet() {
     super();
@@ -145,7 +154,7 @@ extends BaseServletComponent
       AgentIdentificationService agentIdService) {
     this.agentIdService = agentIdService;
     this.localAgent = agentIdService.getMessageAddress();
-    encLocalAgent = encodeAgentName(localAgent.getAddress());
+    encLocalAgent = formURLEncode(localAgent.getAddress());
   }
 
   public void setBlackboardQueryService(
@@ -160,6 +169,8 @@ extends BaseServletComponent
 
   public void load() {
     super.load();
+    logger = (LoggingService)
+      serviceBroker.getService(this, LoggingService.class, null);
   }
 
   public void unload() {
@@ -194,6 +205,18 @@ extends BaseServletComponent
     }
   }
 
+  protected List getAllAgentNames() {
+    try {
+      // do full WP list (deprecated!)
+      List result = new ArrayList(ListAllAgents.listAllAgents(whitePagesService));
+      Collections.sort(result);
+      return result;
+    } catch (Exception e) {
+      throw new RuntimeException(
+          "List all agents failed", e);
+    }
+  }
+
   protected Collection queryBlackboard(UnaryPredicate pred) {
     return blackboardQueryService.query(pred);
   }
@@ -202,7 +225,7 @@ extends BaseServletComponent
     return encLocalAgent;
   }
 
-  protected String encodeAgentName(String name) {
+  protected String formURLEncode(String name) {
     try {
       return URLEncoder.encode(name, "UTF-8");
     } catch (java.io.UnsupportedEncodingException e) {
@@ -259,6 +282,11 @@ extends BaseServletComponent
     // writer from the request for HTML output
     private PrintWriter out;
 
+    // various form params
+    double redThreshold;
+    double yellowThreshold;
+    int refreshInterval;
+
     public Completor(
         HttpServletRequest request, 
         HttpServletResponse response)
@@ -269,6 +297,21 @@ extends BaseServletComponent
 
     public void execute() throws IOException, ServletException 
     {
+      try {
+        redThreshold = Double.parseDouble(request.getParameter("redThreshold"));
+      } catch (Exception e) {
+        redThreshold = DEFAULT_RED_THRESHOLD;
+      }
+      try {
+        yellowThreshold = Double.parseDouble(request.getParameter("yellowThreshold"));
+      } catch (Exception e) {
+        yellowThreshold = DEFAULT_YELLOW_THRESHOLD;
+      }
+      try {
+        refreshInterval = Integer.parseInt(request.getParameter("refreshInterval"));
+      } catch (Exception e) {
+        refreshInterval = 0;
+      }
       String formatParam = request.getParameter("format");
       if (formatParam == null) {
         format = FORMAT_HTML; // default
@@ -298,6 +341,10 @@ extends BaseServletComponent
         viewAgentBig();
       } else if ("viewAllAgents".equals(viewType)) {
         viewAllAgents();
+      } else if ("viewSelectedAgents".equals(viewType)) {
+        viewSelectedAgents();
+      } else if ("viewManyAgents".equals(viewType)) {
+        viewManyAgents();
       } else if ("viewTitle".equals(viewType)) {
         viewTitle();
       } else if ("viewAgentSmall".equals(viewType)) {
@@ -389,13 +436,19 @@ extends BaseServletComponent
           "<body>");
       String firstAgent = request.getParameter("firstAgent");
       if (firstAgent != null) {
-        out.println(
-            "<A href=\"/$"+
-            getEncodedAgentName()+getPath()+
-            "?viewType=viewAllAgents&firstAgent="+
-            firstAgent+"\" + target=\"_top\">\n"+
-            "<h2><center>More Agents</h2></center>\n"+
-            "</A>");
+        out.println("<A href=\"/$"
+                    + getEncodedAgentName()+getPath()
+                    + "?viewType=viewAllAgents&refreshInterval="
+                    + refreshInterval
+                    + "&redThreshold="
+                    + redThreshold
+                    + "&yellowThreshold="
+                    + yellowThreshold
+                    + "&firstAgent="
+                    + firstAgent
+                    + "\" + target=\"_top\">\n"
+                    + "<h2><center>More Agents</h2></center>\n"
+                    + "</A>");
       }
       out.println("</body>\n</html>");
     }
@@ -403,6 +456,10 @@ extends BaseServletComponent
     private void viewTitle() throws IOException {
       String title = request.getParameter("title");
       response.setContentType("text/html");
+      if (refreshInterval > 0) {
+        response.setHeader("Refresh", String.valueOf(refreshInterval));
+      }
+      List agents = getSelectedAgents();
       out = response.getWriter();
       format = FORMAT_HTML;     // Force html format
       out.println(
@@ -411,23 +468,97 @@ extends BaseServletComponent
           "<title>" + title + "</title>\n" +
           "</head>\n"+
           "<body>\n"+
-          "<h2><center>" + title + "</h2></center>\n"+
+          "<h2><center>" + title + "</h2></center>\n");
+      int totalAgents = agents.size();
+      int nPages = (totalAgents + MAX_AGENT_FRAMES - 1) / MAX_AGENT_FRAMES;
+      String[] menu = null;
+      if (nPages > 1) {
+        menu = new String[nPages]; 
+        for (int page = 0; page < nPages; page++) {
+          int nagents;
+          int agent0;
+          agent0 = (page * totalAgents + nPages - 1) / nPages;
+          nagents = (((page + 1) * totalAgents + nPages - 1) / nPages) - agent0;
+          String item =
+            "Agents " + ((String) agents.get(agent0)) +
+            " Through " + ((String) agents.get(agent0 + nagents - 1));
+          menu[page] = item;
+        }
+      }
+      String thisPage = request.getParameter("thisPage");
+      printThresholdAndRefreshForm(out, agents, menu, thisPage);
+      out.println(
           "</body>\n"+
           "</html>");
     }
 
+    private void printThresholdAndRefreshForm(PrintWriter out, List selectedAgents, String[] menu, String thisPage) {
+      out.println("<form name=\"viewTitle\" action=\"/$" + getEncodedAgentName() + getPath() + "\"method=\"get\" target=\"_top\">");
+      out.println("<table>");
+      out.print("<tr><td>");
+      out.print("Red Threshold");
+      out.print("</td><td>");
+      out.print("<input name=\"redThreshold\" type=\"text\" value=\""
+                + redThreshold
+                + "\">");
+      out.print("</td><td>");
+      out.print("Yellow Threshold");
+      out.print("</td><td>");
+      out.print("<input name=\"yellowThreshold\" type=\"text\" value=\""
+                + yellowThreshold
+                + "\">");
+      out.println("</td><td rowspan=3>");
+      if (menu != null) {
+        out.println("<select name=\"page\" size=3 onclick=\"document.viewTitle.submit()\">");
+        for (int page = 0; page < menu.length; page++) {
+          out.println("<option value=\"" + page + "\" onclick=\"document.viewTitle.submit()\">");
+          out.println(menu[page]);
+          out.println("</option>");
+        }
+        out.println("</select>");
+      }
+      out.println("</td></tr>");
+      out.print("<tr><td>");
+      out.print("Refresh Interval");
+      out.print("</td><td>");
+      out.print("<input name=\"refreshInterval\" type=\"text\" value=\""
+                + refreshInterval
+                + "\">");
+      out.print("</td><td>");
+      out.print("<input type=\"submit\" name=\"submit\" value=\"Refresh\">");
+      out.println("</td>");
+      out.println("</tr>");
+      out.println("</table>");
+      out.println("<input type=\"hidden\" name=\"viewType\" value=\"viewSelectedAgents\">");
+      for (int i = 0, n = selectedAgents.size(); i < n; i++) {
+        String agentName = (String) selectedAgents.get(i);
+        out.println("<input type=\"hidden\" name=\"selectedAgents\" value=\"" + agentName + "\">");
+      }
+      out.println("<input type=\"hidden\" name=\"currentPage\" value=\"" + thisPage + "\">");
+      out.println("</form>");
+    }
+
     // Output a page showing summary info for all agents
     private void viewAllAgents() throws IOException {
+      viewSelectedAgents(getAllAgentNames(), "All");
+    }
+
+    private void viewSelectedAgents() throws IOException {
+      viewSelectedAgents(getSelectedAgents(), "Selected");
+    }
+
+    private void viewSelectedAgents(List agents, String titleModifier) throws IOException {
       response.setContentType("text/html");
+      if (refreshInterval > 0) {
+        response.setHeader("Refresh", String.valueOf(refreshInterval));
+      }
       out = response.getWriter();
       format = FORMAT_HTML;     // Force html format
-      List agents = getAllEncodedAgentNames();
+      String title = getTitlePrefix() + "Completion of " + titleModifier + " Agents";
       out.println(
           "<html>\n" +
           "<head>\n" +
-          "<title>"+
-          getTitlePrefix()+
-          "Completion of All Agents</title>\n" +
+          "<title>" + title + "</title>\n" +
           "</head>");
       boolean use_iframes = false;
       String browser = request.getHeader("user-agent").toLowerCase();
@@ -443,76 +574,93 @@ extends BaseServletComponent
         out.println(
             "<body>\n"+
             "<h2><center>"+
-            getTitlePrefix()+
-            "Completion of All Agents</h2></center>");
+            title+
+            "</h2></center>");
+        printThresholdAndRefreshForm(out, agents, null, null);
         for (int i = 0, n = agents.size(); i < n; i++) {
-          int col = i % 3;
           String agentName = (String) agents.get(i);
-          out.println(
-              "<iframe src=\"/$" + agentName + getPath() +
-              "?viewType=viewAgentSmall\""+
-              " scrolling=\"no\" width=300 height=90>" + 
-              agentName + "</iframe>\n"+
-              "</td>");
+          out.println("<iframe src=\"/$"
+                      + formURLEncode(agentName)
+                      + getPath()
+                      + "?viewType=viewAgentSmall&redThreshold="
+                      + redThreshold
+                      + "&yellowThreshold="
+                      + yellowThreshold
+                      + "\" scrolling=\"no\" width=300 height=90>"
+                      + agentName
+                      + "</iframe>");
         }
         out.println("</body>");
       } else {
         int totalAgents = agents.size();
-        int nagents = totalAgents;
-        String firstAgent = request.getParameter("firstAgent");
-        int agent0 = 0;
-        boolean needMore = false;
-        String title = "All Agents";
-        if (firstAgent != null) {
+        int nPages = (totalAgents + MAX_AGENT_FRAMES - 1) / MAX_AGENT_FRAMES;
+        int nagents;
+        int agent0;
+        int page;
+        if (nPages > 1) {
           try {
-            agent0 = Integer.parseInt(firstAgent);
-            if (agent0 < 0) {
-              agent0 = 0;
-            } else if (agent0 >= nagents) {
-              agent0 = nagents - MAX_AGENT_FRAMES;
-            }
-            nagents -= agent0;
+            page = Integer.parseInt(request.getParameter("page"));
           } catch (Exception e) {
+            try {
+              page = Integer.parseInt(request.getParameter("currentPage"));
+            } catch (Exception e1) {
+              page = 0;
+            }
           }
-        }
-        if (nagents > MAX_AGENT_FRAMES) {
-          needMore = true;
-          nagents = MAX_AGENT_FRAMES;
-        }
-        if (agent0 > 0 || nagents < totalAgents) {
+          agent0 = (page * totalAgents + nPages - 1) / nPages;
+          nagents = (((page + 1) * totalAgents + nPages - 1) / nPages) - agent0;
           title =
-            "Agents+" + ((String) agents.get(agent0)) +
-            "+Through+" + ((String) agents.get(agent0 + nagents - 1));
+            titleModifier + " Agents " + ((String) agents.get(agent0)) +
+            " Through " + ((String) agents.get(agent0 + nagents - 1));
+        } else {
+          agent0 = 0;
+          nagents = totalAgents;
+          title = "All Agents";
+          page = 0;
         }
-        int nrows = (nagents + 2 + (needMore ? 1 : 0)) / 3;
-        out.print("<frameset rows=\"40");
+        int nrows = (nagents + 2) / 3;
+        out.print("<frameset rows=\"100");
         for (int row = 0; row < nrows; row++) {
           out.print(",100");
         }
-        out.println(
-            "\">\n"+
-            "  <frame src=\""+
-            getEncodedAgentName()+getPath()+
-            "?viewType=viewTitle&title="+
-            getTitlePrefix()+"Completion+of+"+title+
-            "\" scrolling=\"no\">");
+        out.print("\">\n"
+                  + "  <frame src=\"/$"
+                  + getEncodedAgentName()
+                  + getPath()
+                  + "?viewType=viewTitle&title="
+                  + getTitlePrefix()+"Completion+of+"
+                  + formURLEncode(title)
+                  + "&refreshInterval="
+                  + refreshInterval
+                  + "&redThreshold="
+                  + redThreshold
+                  + "&yellowThreshold="
+                  + yellowThreshold
+                  + "&thisPage="
+                  + page
+                  + "&nextPage="
+                  + ((page + 1) % nPages));
+        for (int i = 0; i < totalAgents; i++) {
+          String agentName = (String) agents.get(i);
+          out.print("&selectedAgents=" + formURLEncode(agentName));
+        }
+        out.println("\" scrolling=\"no\">");
         for (int row = 0; row < nrows; row++) {
           out.println("  <frameset cols=\"300,300,300\">");
           for (int col = 0; col < 3; col++) {
             int agentn = agent0 + row * 3 + col;
             if (agentn < agent0 + nagents) {
               String agentName = (String) agents.get(agentn);
-              out.println(
-                  "    <frame src=\""+
-                  "/$"+agentName+getPath()+"?viewType=viewAgentSmall"+
-                  "\" scrolling=\"no\">");
-            } else if (agentn == agent0 + nagents && needMore) {
-              out.println(
-                  "    <frame src=\""+
-                  "/$"+getEncodedAgentName()+getPath()+
-                  "?viewType=viewMoreLink&firstAgent="+
-                  (agent0 + MAX_AGENT_FRAMES) +
-                  "\" scrolling=\"no\">");
+              out.println("    <frame src=\""
+                          + "/$"
+                          + formURLEncode(agentName)
+                          + getPath()
+                          + "?viewType=viewAgentSmall&redThreshold="
+                          + redThreshold
+                          + "&yellowThreshold="
+                          + yellowThreshold
+                          + "\" scrolling=\"no\">");
+            } else if (agentn == agent0 + nagents) {
             }
           }
           out.println("  </frameset>");
@@ -520,6 +668,88 @@ extends BaseServletComponent
         out.println("</frameset>");
       }
       out.println("<html>");
+    }
+
+    private List getSelectedAgents() {
+      String[] selectedAgents = request.getParameterValues("selectedAgents");
+      if (selectedAgents != null) {
+        List ret = new ArrayList(Arrays.asList(selectedAgents));
+        Collections.sort(ret);
+        return ret;
+      } else {
+        return Collections.EMPTY_LIST;
+      }
+    }
+
+    // Output a checkbox form allowing selection of multiple agents
+    private void viewManyAgents() throws IOException {
+      response.setContentType("text/html");
+      out = response.getWriter();
+      format = FORMAT_HTML;     // Force html format
+      SortedSet selectedAgents = new TreeSet(getSelectedAgents());
+      boolean selectAll = false;
+      boolean selectNone = false;
+      String submit = request.getParameter("submit");
+      System.out.println("submit=" + submit);
+      if ("Show".equals(submit)) {
+        viewSelectedAgents(new ArrayList(selectedAgents), "Selected");
+        return;
+      }
+      if ("Select All".equals(submit)) {
+        selectAll = true;
+      } else if ("Select None".equals(submit)) {
+        selectNone = true;
+      }
+      List l = getAllAgentNames();
+      Collections.sort(l);
+      String title ="Select Agents for Completion Display";
+      out.println(
+          "<html>\n" +
+          "<head>\n" +
+          "<title>"+
+          getTitlePrefix()+
+          title+"</title>\n" +
+          "</head>");
+      out.println(
+          "<body>\n"+
+          "<h2><center>"+title+"</h2></center>");
+      out.println("<form action=\"/$"+
+          getEncodedAgentName()+getPath()+
+          "\" target=\"_top\">");
+      out.println("<input type=\"submit\" name=\"submit\" value=\"Select All\">");
+      out.println("<input type=\"submit\" name=\"submit\" value=\"Select None\">");
+      out.println("<input type=\"submit\" name=\"submit\" value=\"Show\">");
+      out.println("<input type=\"hidden\" name=\"viewType\" value=\"viewManyAgents\">");
+      out.println("<table><tr>");
+      int nagents = l.size();
+      int agent0 = 0;
+      int NCOL = 4;
+      for (int col = 0; col < NCOL; col++) {
+        out.println("<td valign=\"top\">");
+        int agent1 = ((col + 1) * nagents + NCOL - 1) / NCOL;
+        for (; agent0 < agent1; agent0++) {
+          String agentName = (String) l.get(agent0);
+          String selected;
+          if (selectAll || (!selectNone && selectedAgents.contains(agentName))) {
+            selected = " checked=\"true\"";
+          } else {
+            selected = "";
+          }
+          out.println("<input type=\"checkbox\" name=\"selectedAgents\" value=\""
+                      + agentName
+                      + "\""
+                      + selected
+                      + ">"
+                      + agentName
+                      + "</input><br>");
+        }
+        out.println("</td>");
+        agent0 = agent1;
+      }
+      out.println("</tr></table>");
+      out.println("</form>");
+      out.println("</body>");
+      out.println("</html>");
     }
 
     // Output a small page showing summary info for one agent
@@ -556,11 +786,11 @@ extends BaseServletComponent
          (1.0 * nFullConfidenceTasks) / nSuccessfulTasks :
          0.0);
       String bgcolor, fgcolor, lncolor;
-      if (ratio < 0.89) {
+      if (ratio < redThreshold) {
         bgcolor = "#aa0000";
         fgcolor = "#ffffff";
         lncolor = "#ffff00";
-      } else if (ratio < 0.99) {
+      } else if (ratio < yellowThreshold) {
         bgcolor = "#ffff00";
         fgcolor = "#000000";
         lncolor = "#0000ff";
@@ -777,7 +1007,7 @@ extends BaseServletComponent
       }
       toAbsTask.setUID(sTaskUID);
       String sourceClusterId = 
-        encodeAgentName(task.getSource().getAddress());
+        formURLEncode(task.getSource().getAddress());
       toAbsTask.setUID_URL(
           getTaskUID_URL(getEncodedAgentName(), sTaskUID));
       // set parent task UID
@@ -887,16 +1117,22 @@ extends BaseServletComponent
       if (showTables) {
         out.print("checked");
       }
-      out.print(
+      out.println(
           "> show table, \n"+
           "<input type=\"submit\""+
           " name=\"formSubmit\""+
-          " value=\"Reload\"><br>\n"+
+          " value=\"Reload\"><br>");
+      out.println(
           "<a href=\"/$"+
           getEncodedAgentName()+getPath()+
           "?viewType=viewAllAgents"+
-          "\" target=\"_top\">Show all agents</a>"+
-          "</form>\n");
+          "\" target=\"_top\">Show all agents.</a>");
+      out.println(
+          "<a href=\"/$"+
+          getEncodedAgentName()+getPath()+
+          "?viewType=viewManyAgents"+
+          "\" target=\"_top\"> Show several selected agents.</a>");
+      out.println("</form>");
       printCountersAsHTML(result);
       printTablesAsHTML(result);
       out.print("</body></html>");
@@ -906,9 +1142,9 @@ extends BaseServletComponent
     protected void printCountersAsHTML(CompletionData result) {
       double ratio = result.getRatio();
       String ratioColor;
-      if (ratio < 0.89) {
+      if (ratio < redThreshold) {
         ratioColor = "red";
-      } else if (ratio < 0.99) {
+      } else if (ratio < yellowThreshold) {
         ratioColor = "yellow";
       } else {
         ratioColor = "#00d000";

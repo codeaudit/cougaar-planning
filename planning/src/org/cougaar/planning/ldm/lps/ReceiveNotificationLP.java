@@ -106,15 +106,17 @@ implements LogicProvider, MessageLogicProvider
         needToRescind = true;
       } else {
         if (!(remoteTUID.equals(childuid))) {
-          // this was likely due to a race condition...
-          logger.error("Got a Notification for the wrong allocation:"+
-                           "\n\tTask="+tuid+
-                           "  ("+pe.getTask()+")"+
-                           "\n\tFrom="+childuid+
-                           "  ("+remoteTUID+")"+
-                           "\n\tResult="+not.getAllocationResult()+"\n"+
-                           "\n\tPE="+pe);
-          // rescind the remote task? 
+          // this was likely due to replacing the Allocation
+          if (logger.isInfoEnabled()) {
+            logger.info("Got a Notification for the wrong allocation:"+
+                        "\n\tTask="+tuid+
+                        "  ("+pe.getTask().getUID()+")"+
+                        "\n\tFrom="+childuid+
+                        "  ("+remoteTUID+")"+
+                        "\n\tResult="+not.getAllocationResult()+"\n"+
+                        "\n\tPE="+pe);
+          }
+          needToRescind = true; // Insure that the old child task is gone.
           return;
         }
       }
@@ -181,11 +183,13 @@ implements LogicProvider, MessageLogicProvider
     }
     */
     } else {
-      logger.error("Got a Notification for an inappropriate PE:\n"+
-                       "\tTask="+tuid+"\n"+
-                       "\tFrom="+childuid+"\n"+
-                       "\tResult="+result+"\n"+
-                       "\tPE="+pe);
+      if (logger.isInfoEnabled()) {
+        logger.info("Got a Notification for an inappropriate PE:\n"+
+                    "\tTask="+tuid+"\n"+
+                    "\tFrom="+childuid+"\n"+
+                    "\tResult="+result+"\n"+
+                    "\tPE="+pe);
+      }
     }
   }
 

@@ -878,15 +878,17 @@ public class TaskImpl extends PlanningDirectiveImpl
 
     NewWorkflow wf = (NewWorkflow) getWorkflow();
     if (wf != null) {
-      for (Enumeration tasks = wf.getTasks(); tasks.hasMoreElements(); ) {
-        if (tasks.nextElement() == this) {
-          if (logger.isDebugEnabled()) {
-            logger.debug("Illegal publishRemove subtask still in a workflow: " + this, new Throwable());
-          } else if (logger.isWarnEnabled()) {
-            logger.warn("Illegal publishRemove subtask still in a workflow: " + this);
+      synchronized (wf) {
+        for (Enumeration tasks = wf.getTasks(); tasks.hasMoreElements(); ) {
+          if (tasks.nextElement() == this) {
+            if (logger.isDebugEnabled()) {
+              logger.debug("Illegal publishRemove subtask still in a workflow: " + this, new Throwable());
+            } else if (logger.isWarnEnabled()) {
+              logger.warn("Illegal publishRemove subtask still in a workflow: " + this);
+            }
+            wf.removeTask(this);
+            break;
           }
-          wf.removeTask(this);
-	  break;
         }
       }
     }

@@ -1,3 +1,9 @@
+2003-03-28  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* CompletionCalculator.java:
+	Define methods for establishing a confidence threshhold above
+	which completion is "true.
+
 2003-03-17  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* CompletionNodePlugin.java: 

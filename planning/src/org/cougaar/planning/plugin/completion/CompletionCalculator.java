@@ -32,6 +32,7 @@ import org.cougaar.util.UnaryPredicate;
 /**
  */
 public class CompletionCalculator {
+  protected static final double CONFIDENCE_THRESHHOLD = 0.89999;
 
   protected static final UnaryPredicate TASK_PRED = 
     new UnaryPredicate() {
@@ -82,6 +83,10 @@ public class CompletionCalculator {
     return TASK_PRED;
   }
 
+  protected double adjustConfRating(double confRating) {
+    return Math.min(confRating/CONFIDENCE_THRESHHOLD, 1.0);
+  }
+
   protected double getConfidence(Object o) {
     if (o instanceof Task) {
       Task task = (Task) o;
@@ -89,13 +94,22 @@ public class CompletionCalculator {
       if (pe != null) {
         AllocationResult ar = pe.getEstimatedResult();
         if (ar != null) {
-          double conf = ar.getConfidenceRating();
-          conf = Math.min(conf/0.89999999, 1.0);
-          return conf;
+          return adjustConfRating(ar.getConfidenceRating());
         }
       }
     }
     return 0.0;
   }
 
+  public boolean isConfident(double confRating) {
+    return adjustConfRating(confRating) >= 1.0;
+  }
+
+  public String getConfidenceThreshholdString(boolean positive) {
+    if (positive) {
+      return "conf > " + CONFIDENCE_THRESHHOLD;
+    } else {
+      return "conf <= " + CONFIDENCE_THRESHHOLD;
+    }
+  }
 }

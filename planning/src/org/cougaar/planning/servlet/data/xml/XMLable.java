@@ -1,6 +1,6 @@
 /*
  * <copyright>
- *  Copyright 2001 BBNT Solutions, LLC
+ *  Copyright 2001-2003 BBNT Solutions, LLC
  *  under sponsorship of the Defense Advanced Research Projects Agency (DARPA).
  * 
  *  This program is free software; you can redistribute it and/or modify
@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Classes conforming to this interface can serialize themselves
  * out in XML format.
- * @author Benjamin Lubin; last modified by: $Author: twright $
+ * @author Benjamin Lubin; last modified by: $Author: mthome $
  *
  * @since 1/24/01
  **/

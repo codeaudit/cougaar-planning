@@ -80,8 +80,7 @@ implements LogicProvider, MessageLogicProvider
    * the deletion process by actually removing the task from the
    * blackboard.
    **/
-  public void execute(Directive dir, Collection changes)
-  {
+  public void execute(Directive dir, Collection changes) {
     if (dir instanceof Task) {
       Task tsk = (Task) dir;
       try {
@@ -95,27 +94,47 @@ implements LogicProvider, MessageLogicProvider
               logger.debug("Cloning task from same node " + tsk.getUID());
             }
             tsk = cloneAliasedTask(tsk);
+          } else {
+            if (logger.isDebugEnabled()) {
+              logger.debug("Received new task from another node " + tsk.getUID());
+            }
           }
           rootplan.add(tsk);
         } else if (tsk.isDeleted()) {
           if (existingTask.isDeleted()) {
+            if (logger.isDebugEnabled()) {
+              logger.debug("Removing deleted task " + tsk.getUID());
+            }
             rootplan.remove(existingTask); // Complete the removal
           } else {
             // Whoops! We must have restarted and reverted to a
             // pre-deletion state.
+            if (logger.isDebugEnabled()) {
+              logger.debug("Received deleted task, but blackboard task is undeleted "
+                           + tsk.getUID());
+            }
           }
         } else if (tsk == existingTask) {
           // This never happens any more
+          if (logger.isWarnEnabled()) {
+            logger.warn("Received task instance already on blackboard " + tsk.getUID());
+          }
           rootplan.change(existingTask, changes);
         } else {
           Preference[] newPreferences = ((TaskImpl) tsk).getPreferencesAsArray();
           Preference[] existingPreferences = ((TaskImpl) existingTask).getPreferencesAsArray();
           if (java.util.Arrays.equals(newPreferences, existingPreferences)) {
+            if (logger.isDebugEnabled()) {
+              logger.debug("Preferences compare equal " + tsk.getUID());
+            }
             PlanElement pe = existingTask.getPlanElement();
             if (pe != null) {
               rootplan.change(pe, changes);	// Cause estimated result to be resent
             }
           } else {
+            if (logger.isDebugEnabled()) {
+              logger.debug("Preferences differ " + tsk.getUID());
+            }
             ((NewTask) existingTask).setPreferences(tsk.getPreferences());
             rootplan.change(existingTask, changes);
           }

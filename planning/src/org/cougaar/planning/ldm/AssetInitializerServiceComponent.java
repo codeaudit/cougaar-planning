@@ -32,6 +32,7 @@ import org.cougaar.core.component.ServiceBroker;
 import org.cougaar.core.component.ServiceProvider;
 import org.cougaar.core.node.DBInitializerService;
 import org.cougaar.core.node.NodeControlService;
+import org.cougaar.core.agent.AgentManager;
 import org.cougaar.core.service.LoggingService;
 import org.cougaar.planning.service.AssetInitializerService;
 import org.cougaar.util.ConfigFinder;
@@ -58,16 +59,15 @@ import java.io.InputStream;
 public final class AssetInitializerServiceComponent
     extends GenericStateModelAdapter
     implements Component {
-  private static final String INITIALIZER_PROP =
-      "org.cougaar.core.node.InitializationComponent";
 
+  // Used below to confirm good cougaar.rc file for use with XML files
   private static final String DATABASE = "org.cougaar.refconfig.database";
   private static final String USER = "org.cougaar.refconfig.user";
   private static final String PASSWORD = "org.cougaar.refconfig.password";
 
   private ServiceBroker sb;
 
-  private DBInitializerService dbInit;
+  private DBInitializerService dbInit = null;
   private ServiceProvider theSP;
   private LoggingService log;
 
@@ -83,13 +83,6 @@ public final class AssetInitializerServiceComponent
     }
   }
 
-  /*
-    // not available in nodeagent early on
-  public void setDBInitializerService(DBInitializerService dbInit) {
-    this.dbInit = dbInit;
-  }
-  */
-
   public void load() {
     super.load();
 
@@ -98,7 +91,6 @@ public final class AssetInitializerServiceComponent
     if (log == null) {
       log = LoggingService.NULL;
     }
-
 
     // Do not provide this service if there is already one there.
     // This allows someone to provide their own component to provide
@@ -120,6 +112,7 @@ public final class AssetInitializerServiceComponent
     theSP = chooseSP();
     if (theSP != null)
       sb.addService(AssetInitializerService.class, theSP);
+
     if (log != LoggingService.NULL) {
       sb.releaseService(this, LoggingService.class, log);
       log = null;
@@ -135,40 +128,56 @@ public final class AssetInitializerServiceComponent
     super.unload();
   }
 
+  // If the DB property was supplied and we have a DBInializerService,
+  // we initializer Organization/Entity assets from the configuration.database
+  // Otherwise if the XML property was supplied, we check for a valid
+  // cougaar.rc file for the refconfig.database. If we have one,
+  // we try to initialize assets from that database.
+  // If we have no such cougaar.rc file, or if some other
+  // parameter was supplied, we initialize assets strictly
+  // from files. 
   private ServiceProvider chooseSP() {
     try {
-      ServiceProvider sp;
-      String prop = System.getProperty(INITIALIZER_PROP);
+      ServiceProvider sp = null;
+      String prop = System.getProperty(AgentManager.INITIALIZER_PROP);
+
       // If user specified to load from the database
       if (prop != null && prop.indexOf("DB") != -1) {
         // Init from CSMART DB
-        sp = new DBAssetInitializerServiceProvider(dbInit);
-
         dbInit = (DBInitializerService) sb.getService(this, DBInitializerService.class, null);
-
-        if (log.isInfoEnabled())
-          log.info("Will init OrgAssets from CSMART DB");
-        // Else if user specified to load from XML
+	if (dbInit != null) {
+	  if (log.isInfoEnabled())
+	    log.info("Will init OrgAssets from CSMART DB");
+	}
       } else if (prop != null && prop.indexOf("XML") != -1) {
-        // Check to see if a valid database connection exists.
-        if (rcFileExists() && isValidRCFile()) {
-          // Initing config from XML. Assets will come from non-CSMART DB
-          // Create a new DBInitializerService
-          DBInitializerService myDbInit = new NonCSMARTDBInitializerServiceImpl();
-          sp = new DBAssetInitializerServiceProvider(myDbInit);
-          if (log.isInfoEnabled()) {
-            log.info("Will init OrgAssets from NON CSMART DB!");
-          }
-        } else {
-          sp = new FileAssetInitializerServiceProvider();
-          log.shout("NOT USING THE DATABASE, initialzing from Files");
-        }
-      } else {
-        // default to going from INI files
-        sp = new FileAssetInitializerServiceProvider();
-        if (log.isInfoEnabled())
-          log.info("Will init OrgAssets from INI Files");
+        // Else if user specified to load from XML
+	// First check to see if user set up a DB for use with XML files
+	if (rcFileExists() && isValidRCFile()) {
+	  // Initing config from XML. Assets will come from non-CSMART DB
+	  // Create a new DBInitializerService
+	  dbInit = new NonCSMARTDBInitializerServiceImpl();
+	  if (dbInit != null) {
+	    if (log.isInfoEnabled()) {
+	      log.info("Will init OrgAssets from NON CSMART DB!");
+	    }
+	  }
+	}
       }
+      
+      // If we got a good DB set up, then use that.
+      if (dbInit != null) {
+	sp = new DBAssetInitializerServiceProvider(dbInit);
+      }
+
+      // Handle this separately in case the above fails somehow
+      if (sp == null) {
+	// If user specified INI files, or set up no database, ie
+	// if didn't get a good DBInitializerService, then
+	// use files. This may be INI or XML.
+	sp = new FileAssetInitializerServiceProvider();
+	log.shout("Not using a database, initializing solely from Files.");
+      }
+
       return sp;
     } catch (Exception e) {
       log.error("Exception while creating AssetInitializerService", e);
@@ -176,7 +185,8 @@ public final class AssetInitializerServiceComponent
     }
   }
 
-  public boolean rcFileExists() {
+  // Helper function to check for a cougaar.rc file without parsing it
+  private boolean rcFileExists() {
     boolean found = false;
     try {
       File f = new File(System.getProperty("user.home") + File.separator + ".cougaarrc");
@@ -199,7 +209,9 @@ public final class AssetInitializerServiceComponent
     return found;
   }
 
-  public boolean isValidRCFile() {
+  // Use Parameters utilities parse of the cougaar.rc file
+  // to check for key parameters needed when running from XML files
+  private boolean isValidRCFile() {
     boolean valid = false;
 
     valid = (Parameters.findParameter(DATABASE) == null) ? false : true;

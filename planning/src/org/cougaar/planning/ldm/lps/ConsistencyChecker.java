@@ -112,6 +112,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 /**
+ * Perform some basic consistency checking on Tasks and PlanElements
  */
 public class ConsistencyChecker {
 

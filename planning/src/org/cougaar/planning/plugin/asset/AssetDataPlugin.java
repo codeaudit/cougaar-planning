@@ -21,23 +21,21 @@
 
 package org.cougaar.planning.plugin.asset;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StreamTokenizer;
-
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Constructor;
-
 import java.text.DateFormat;
-
-import java.util.*;
-
-import org.cougaar.util.StateModelException;
-
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
 import org.cougaar.core.mts.MessageAddress;
-import org.cougaar.core.blackboard.IncrementalSubscription;
+import org.cougaar.planning.service.AssetInitializerService;
 import org.cougaar.planning.plugin.legacy.SimplePlugin;
 import org.cougaar.core.service.DomainService;
 
@@ -59,13 +57,11 @@ import org.cougaar.planning.ldm.asset.PropertyGroup;
 import org.cougaar.planning.ldm.asset.PropertyGroupSchedule;
 import org.cougaar.planning.ldm.asset.RelationshipBG;
 import org.cougaar.planning.ldm.asset.TimePhasedPropertyGroup;
-
 import org.cougaar.planning.ldm.measure.Latitude;
 import org.cougaar.planning.ldm.measure.Longitude;
-
 import org.cougaar.planning.ldm.plan.AspectType;
-import org.cougaar.planning.ldm.plan.AspectValue;
 import org.cougaar.planning.ldm.plan.HasRelationships;
+import org.cougaar.planning.ldm.plan.LatLonPointImpl;
 import org.cougaar.planning.ldm.plan.LocationScheduleElement;
 import org.cougaar.planning.ldm.plan.LocationScheduleElementImpl;
 import org.cougaar.planning.ldm.plan.NewLocationScheduleElement;
@@ -80,70 +76,34 @@ import org.cougaar.planning.ldm.plan.Schedule;
 import org.cougaar.planning.ldm.plan.ScheduleImpl;
 import org.cougaar.planning.ldm.plan.ScoringFunction;
 import org.cougaar.planning.ldm.plan.TimeAspectValue;
+import org.cougaar.planning.ldm.plan.AspectValue;
 import org.cougaar.planning.ldm.plan.Verb;
-
+import org.cougaar.util.ConfigFinder;
 import org.cougaar.util.Reflect;
+import org.cougaar.util.StateModelException;
 import org.cougaar.util.TimeSpan;
 
 /**
- * Parses local asset prototype-ini.dat to create local asset and the Report tasks
+ * Generic part of plugin to create local asset and the Report tasks
  * associated with all the local asset's relationships. Local asset must have ClusterPG and 
  * RelationshipPG, Presumption is that the 'other' assets in all the 
  * relationships have both Cluster and Relationship PGs.
  * Currently assumes that each Cluster has exactly 1 local asset.
  *
- * Format:
- * <xxx> - parameter
- * # - comment character - rest of line ignored
- *
- * Skeleton form:
- * [Prototype]
- *  <asset_class_name> # asset class must have both a ClusterPG and a RelationshipPG
- *
- * [Relationship]
- * # <role> specifies Role played by this asset for another asset. 
- * # If start/end be specified as "", they default to 
- * # TimeSpan.MIN_VALUE/TimeSpan.MAX_VALUE
- * <role> <other asset item id> <other asset type id> <other asset cluster id> <relationship start time> <relationship end time>
- *
- * [<PG name>]
- * # <slot type> - one of Collection<data type>, List<data type>, String, Integer, Double, Boolean,
- * #  Float, Long, Short, Byte, Character 
- * 
- * <slot name> <slot type> <slot values>
- *
- * Sample:
- * [Prototype]
- * Entity
- *
- * [Relationship]
- * "Subordinate"   "Headquarters"        "Management"   "HQ"           "01/01/2001 12:00 am"  "01/01/2010 11:59 pm"
- * "PaperProvider" "Beth's Day Care"     "Day Care Ctr" "Beth's Home"  "02/13/2001 9:00 am"   "" 
- *
- * [ItemIdentificationPG]
- * ItemIdentification String "Staples, Inc"
- * Nomenclature String "Staples"
- * AlternateItemIdentification String "SPLS"
- *
- * [TypeIdentificationPG]
- * TypeIdentification String "Office Goods Supplier"
- * Nomenclature String "Big Box"
- * AlternateTypeIdentification String "Stationer"
- * 
- * [ClusterPG]
- * MessageAddress MessageAddress "Staples"
- * 
- * [EntityPG]
- * Roles Collection<Role> "Subordinate, PaperProvider, CrayonProvider, PaintProvider"
- * 
+ * Extensions of this class load this information from specific media such as files.
  **/
 public class AssetDataPlugin extends SimplePlugin {
   public static final String SELF = ("Self");
-  protected PlanningFactory ldmf;
 
-  private static TrivialTimeSpan ETERNITY = 
+  protected static TrivialTimeSpan ETERNITY = 
     new TrivialTimeSpan(TimeSpan.MIN_VALUE,
                         TimeSpan.MAX_VALUE);
+
+  protected AssetInitializerService assetInitService;
+
+  public void setAssetInitializerService(AssetInitializerService ais) {
+    assetInitService = ais;
+  }
 
   public long getDefaultStartTime() {
     return TimeSpan.MIN_VALUE;
@@ -153,18 +113,15 @@ public class AssetDataPlugin extends SimplePlugin {
     return TimeSpan.MAX_VALUE;
   }
 
-  public String getFileName(String clusterId) {
-    return clusterId + "-prototype-ini.dat";
-  }
+  protected DateFormat myDateFormat = DateFormat.getInstance(); 
 
-  private DateFormat myDateFormat = DateFormat.getInstance(); 
+  protected String myAssetClassName = null;
+  protected List myRelationships = new ArrayList();
+  protected Map myOtherAssets = new HashMap();
+  protected Asset myLocalAsset = null;
+  protected NewPropertyGroup property = null;
+  protected PlanningFactory ldmf;
 
-  private String myAssetClassName = null;
-  private ArrayList myRelationships = new ArrayList();
-  private HashMap myOtherAssets = new HashMap();
-  private Asset myLocalAsset = null;
-
- 
   public void load(Object object) throws StateModelException {
     super.load(object);
     ldmf = (PlanningFactory) getFactory("planning");
@@ -173,7 +130,6 @@ public class AssetDataPlugin extends SimplePlugin {
     }
     if (!didRehydrate()) {
       try {
-        System.out.println(getMessageAddress().toString() + ": processing assets in load");
         openTransaction();
         processAssets();
       } catch (Exception e) {
@@ -193,7 +149,7 @@ public class AssetDataPlugin extends SimplePlugin {
     /*
     if (!didRehydrate()) {
       processAssets();	// Objects should already exist after rehydration
-      }*/
+      } */
   }
 
   public void execute() {
@@ -208,7 +164,30 @@ public class AssetDataPlugin extends SimplePlugin {
   protected void processAssets() {
     try {
       String cId = getMessageAddress().getAddress();
-      ParsePrototypeFile(cId);
+      AssetDataReader assetDataReader = assetInitService.getAssetDataReader();
+      assetDataReader.readAsset(cId, new AssetDataCallbackImpl());
+//        System.out.println("Property Groups: ");
+//        Vector all = myLocalAsset.fetchAllProperties();
+//        try {
+//          for (Iterator i = all.iterator(); i.hasNext(); ) {
+//            Object o = i.next();
+//            if (!(o instanceof PropertyGroup)) continue;
+//            PropertyGroup pg = (PropertyGroup) o;
+//            Class pgc = pg.getClass();
+//            System.out.println(pgc.getName());
+//            Method[] methods = pgc.getMethods();
+//            for (int j = 0; j < methods.length; j++) {
+//              Method method = methods[j];
+//              if (method.getName().startsWith("get") && method.getParameterTypes().length == 0) {
+//                Object value = methods[j].invoke(pg, new Object[0]);
+//                System.out.println("  " + method.getName() + " = " + value);
+//              }
+//            }
+//          }
+//        } catch (Exception e) {
+//          e.printStackTrace();
+//        }
+      publishAdd(myLocalAsset);
 
       // Put the assets for this cluster into array
       for (Iterator iterator = myRelationships.iterator(); 
@@ -220,7 +199,25 @@ public class AssetDataPlugin extends SimplePlugin {
       e.printStackTrace();
     }
   }
-  
+
+  protected void createMyLocalAsset(String assetClassName) {
+    myAssetClassName = assetClassName;
+    myLocalAsset = ldmf.createAsset(myAssetClassName);
+    // set up this asset's available schedule
+    NewSchedule availsched = 
+      ldmf.newSimpleSchedule(getDefaultStartTime(), 
+                                     getDefaultEndTime());
+    // set the available schedule
+    ((NewRoleSchedule)myLocalAsset.getRoleSchedule()).setAvailableSchedule(availsched);
+            
+    // initialize the relationship info
+    NewRelationshipPG pg = 
+      (NewRelationshipPG) myLocalAsset.getRelationshipPG();
+    RelationshipBG bg = 
+      new RelationshipBG(pg, (HasRelationships) myLocalAsset);
+    // this asset is local to the cluster
+    pg.setLocal(true);
+  }
 
   protected void report(Relationship relationship) {
     Asset sendTo = 
@@ -230,17 +227,69 @@ public class AssetDataPlugin extends SimplePlugin {
     
     Asset localClone = ldmf.cloneInstance(myLocalAsset);
 
-    ArrayList roles = new ArrayList(1);
+    List roles = new ArrayList(1);
     Role role = 
       (((Asset) relationship.getA()).getKey().equals(myLocalAsset.getKey())) ?
       relationship.getRoleA() : relationship.getRoleB();
     roles.add(role);
     
-    publish(createReportTask(localClone, sendTo, roles, 
-                             relationship.getStartTime(),
-                             relationship.getEndTime()));
+    NewTask reportTask =
+      createReportTask(localClone, sendTo, roles, 
+                       relationship.getStartTime(),
+                       relationship.getEndTime());
+    publishAdd(reportTask);
+  
   }
 
+  protected void createPropertyGroup(String propertyName) throws Exception {
+    property = 
+      (NewPropertyGroup) ldmf.createPropertyGroup(propertyName);
+  }
+
+  protected void addPropertyToAsset() {
+    myLocalAsset.addOtherPropertyGroup(property);
+  }
+
+  protected void setLocationSchedule(String latStr, String lonStr) {
+    Latitude lat = Latitude.newLatitude(latStr);
+
+    Longitude lon = Longitude.newLongitude(lonStr);
+
+    LatLonPointImpl loc = new LatLonPointImpl(lat, lon);
+
+    // create LocationScheduleElementImpl
+    LocationScheduleElement locSchedElem =
+      new LocationScheduleElementImpl(
+          TimeSpan.MIN_VALUE, TimeSpan.MAX_VALUE, loc);
+
+    // add to schedule
+    LocationSchedulePG locSchedPG = myLocalAsset.getLocationSchedulePG();
+    if (locSchedPG == null) {
+      locSchedPG = new LocationSchedulePGImpl();
+      myLocalAsset.setLocationSchedulePG(locSchedPG);
+    }
+    Schedule locSched = locSchedPG.getSchedule();
+    if (locSched == null) {
+      locSched = new ScheduleImpl();
+      ((NewLocationSchedulePG)locSchedPG).setSchedule(locSched);
+    }
+    locSched.add(locSchedElem);
+  }
+
+  protected void addRelationship(String typeId, String itemId,
+                                 String otherClusterId, String roleName,
+                                 long start, long end) {
+    Asset otherAsset =
+      getAsset(myAssetClassName, itemId, typeId, otherClusterId);
+    Relationship relationship = 
+      ldmf.newRelationship(Role.getRole(roleName),
+                                   (HasRelationships) myLocalAsset,
+                                   (HasRelationships) otherAsset,
+                                   start,
+                                   end);
+            
+    myRelationships.add(relationship);
+  }
 
   //create the Report task to be sent to myself which will result in an asset 
   //transfer of the copyOfMyself being sent to the cluster I am supporting.
@@ -306,9 +355,7 @@ public class AssetDataPlugin extends SimplePlugin {
     NewItemIdentificationPG itemIdProp = 
       (NewItemIdentificationPG)asset.getItemIdentificationPG();
     itemIdProp.setItemIdentification(itemIdentification);
-    // Nomenclature defaults to itemIdentification
     itemIdProp.setNomenclature(itemIdentification);
-
     
     NewClusterPG cpg = (NewClusterPG)asset.getClusterPG();
     cpg.setMessageAddress(MessageAddress.getMessageAddress(clusterName));
@@ -321,102 +368,11 @@ public class AssetDataPlugin extends SimplePlugin {
     return saved;
   }
 
-  private void publish(Object o) {
-    publishAdd(o);
+  public long parseDate(String dateString) throws ParseException {
+    return myDateFormat.parse(dateString).getTime();
   }
 
-
-  /**
-   * 
-   */
-  protected void ParsePrototypeFile(String clusterId) {
-    String dataItem = "";
-    int newVal;
-
-    String filename = getFileName(clusterId);
-    BufferedReader input = null;
-    Reader fileStream = null;
-
-    try {
-      fileStream = 
-        new InputStreamReader(getConfigFinder().open(filename));
-      input = new BufferedReader(fileStream);
-      StreamTokenizer tokens = new StreamTokenizer(input);
-      tokens.commentChar('#');
-      tokens.wordChars('[', ']');
-      tokens.wordChars('_', '_');
-      tokens.wordChars('<', '>');      
-      tokens.wordChars('/', '/');      
-      tokens.ordinaryChars('0', '9');      
-      tokens.wordChars('0', '9');      
-
-      newVal = tokens.nextToken();
-      // Parse the prototype-ini file
-      while (newVal != StreamTokenizer.TT_EOF) {
-        if (tokens.ttype == StreamTokenizer.TT_WORD) {
-          dataItem = tokens.sval;
-          if (dataItem.equals("[Prototype]")) {
-            newVal = tokens.nextToken();
-            myAssetClassName = tokens.sval;
-            myLocalAsset = ldmf.createAsset(myAssetClassName);
-            // set up this asset's available schedule
-            NewSchedule availsched = 
-              ldmf.newSimpleSchedule(getDefaultStartTime(), 
-                                             getDefaultEndTime());
-            // set the available schedule
-            ((NewRoleSchedule)myLocalAsset.getRoleSchedule()).setAvailableSchedule(availsched);
-            
-            // initialize the relationship info
-            NewRelationshipPG pg = 
-              (NewRelationshipPG) myLocalAsset.getRelationshipPG();
-            RelationshipBG bg = 
-              new RelationshipBG(pg, (HasRelationships) myLocalAsset);
-            // this asset is local to the cluster
-            pg.setLocal(true);
-
-            newVal = tokens.nextToken();
-          } else if (dataItem.equals("[Relationship]")) {
-            newVal = fillRelationships(newVal, tokens);
-          } else if (dataItem.equals("[LocationSchedulePG]")) {
-            // parser language is currently incapable of expressing a 
-            // complex schedule, so here we hack in some minimal support.
-            newVal = 
-              setLocationSchedulePG(
-                myLocalAsset, dataItem, newVal, tokens);
-          } else if (dataItem.substring(0, 1).equals("[")) {
-            // We've got a property or capability
-            newVal = setPropertyForAsset(myLocalAsset, dataItem, newVal, tokens);
-          } else {
-            // if The token you read is not one of the valid
-            // choices from above
-            System.err.println("AssetDataPlugin Incorrect token: " + 
-                               dataItem);
-            throw new RuntimeException("Format error in \""+filename+"\".");
-          }
-        } else {
-          System.out.println("ttype: " + tokens.ttype + " sval: " + tokens.sval);
-          throw new RuntimeException("Format error in \""+filename+"\".");
-        }
-      }
-
-
-      publish(myLocalAsset);
-
-      // Closing BufferedReader
-      if (input != null)
-	input.close();
-
-      //only generates a NoSuchMethodException for AssetSkeleton because of a coding error
-      //if we are successul in creating it here  it then the AssetSkeletomn will end up with two copies
-      //the add/search criteria in AssetSkeleton is for a Vecotr and does not gurantee only one instance of 
-      //each class.  Thus the Org allocator plugin fails to recognixe the correct set of cpabilities.
-      
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  } 
-
-  private Object parseExpr(String type, String arg) {
+  protected Object parseExpr(String type, String arg) {
     int i;
 
     type = type.trim();
@@ -459,13 +415,13 @@ public class AssetDataPlugin extends SimplePlugin {
               String slotname = ss.substring(0, eq).trim();
               String vspec = ss.substring(eq + 1).trim();
               try {
-                long time  = myDateFormat.parse(vspec).getTime();
+                long time  = parseDate(vspec);
                 if (slotname.equals("startTime")) {
                   startTime = time;
                 } else if (slotname.equals("endTime")) {
                   endTime = time;
                 }
-              } catch (java.text.ParseException pe) {
+              } catch (ParseException pe) {
               }
             }
             return new TrivialTimeSpan(startTime, endTime);
@@ -525,7 +481,7 @@ public class AssetDataPlugin extends SimplePlugin {
     throw new IllegalArgumentException("Class "+c+" is an unknown primitive.");
   }
 
-  private String getType(String type) {
+  protected String getType(String type) {
     int i;
     if ((i = type.indexOf("<")) > -1) { // deal with collections 
       int j = type.lastIndexOf(">");
@@ -590,7 +546,7 @@ public class AssetDataPlugin extends SimplePlugin {
     for (Iterator i = factories.iterator(); i.hasNext(); ) {
       try {
         Class ldmfc = i.next().getClass();
-        Method fm = ldmfc.getMethod(newname,nullClassList);
+        Method fm = ldmfc.getMethod(newname, nullClassList);
         return fm.invoke(ldmf, nullArgList);
       } catch (NoSuchMethodException nsme) {
         // This is okay - just try the next factory
@@ -631,263 +587,6 @@ public class AssetDataPlugin extends SimplePlugin {
     }
 
     throw new RuntimeException("Couldn't find set"+slotname+" for "+o+", value "+value);
-  }
-
-  /**
-   * Creates the property, fills in the slots based on what's in the prototype-ini file
-   * and then sets it for (or adds it to) the asset
-   */
-  protected int setPropertyForAsset(Asset asset, String prop, int newVal, StreamTokenizer tokens) {
-    String propertyName = prop.substring(1, prop.length()-1).trim();
-    if (asset != null) {
-      NewPropertyGroup property = null;
-      try {
-	property = 
-          (NewPropertyGroup)ldmf.createPropertyGroup(propertyName);
-      } catch (Exception e) {
-	System.err.println("AssetDataPlugin: Unrecognized keyword for a prototype-ini file: [" + propertyName + "]");
-      }
-      try {
-	newVal = tokens.nextToken();
-	String member = tokens.sval;
-	String propName = "New" + propertyName;
-	// Parse through the property section of the file
-	while (newVal != StreamTokenizer.TT_EOF) {
-	  if ((tokens.ttype == StreamTokenizer.TT_WORD) && !(tokens.sval.substring(0,1).equals("["))) {
-	    newVal = tokens.nextToken();
-	    String dataType = tokens.sval;
-	    newVal = tokens.nextToken();
-	    // Call appropriate setters for the slots of the property
-            Object [] args = new Object[] {parseExpr(dataType, tokens.sval)};
-            callSetter(property, "set" + member, getType(dataType), args);
-	    newVal = tokens.nextToken();
-	    member = tokens.sval;
-	  } else {
-	    // Reached a left bracket "[", want to exit block
-	    break;
-	  }
-	} //while
-
-	// Add the property to the asset
-	asset.addOtherPropertyGroup(property);
-      } catch (Exception e) {
-        e.printStackTrace();
-        throw new RuntimeException("AssetDataPlugin: unable to parse " + 
-                                   getFileName(getMessageAddress().getAddress()));
-      }
-    } else {
-      System.err.println("AssetDataPlugin Error: asset is null");
-    }
-    return newVal;
-  }
-
-
-  /**
-   * Hack to attach a LocationSchedulePG to an Asset.
-   * <pre>
-   * For now we only support a single LocationScheduleElementImpl
-   * which has a LatLonPointImpl as it's Location.  The TimeSpan
-   * is hard-coded to TimeSpan.MIN_VALUE .. TimeSpan.MAX_VALUE.
-   * In the future this can be enhanced to support full location
-   * schedules, but that would likely require a new file format.
-   * 
-   * The format is:
-   *   "FixedLocation \"(" + LATITUDE + ", " + LONGITUDE + ")\""
-   *
-   * For example, all of time at latitude 12.3 longitude -45.6:
-   *   FixedLocation "(12.3, -45.6)"
-   * </pre>
-   */
-  protected int setLocationSchedulePG(
-      Asset asset, String prop, int newVal, StreamTokenizer tokens) {
-
-    // check asset
-    if (asset == null) {
-      System.err.println("AssetDataPlugin Error: asset is null");
-      return newVal;
-    }
-
-    // read two strings
-    String firstStr;
-    String secondStr;
-    try {
-      newVal = tokens.nextToken();
-      if ((newVal == StreamTokenizer.TT_EOF) ||
-          (tokens.sval.substring(0,1).equals("["))) {
-        // Reached a left bracket "[", want to exit block
-        return newVal;
-      }
-      firstStr = tokens.sval;
-
-      newVal = tokens.nextToken();
-      if ((newVal == StreamTokenizer.TT_EOF) ||
-          (tokens.sval.substring(0,1).equals("["))) {
-        // Reached a left bracket "[", want to exit block
-        return newVal;
-      }
-      secondStr = tokens.sval;
-
-      newVal = tokens.nextToken();
-    } catch (java.io.IOException ioe) {
-      return StreamTokenizer.TT_EOF;
-    }
-
-    // skip "FixedLocation " string
-    if (!(firstStr.equals("FixedLocation"))) {
-      System.err.println(
-          "Expecting: FixedLocation \"(LAT, LON)\"\n"+
-          "Not: "+firstStr+" .. ");
-      return newVal;
-    }
-
-    // parse single Location
-    org.cougaar.planning.ldm.plan.Location loc;
-    if ((!(secondStr.startsWith("("))) ||
-        (!(secondStr.endsWith(")"))))  {
-      System.err.println(
-          "Expecting: FixedLocation \"(LAT, LON)\"\n"+
-          "Not: FixedLocation "+secondStr+" ..");
-      System.err.println("SWith(: "+secondStr.startsWith("("));
-      System.err.println("EWith): "+secondStr.endsWith(")"));
-      return newVal;
-    }
-    String locStr = 
-      secondStr.substring(
-          1, secondStr.length()-1);
-    try {
-      int sepIdx = locStr.indexOf(",");
-
-      String latStr = locStr.substring(0, sepIdx).trim();
-      org.cougaar.planning.ldm.measure.Latitude lat = 
-        org.cougaar.planning.ldm.measure.Latitude.newLatitude(
-            latStr);
-
-      String lonStr = locStr.substring(sepIdx+1).trim();
-      org.cougaar.planning.ldm.measure.Longitude lon = 
-        org.cougaar.planning.ldm.measure.Longitude.newLongitude(
-            lonStr);
-
-      loc = 
-        new org.cougaar.planning.ldm.plan.LatLonPointImpl(
-            lat, lon);
-    } catch (RuntimeException e) {
-      System.err.println("Invalid LatLonPoint: "+locStr);
-      return newVal;
-    }
-
-    // create LocationScheduleElementImpl
-    LocationScheduleElement locSchedElem =
-      new LocationScheduleElementImpl(
-          TimeSpan.MIN_VALUE, TimeSpan.MAX_VALUE, loc);
-
-    // add to schedule
-    LocationSchedulePG locSchedPG = asset.getLocationSchedulePG();
-    if (locSchedPG == null) {
-      locSchedPG = new LocationSchedulePGImpl();
-      asset.setLocationSchedulePG(locSchedPG);
-    }
-    Schedule locSched = locSchedPG.getSchedule();
-    if (locSched == null) {
-      locSched = new ScheduleImpl();
-      ((NewLocationSchedulePG)locSchedPG).setSchedule(locSched);
-    }
-    locSched.add(locSchedElem);
-
-    // done
-    return newVal;
-  }
-
-  /**
-   * Fills in myRelationships with arrays of relationship, clusterName and capableroles triples.
-   */
-  protected int fillRelationships(int newVal, StreamTokenizer tokens) {
-    if (myLocalAsset != null) {
-      try {
-        newVal = tokens.nextToken();
-	while ((newVal != StreamTokenizer.TT_EOF) &&
-               (!tokens.sval.substring(0,1).equals("["))) {
-
-          String roleName = "";
-          String itemID = "";
-          String typeID = "";
-          String clusterID = "";
-          long start = getDefaultStartTime();
-          long end = getDefaultEndTime();
-          
-          for (int i = 0; i < 6; i++) {
-            if ((tokens.sval.length()) > 0  &&
-                (tokens.sval.substring(0,1).equals("["))) {
-              throw new RuntimeException("Unexpected character: " + 
-                                         tokens.sval);
-            }
-            
-            switch (i) {
-            case 0:
-              roleName = tokens.sval.trim();
-              break;
-
-            case 1:
-              itemID = tokens.sval.trim();
-              break;
-
-            case 2:
-              typeID = tokens.sval.trim();
-              break;
-
-            case 3:
-              clusterID = tokens.sval.trim();
-              break;
-
-            case 4:
-              if (!tokens.sval.equals("")) {
-                try {
-                  start = myDateFormat.parse(tokens.sval).getTime();
-                } catch (java.text.ParseException pe) {
-                  System.out.println("Unable to parse: " + tokens.sval + 
-                                     ". Start time defaulting to " + 
-                                     getDefaultStartTime());
-                }
-              }
-              break;
-
-            case 5:
-              if (!tokens.sval.equals("")) {
-                try {
-                  end = myDateFormat.parse(tokens.sval).getTime();
-                } catch (java.text.ParseException pe) {
-                  System.out.println("Unable to parse: " + tokens.sval + 
-                                     ". End time defaulting to " + 
-                                     getDefaultEndTime());
-                }
-              }
-              break;
-
-            }
-
-            newVal = tokens.nextToken();
-          }
-
-	  // Parse [Relationship] part of prototype-ini file
-          Asset otherAsset = getAsset(myAssetClassName, itemID, typeID, clusterID);
-
-          Relationship relationship = 
-            ldmf.newRelationship(Role.getRole(roleName),
-                                         (HasRelationships) myLocalAsset,
-                                         (HasRelationships) otherAsset,
-                                         start,
-                                         end);
-            
-                                           
-          myRelationships.add(relationship);
-	} //while
-      } catch (java.io.IOException ioe) {
-        ioe.printStackTrace();
-      } 
-    } else {
-      System.err.println("AssetDataPlugin.fillRelationships: local asset is null");
-    }
-
-    return newVal;
   }
 
   /**
@@ -983,18 +682,31 @@ public class AssetDataPlugin extends SimplePlugin {
   }
 
   /**
-   * Creates and calls the appropriate "setter" method for the classInstance
+   * Creates and calls the appropriate "setter" method for the property
    * which is of type className.
    */
-  protected void callSetter(Object classInstance, String setterName, String type, Object []arguments) {
+  protected void callSetter(String setterName, String type, Object []arguments) {
     Class parameters[] = new Class[1];
     
     try {
       parameters[0] = findClass(type);
-      Method meth = findMethod(classInstance.getClass(), setterName, parameters);
-      meth.invoke(classInstance, arguments);
+      Method meth = findMethod(property.getClass(), setterName, parameters);
+      if (meth == null) {
+        StringBuffer msg = new StringBuffer();
+        msg.append("AssetDataPlugin method not found: ");
+        msg.append(setterName);
+        msg.append("(");
+        for (int i = 0; i < parameters.length; i++) {
+          if (i > 0) msg.append(", ");
+          msg.append(parameters[i].getName());
+        }
+        msg.append(")");
+        System.err.println(msg);
+        return;
+      }
+      meth.invoke(property, arguments);
     } catch (Exception e) {
-      System.err.println("AssetDataPlugin Exception: callSetter("+classInstance.getClass().getName()+", "+setterName+", "+type+", "+arguments+" : " + e);
+      System.err.println("AssetDataPlugin Exception: callSetter("+property.getClass().getName()+", "+setterName+", "+type+", "+arguments+" : " + e);
       e.printStackTrace();
     }
   }
@@ -1038,8 +750,50 @@ public class AssetDataPlugin extends SimplePlugin {
     }
   }
 
+  private class AssetDataCallbackImpl implements AssetDataCallback {
+    public ConfigFinder getConfigFinder() {
+      return AssetDataPlugin.this.getConfigFinder();
+    }
+    public void createMyLocalAsset(String assetClassName) {
+      AssetDataPlugin.this.createMyLocalAsset(assetClassName);
+    }
+    public boolean hasMyLocalAsset() {
+      return (myLocalAsset != null);
+    }
+    public void createPropertyGroup(String propertyName) throws Exception {
+      AssetDataPlugin.this.createPropertyGroup(propertyName);
+    }
+    public Object parseExpr(String dataType, String value) {
+      return AssetDataPlugin.this.parseExpr(dataType, value);
+    }
+    public long parseDate(String dateString) throws ParseException {
+      return AssetDataPlugin.this.parseDate(dateString);
+    }
+    public String getType(String type) {
+      return AssetDataPlugin.this.getType(type);
+    }
+    public void callSetter(String setterName,
+                           String type, Object[] arguments)
+    {
+      AssetDataPlugin.this.callSetter(setterName, type, arguments);
+    }
+    public void setLocationSchedule(String latStr, String lonStr) {
+      AssetDataPlugin.this.setLocationSchedule(latStr, lonStr);
+    }
+    public long getDefaultStartTime() {
+      return AssetDataPlugin.this.getDefaultStartTime();
+    }
+    public long getDefaultEndTime() {
+      return AssetDataPlugin.this.getDefaultEndTime();
+    }
+    public void addPropertyToAsset() {
+      AssetDataPlugin.this.addPropertyToAsset();
+    }
+    public void addRelationship(String typeId, String itemId,
+                                String otherClusterId, String roleName,
+                                long start, long end)
+    {
+      AssetDataPlugin.this.addRelationship(typeId, itemId, otherClusterId, roleName, start, end);
+    }
+  }
 }
-
-
-
-

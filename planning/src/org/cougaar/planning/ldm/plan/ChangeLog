@@ -1,3 +1,10 @@
+2003-03-12  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* ScheduleImpl.java:
+	Bug #xxxx -- Log files intermix EOL conventions.
+	Use the platform line.separator to separate output lines to avoid
+	mixing conventions within the log files.
+
 2003-02-14  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* WorkflowImpl.java:

@@ -58,12 +58,6 @@ public abstract class AssetSkeletonBase
       return (ArrayList) otherProperties.clone();
   }
         
-  private synchronized final ArrayList force() {
-    if (otherProperties==null)
-      otherProperties=new ArrayList(1);
-    return otherProperties;
-  }
-
   protected AssetSkeletonBase() {}
 
   protected AssetSkeletonBase(AssetSkeletonBase prototype) {
@@ -72,7 +66,11 @@ public abstract class AssetSkeletonBase
   }
 
   protected void fillAllPropertyGroups(Collection v) {
-    v.addAll(force());
+    synchronized (this) {
+      if (otherProperties != null) {
+        v.addAll(otherProperties);
+      }
+    }
   }
 
   protected void fillAllPropertyGroups(Collection v, long time) {
@@ -81,16 +79,20 @@ public abstract class AssetSkeletonBase
       return;
     }
 
-    for (Iterator i = force().iterator(); i.hasNext();) {
-      Object o = i.next();
-      if (o instanceof PropertyGroupSchedule) {
-        PropertyGroup pg = 
-          (PropertyGroup)((PropertyGroupSchedule)o).intersects(time);
-        if (pg != null) {
-          v.add(pg);
+    synchronized (this) {
+      if (otherProperties != null) {
+        for (Iterator i = otherProperties.iterator(); i.hasNext();) {
+          Object o = i.next();
+          if (o instanceof PropertyGroupSchedule) {
+            PropertyGroup pg = 
+              (PropertyGroup)((PropertyGroupSchedule)o).intersects(time);
+            if (pg != null) {
+              v.add(pg);
+            }
+          } else {
+            v.add(o);
+          }
         }
-      } else {
-        v.add(o);
       }
     }
   }
@@ -108,18 +110,19 @@ public abstract class AssetSkeletonBase
    *  PropertyGroupSchedules)
    **/
   protected synchronized void setOtherProperties(Collection newProps) {
-    synchronized (otherProperties) {
+    hasOtherTimePhasedProperties = false;
+    if (newProps.isEmpty()) {
+      otherProperties = null;
+    } else {
       if (otherProperties != null) {
         otherProperties.clear();
-        hasOtherTimePhasedProperties = false;
+        otherProperties.addAll(newProps);
       } else {
-        force();
+        otherProperties = new ArrayList(newProps);
       }
 
-      otherProperties.addAll(newProps);
-
       // Check for time phased properties
-      for (Iterator i = newProps.iterator(); i.hasNext();) {
+      for (Iterator i = otherProperties.iterator(); i.hasNext();) {
         Object o = i.next();
         if (o instanceof PropertyGroupSchedule) {
           hasOtherTimePhasedProperties = true;
@@ -221,7 +224,7 @@ public abstract class AssetSkeletonBase
     int index = findLocalPGScheduleIndex(c);
 
     if (index >= 0){ 
-      return (PropertyGroupSchedule) force().get(index);
+      return (PropertyGroupSchedule) otherProperties.get(index);
     } else {
       return null;
     }
@@ -332,7 +335,7 @@ public abstract class AssetSkeletonBase
     if (TimePhasedPropertyGroup.class.isAssignableFrom(pgc)) {
       int index = findLocalPGScheduleIndex(pgc);
       if (index >=0) {
-        PropertyGroupSchedule pgs = (PropertyGroupSchedule) force().get(index);
+        PropertyGroupSchedule pgs = (PropertyGroupSchedule) otherProperties.get(index);
         if (t == UNSPECIFIED_TIME) {
           return pgs.getDefault();
         } else {
@@ -345,7 +348,7 @@ public abstract class AssetSkeletonBase
       int index = findLocalPGIndex(pgc);
 
       if (index >= 0) {
-        return (PropertyGroup) force().get(index);
+        return (PropertyGroup) otherProperties.get(index);
       } else {
         return null;
       }
@@ -364,12 +367,15 @@ public abstract class AssetSkeletonBase
 
       PropertyGroupSchedule schedule;
       if (index >= 0) {
-        schedule = (PropertyGroupSchedule) force().get(index);
+        schedule = (PropertyGroupSchedule) otherProperties.get(index);
         schedule.removeAll(schedule.intersectingSet(timePhasedProp));
       } else {
         hasOtherTimePhasedProperties = true;
         schedule = new PropertyGroupSchedule();
-        force().add(schedule);
+        if (otherProperties == null) {
+          otherProperties = new ArrayList(1);
+        } 
+        otherProperties.add(schedule);
       }
 
       schedule.add(prop);
@@ -389,7 +395,7 @@ public abstract class AssetSkeletonBase
 
     int index = findLocalPGScheduleIndex(pgc);
     if (index >=0) {
-      return (PropertyGroupSchedule) force().get(index);
+      return (PropertyGroupSchedule) otherProperties.get(index);
     } else {
       return null;
     }
@@ -401,13 +407,16 @@ public abstract class AssetSkeletonBase
     if (hasOtherTimePhasedProperties) {
       int index = findLocalPGScheduleIndex(pgSchedule.getPGClass());
       if (index >= 0) {
-        force().remove(index);
+        otherProperties.remove(index);
       }
     } else {
       hasOtherTimePhasedProperties = true;
     }
 
-    force().add(pgSchedule);
+    if (otherProperties == null) {
+      otherProperties = new ArrayList(1);
+    }
+    otherProperties.add(pgSchedule);
   }
 
   protected synchronized PropertyGroup removeLocalPG(Class c) {
@@ -426,7 +435,7 @@ public abstract class AssetSkeletonBase
 
       int index = findLocalPGScheduleIndex(c);
       if (index >=0) {
-        PropertyGroupSchedule pgs = (PropertyGroupSchedule) force().get(index);
+        PropertyGroupSchedule pgs = (PropertyGroupSchedule) otherProperties.get(index);
 
         removed = pgs.getDefault();
 
@@ -435,13 +444,13 @@ public abstract class AssetSkeletonBase
           removed = (PropertyGroup) pgs.get(0);
         }
 
-        force().remove(index);
+        otherProperties.remove(index);
       }
     } else {
       int index = findLocalPGIndex(c);
       if (index >= 0) {
-        removed = (PropertyGroup) force().get(index);
-        force().remove(index);
+        removed = (PropertyGroup) otherProperties.get(index);
+        otherProperties.remove(index);
       }
     } 
     return removed;
@@ -464,7 +473,7 @@ public abstract class AssetSkeletonBase
 
       int index = findLocalPGScheduleIndex(pgc);
       if (index >=0) {
-        PropertyGroupSchedule pgs = (PropertyGroupSchedule) force().get(index);
+        PropertyGroupSchedule pgs = (PropertyGroupSchedule) otherProperties.get(index);
 
         if (pgs.getDefault() == pg) {
           pgs.clearDefault();
@@ -478,8 +487,8 @@ public abstract class AssetSkeletonBase
     } else {
       int index = findLocalPGIndex(pg.getPrimaryClass());
       if (index >= 0) {
-        removed = (PropertyGroup) force().get(index);
-        force().remove(index);
+        removed = (PropertyGroup) otherProperties.get(index);
+        otherProperties.remove(index);
       }
     } 
     return removed;
@@ -489,7 +498,7 @@ public abstract class AssetSkeletonBase
     int index = findLocalPGScheduleIndex(c);
 
     if (index >=0) {
-      return (PropertyGroupSchedule) force().remove(index);
+      return (PropertyGroupSchedule) otherProperties.remove(index);
     } else {
       return null;
     }
@@ -504,74 +513,84 @@ public abstract class AssetSkeletonBase
     // may be natural (FooPGImpl), locked, Null, etc.  So: our solution is
     // to compare the "PrimaryClass" of each.
     int index = findLocalPGIndex(prop.getPrimaryClass());
-    ArrayList ps = force();
 
     if (index >= 0) {
-      ps.set(index, prop);
+      otherProperties.set(index, prop);
     } else {
-      ps.add(prop);
+      if (otherProperties == null) {
+        otherProperties = new ArrayList(1);
+      }
+      otherProperties.add(prop);
     }
   }
 
   /** find index of specified PG in the set of additional properties.
    **/
   private final synchronized int findLocalPGIndex(Class propertyGroupClass) {
-    // Look through the list for a PG of a matching class.  The hard part
-    // of this is that either the prop or any of the elements of the list
-    // may be natural (FooPGImpl), locked, Null, etc.  So: our solution is
-    // to compare the "PrimaryClass" of each.
-    ArrayList ps = force();
-    int l = ps.size();
+    if (otherProperties == null) {
+      return -1;
+    } else {
+      // Look through the list for a PG of a matching class.  The hard part
+      // of this is that either the prop or any of the elements of the list
+      // may be natural (FooPGImpl), locked, Null, etc.  So: our solution is
+      // to compare the "PrimaryClass" of each.
+      ArrayList ps = otherProperties;
+      int l = ps.size();
 
-    for (int i = 0; i<l; i++) {
-      Object o = ps.get(i);
-      Class ok = null;
+      for (int i = 0; i<l; i++) {
+        Object o = ps.get(i);
+        Class ok = null;
 
-      if (o instanceof PropertyGroupSchedule) {
-        // Don't bother with PropertyGroupSchedules
-        continue;
-      } else if (o instanceof PropertyGroup) {
-        ok = ((PropertyGroup) o).getPrimaryClass();
-      } else {
-        throw new RuntimeException("Unable to handle object of Class: " + o.getClass() +
-                                   " in otherProperties list.");
+        if (o instanceof PropertyGroupSchedule) {
+          // Don't bother with PropertyGroupSchedules
+          continue;
+        } else if (o instanceof PropertyGroup) {
+          ok = ((PropertyGroup) o).getPrimaryClass();
+        } else {
+          throw new RuntimeException("Unable to handle object of Class: " + o.getClass() +
+                                     " in otherProperties list.");
+        }
+        if (propertyGroupClass.equals(ok)) {
+          return i;
+        }
       }
-      if (propertyGroupClass.equals(ok)) {
-        return i;
-      }
+      return -1;
     }
-    return -1;
   }
 
   /** find index of specified PropertyGroupSchedule in the set of additional
    * properties.
    **/
   private final synchronized int findLocalPGScheduleIndex(Class propertyGroupClass) {
-    // Look through the list for a PG of a matching class.  The hard part
-    // of this is that either the prop or any of the elements of the list
-    // may be natural (FooPGImpl), locked, Null, etc.  So: our solution is
-    // to compare the "PrimaryClass" of each.
-    ArrayList ps = force();
-    int l = ps.size();
+    if (otherProperties == null) {
+      return -1;
+    } else {
+      // Look through the list for a PG of a matching class.  The hard part
+      // of this is that either the prop or any of the elements of the list
+      // may be natural (FooPGImpl), locked, Null, etc.  So: our solution is
+      // to compare the "PrimaryClass" of each.
+      ArrayList ps = otherProperties;
+      int l = ps.size();
 
-    for (int i = 0; i<l; i++) {
-      Object o = ps.get(i);
-      Class ok = null;
+      for (int i = 0; i<l; i++) {
+        Object o = ps.get(i);
+        Class ok = null;
 
-      if (o instanceof PropertyGroup) {
-        // Don't bother with PropertyGroups
-        continue;
-      } else if (o instanceof PropertyGroup) {
-        ok = ((PropertyGroupSchedule) o).getPGClass();
-      } else {
-        throw new RuntimeException("Unable to handle object of Class: " + o.getClass() +
-                                   " in otherProperties list.");
+        if (o instanceof PropertyGroup) {
+          // Don't bother with PropertyGroups
+          continue;
+        } else if (o instanceof PropertyGroup) {
+          ok = ((PropertyGroupSchedule) o).getPGClass();
+        } else {
+          throw new RuntimeException("Unable to handle object of Class: " + o.getClass() +
+                                     " in otherProperties list.");
+        }
+        if (propertyGroupClass.equals(ok)) {
+          return i;
+        }
       }
-      if (propertyGroupClass.equals(ok)) {
-        return i;
-      }
+      return -1;
     }
-    return -1;
   }
 }
 

@@ -24,9 +24,16 @@
  */
 
 package org.cougaar.planning.ldm.plan;
-import java.io.*;
-import java.beans.*;
-import java.util.*;
+import java.beans.BeanDescriptor;
+import java.beans.BeanInfo;
+import java.beans.EventSetDescriptor;
+import java.beans.IntrospectionException;
+import java.beans.MethodDescriptor;
+import java.beans.PropertyDescriptor;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+import java.util.HashMap;
 
 public final class Role implements Serializable, BeanInfo {
   // role cache - needs to be declared before the statics below

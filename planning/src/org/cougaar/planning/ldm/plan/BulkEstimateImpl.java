@@ -21,13 +21,8 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.planning.ldm.plan.BulkEstimate;
-import org.cougaar.planning.ldm.plan.NewBulkEstimate;
-import org.cougaar.planning.ldm.plan.Task;
-import org.cougaar.planning.ldm.plan.AllocationResult;
-
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /** BulkEstimate Implementation
  * A BulkEstimate is similar to but not a subclass of PlanElement.

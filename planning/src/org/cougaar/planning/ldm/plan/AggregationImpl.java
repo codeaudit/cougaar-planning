@@ -21,20 +21,17 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.planning.ldm.plan.Aggregation;
-import org.cougaar.planning.ldm.plan.AllocationResult;
-import org.cougaar.planning.ldm.plan.Composition;
-import org.cougaar.planning.ldm.plan.Plan;
-import org.cougaar.planning.ldm.plan.Task;
-import org.cougaar.planning.ldm.plan.MPTask;
-import org.cougaar.core.blackboard.Subscriber;
-
-import java.util.*;
-import java.beans.*;
-
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
+import java.beans.IntrospectionException;
+import java.beans.PropertyDescriptor;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.ListIterator;
+
+import org.cougaar.core.blackboard.Subscriber;
 
 
 /** AggregationImpl.java

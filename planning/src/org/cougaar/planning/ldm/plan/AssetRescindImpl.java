@@ -21,17 +21,12 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 import org.cougaar.core.mts.MessageAddress;
-
 import org.cougaar.planning.ldm.asset.Asset;
-import org.cougaar.planning.ldm.plan.AssetRescind;
-import org.cougaar.planning.ldm.plan.NewAssetRescind;
-
-import org.cougaar.planning.ldm.plan.Plan;
 
 /** AssetRescind implementation
  * AssetRescind allows a asset to be rescinded from the Plan. 

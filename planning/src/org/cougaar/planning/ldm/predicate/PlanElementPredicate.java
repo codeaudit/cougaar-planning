@@ -21,7 +21,7 @@
 
 
 package org.cougaar.planning.ldm.predicate;
-import org.cougaar.planning.ldm.plan.*;
+import org.cougaar.planning.ldm.plan.PlanElement;
 
 /** Utility predicate for selecting PlanElements **/
 

@@ -21,8 +21,6 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.planning.ldm.asset.Asset;
-import org.cougaar.util.TimeSpan;
 
 /**
  * AssignedRelationshipElement represents a relationship between assets. 

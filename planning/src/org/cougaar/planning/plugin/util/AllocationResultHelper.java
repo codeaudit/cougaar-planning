@@ -21,17 +21,15 @@
 
 package org.cougaar.planning.plugin.util;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
+
 import org.cougaar.planning.ldm.plan.AllocationResult;
 import org.cougaar.planning.ldm.plan.AspectRate;
-import org.cougaar.planning.ldm.plan.AspectScorePoint;
-import org.cougaar.planning.ldm.plan.AspectType; // inlined
+import org.cougaar.planning.ldm.plan.AspectType;
 import org.cougaar.planning.ldm.plan.AspectValue;
 import org.cougaar.planning.ldm.plan.PlanElement;
 import org.cougaar.planning.ldm.plan.Preference;

@@ -21,10 +21,9 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.util.TimeSpan;
-import org.cougaar.planning.ldm.plan.NewScheduleElement;
-import org.cougaar.planning.ldm.plan.ScheduleElement;
 import java.util.Date;
+
+import org.cougaar.util.TimeSpan;
 
 /**
  * Base class for ScheduleElement.  Millisecond accuracy times are stored

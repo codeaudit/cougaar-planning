@@ -23,8 +23,8 @@ package org.cougaar.planning.ldm.plan;
 
 import java.util.Date;
 
-import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.core.util.UniqueObject;
+import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.util.TimeSpan;
 
 /**

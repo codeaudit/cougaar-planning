@@ -22,14 +22,14 @@
 
 package org.cougaar.planning.ldm.trigger;
 
+import java.util.Enumeration;
+
+import org.cougaar.core.agent.service.alarm.Alarm;
 import org.cougaar.core.blackboard.IncrementalSubscription;
 import org.cougaar.core.blackboard.Subscription;
-import org.cougaar.core.agent.service.alarm.Alarm;
-import org.cougaar.planning.plugin.legacy.SimplifiedFatPlugin;
-import org.cougaar.planning.plugin.legacy.PluginDelegate;
 import org.cougaar.planning.plugin.legacy.Assessor;
-import java.util.*;
-
+import org.cougaar.planning.plugin.legacy.PluginDelegate;
+import org.cougaar.planning.plugin.legacy.SimplifiedFatPlugin;
 import org.cougaar.util.UnaryPredicate;
 
 /**

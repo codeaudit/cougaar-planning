@@ -23,9 +23,6 @@ package org.cougaar.planning.ldm.trigger;
 
 import org.cougaar.planning.plugin.legacy.PluginDelegate;
 
-import java.util.List;
-import java.util.Arrays;
-
 /**
  * A TriggerTimeBasedMonitor is a kind of monitor that generates an
  * interrupt at regular intervals to check for a particular

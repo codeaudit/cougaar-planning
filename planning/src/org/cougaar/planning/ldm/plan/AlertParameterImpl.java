@@ -20,8 +20,6 @@
  */
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.planning.ldm.plan.AlertParameter;
-import org.cougaar.planning.ldm.plan.NewAlertParameter;
 
 /** AlertParameter Implementation
  * @author  ALPINE <alpine-software@bbn.com>

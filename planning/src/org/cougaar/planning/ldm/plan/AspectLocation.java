@@ -21,7 +21,6 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import java.io.Serializable;
 
 /**
  * An AspectValue with a location instead of a value.

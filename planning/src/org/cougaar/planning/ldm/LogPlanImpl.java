@@ -21,19 +21,15 @@
 
 package org.cougaar.planning.ldm;
 
-import java.io.PrintStream;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import org.cougaar.core.blackboard.*;
-import org.cougaar.core.domain.*;
+import org.cougaar.core.blackboard.Blackboard;
+import org.cougaar.core.blackboard.CollectionSubscription;
+import org.cougaar.core.blackboard.UniqueObjectSet;
+import org.cougaar.core.domain.XPlan;
 import org.cougaar.core.util.UID;
-import org.cougaar.core.util.UniqueObject;
-import org.cougaar.multicast.AttributeBasedAddress;
-import org.cougaar.planning.ldm.asset.*;
-import org.cougaar.planning.ldm.plan.*;
+import org.cougaar.planning.ldm.asset.Asset;
+import org.cougaar.planning.ldm.asset.AssetSet;
 import org.cougaar.planning.ldm.plan.PlanElement;
+import org.cougaar.planning.ldm.plan.PlanElementSet;
 import org.cougaar.planning.ldm.plan.Task;
 import org.cougaar.planning.ldm.plan.Workflow;
 import org.cougaar.util.UnaryPredicate;

@@ -21,8 +21,8 @@
 
 package org.cougaar.planning.ldm;
 
-import org.cougaar.core.util.UID;
 import org.cougaar.core.domain.XPlan;
+import org.cougaar.core.util.UID;
 import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.planning.ldm.plan.PlanElement;
 import org.cougaar.planning.ldm.plan.Task;

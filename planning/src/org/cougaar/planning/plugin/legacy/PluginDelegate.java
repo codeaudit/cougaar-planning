@@ -23,16 +23,17 @@ package org.cougaar.planning.plugin.legacy;
 
 import java.util.Collection;
 import java.util.Date;
-import org.cougaar.core.mts.MessageAddress;
-import org.cougaar.planning.ldm.ClusterServesPlugin;
+
 import org.cougaar.core.agent.MetricsSnapshot;
 import org.cougaar.core.blackboard.SubscriberException;
 import org.cougaar.core.blackboard.Subscription;
 import org.cougaar.core.component.ServiceBroker;
 import org.cougaar.core.domain.Factory;
+import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.core.service.BlackboardService;
+import org.cougaar.planning.ldm.ClusterServesPlugin;
 import org.cougaar.planning.ldm.LDMServesPlugin;
 import org.cougaar.planning.ldm.PlanningFactory;
-import org.cougaar.core.service.BlackboardService;
 import org.cougaar.util.UnaryPredicate;
 
 /** 

@@ -23,6 +23,7 @@ package org.cougaar.planning.plugin.completion;
 
 import java.io.Serializable;
 import java.text.DecimalFormat;
+
 import org.cougaar.core.mts.MessageAddress;
 
 class Laggard implements Comparable, Serializable {

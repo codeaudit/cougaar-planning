@@ -21,7 +21,6 @@
 package org.cougaar.planning.ldm.plan;
 
 import org.cougaar.planning.ldm.asset.Asset;
-import org.cougaar.planning.ldm.plan.PreferenceImpl;
 
 public class AssetPreferenceImpl extends PreferenceImpl
 	implements Cloneable 

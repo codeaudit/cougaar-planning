@@ -22,25 +22,26 @@
 
 package org.cougaar.planning.ldm.lps;
 
-import org.cougaar.core.blackboard.*;
-import org.cougaar.core.agent.*;
-import org.cougaar.core.domain.*;
-import org.cougaar.planning.ldm.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 
-import org.cougaar.planning.ldm.plan.PlanElement;
-import org.cougaar.planning.ldm.plan.Allocation;
-import org.cougaar.planning.ldm.plan.AssetTransfer;
-import org.cougaar.planning.ldm.plan.RoleScheduleConflicts;
-import org.cougaar.planning.ldm.plan.AllocationResult;
-import org.cougaar.planning.ldm.plan.Schedule;
-import org.cougaar.planning.ldm.plan.ScheduleElement;
-import org.cougaar.planning.ldm.plan.RoleSchedule;
-import org.cougaar.planning.ldm.plan.AspectType;
+import org.cougaar.core.blackboard.EnvelopeTuple;
+import org.cougaar.core.domain.EnvelopeLogicProvider;
+import org.cougaar.core.domain.LogicProvider;
+import org.cougaar.core.domain.RootPlan;
 import org.cougaar.planning.ldm.asset.Asset;
-
-import java.util.*;
-import org.cougaar.core.util.*;
-import org.cougaar.util.*;
+import org.cougaar.planning.ldm.plan.Allocation;
+import org.cougaar.planning.ldm.plan.AllocationResult;
+import org.cougaar.planning.ldm.plan.AspectType;
+import org.cougaar.planning.ldm.plan.AssetTransfer;
+import org.cougaar.planning.ldm.plan.PlanElement;
+import org.cougaar.planning.ldm.plan.RoleSchedule;
+import org.cougaar.planning.ldm.plan.RoleScheduleConflicts;
+import org.cougaar.planning.ldm.plan.ScheduleElement;
 
 /** RoleScheduleConflictLP checks an Asset's roleschedule for potential
   * schedule conflicts.  Each time a new allocation or assettransfer is published or

@@ -21,9 +21,6 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.core.blackboard.Publishable;
-
-import org.cougaar.core.blackboard.ChangeReport;
 
 /** NewPlanElement Interface
  * provides setter methods to build a PlanElement object

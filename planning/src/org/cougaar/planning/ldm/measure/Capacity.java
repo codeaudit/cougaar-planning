@@ -19,7 +19,7 @@
  * </copyright>
  */
 package org.cougaar.planning.ldm.measure;
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
 
 /** A generic Scalar per Duration class that can be interpreted in a 
  * variety of ways depending on context.

@@ -21,16 +21,11 @@
 
 package org.cougaar.planning.plugin.legacy;
 
-import java.io.PrintStream;
-import java.sql.Connection;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Vector;
-import org.cougaar.core.plugin.*;
-import org.cougaar.planning.plugin.*;
-import org.cougaar.core.mts.MessageAddress;
-import org.cougaar.planning.ldm.*;
+
 import org.cougaar.core.agent.MetricsSnapshot;
 import org.cougaar.core.agent.service.alarm.Alarm;
 import org.cougaar.core.agent.service.alarm.ExecutionTimer;
@@ -43,16 +38,24 @@ import org.cougaar.core.component.BindingSite;
 import org.cougaar.core.component.Component;
 import org.cougaar.core.component.ServiceBroker;
 import org.cougaar.core.domain.Factory;
+import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.core.plugin.PluginBase;
 import org.cougaar.core.service.AgentIdentificationService;
 import org.cougaar.core.service.AlarmService;
 import org.cougaar.core.service.BlackboardService;
 import org.cougaar.core.service.DemoControlService;
 import org.cougaar.core.service.DomainService;
-import org.cougaar.planning.service.PrototypeRegistryService;
-import org.cougaar.planning.service.LDMService;
 import org.cougaar.core.service.SchedulerService;
 import org.cougaar.core.service.UIDServer;
 import org.cougaar.core.service.UIDService;
+import org.cougaar.planning.ldm.ClusterServesPlugin;
+import org.cougaar.planning.ldm.LDMServesPlugin;
+import org.cougaar.planning.ldm.LatePropertyProvider;
+import org.cougaar.planning.ldm.PlanningFactory;
+import org.cougaar.planning.ldm.PropertyProvider;
+import org.cougaar.planning.ldm.PrototypeProvider;
+import org.cougaar.planning.service.LDMService;
+import org.cougaar.planning.service.PrototypeRegistryService;
 import org.cougaar.util.ConfigFinder;
 import org.cougaar.util.GenericStateModel;
 import org.cougaar.util.GenericStateModelAdapter;
@@ -60,7 +63,6 @@ import org.cougaar.util.StateModelException;
 import org.cougaar.util.SyncTriggerModelImpl;
 import org.cougaar.util.Trigger;
 import org.cougaar.util.TriggerModel;
-import org.cougaar.util.TriggerRegistry;
 import org.cougaar.util.UnaryPredicate;
 
 public abstract class PluginAdapter

@@ -20,26 +20,26 @@
  */
 package org.cougaar.planning.ldm.lps;
 
-import org.cougaar.core.mts.MessageAddress;
-import org.cougaar.core.blackboard.*;
-import org.cougaar.planning.ldm.*;
-import org.cougaar.core.domain.*;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Vector;
 
-import org.cougaar.core.agent.*;
-
+import org.cougaar.core.blackboard.Directive;
+import org.cougaar.core.domain.LogicProvider;
+import org.cougaar.core.domain.MessageLogicProvider;
+import org.cougaar.core.domain.RootPlan;
+import org.cougaar.core.logging.LoggingServiceWithPrefix;
+import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.planning.ldm.LogPlan;
+import org.cougaar.planning.ldm.PlanningFactory;
 import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.planning.ldm.asset.LocalPG;
 import org.cougaar.planning.ldm.asset.PropertyGroup;
 import org.cougaar.planning.ldm.asset.PropertyGroupSchedule;
-
 import org.cougaar.planning.ldm.plan.AssetAssignment;
-import org.cougaar.planning.ldm.plan.AssignedRelationshipElement;
 import org.cougaar.planning.ldm.plan.AssignedAvailabilityElement;
+import org.cougaar.planning.ldm.plan.AssignedRelationshipElement;
 import org.cougaar.planning.ldm.plan.HasRelationships;
 import org.cougaar.planning.ldm.plan.NewRelationshipSchedule;
 import org.cougaar.planning.ldm.plan.NewRoleSchedule;
@@ -49,14 +49,12 @@ import org.cougaar.planning.ldm.plan.RelationshipSchedule;
 import org.cougaar.planning.ldm.plan.Role;
 import org.cougaar.planning.ldm.plan.Schedule;
 import org.cougaar.planning.ldm.plan.ScheduleElement;
-
 import org.cougaar.util.Enumerator;
 import org.cougaar.util.MutableTimeSpan;
 import org.cougaar.util.TimeSpan;
 import org.cougaar.util.UnaryPredicate;
 import org.cougaar.util.log.Logger;
 import org.cougaar.util.log.Logging;
-import org.cougaar.core.logging.LoggingServiceWithPrefix;
 
 
 /**

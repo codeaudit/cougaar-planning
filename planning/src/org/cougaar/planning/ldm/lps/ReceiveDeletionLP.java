@@ -23,18 +23,19 @@
 package org.cougaar.planning.ldm.lps;
 
 import java.util.Collection;
-import org.cougaar.planning.ldm.*;
+
 import org.cougaar.core.blackboard.Directive;
-import org.cougaar.core.domain.*;
+import org.cougaar.core.domain.LogicProvider;
+import org.cougaar.core.domain.MessageLogicProvider;
+import org.cougaar.core.domain.RootPlan;
 import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.util.UID;
+import org.cougaar.planning.ldm.LogPlan;
+import org.cougaar.planning.ldm.PlanningFactory;
 import org.cougaar.planning.ldm.plan.AllocationforCollections;
 import org.cougaar.planning.ldm.plan.Deletion;
-import org.cougaar.planning.ldm.plan.NewTask;
-import org.cougaar.planning.ldm.plan.TaskRescind;
 import org.cougaar.planning.ldm.plan.PlanElement;
-import org.cougaar.planning.ldm.plan.Task;
-import org.cougaar.util.UnaryPredicate;
+import org.cougaar.planning.ldm.plan.TaskRescind;
 import org.cougaar.util.log.Logger;
 import org.cougaar.util.log.Logging;
 

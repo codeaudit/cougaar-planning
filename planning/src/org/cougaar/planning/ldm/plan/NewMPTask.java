@@ -21,10 +21,6 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.core.blackboard.Publishable;
-
-import org.cougaar.core.blackboard.ChangeReport;
-
 import java.util.Enumeration;
 
 /** NewMPTask Interface

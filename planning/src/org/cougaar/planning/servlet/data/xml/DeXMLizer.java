@@ -20,24 +20,23 @@
  */
 package org.cougaar.planning.servlet.data.xml;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import java.io.IOException;
-
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.xml.sax.Attributes;
-import org.xml.sax.helpers.AttributesImpl;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.AttributesImpl;
 import org.xml.sax.helpers.DefaultHandler;
-import org.xml.sax.InputSource;
 
 /**
  * Gets deXMLable objects back from an XML stream
- * @author Benjamin Lubin; last modified by: $Author: mthome $
+ * @author Benjamin Lubin; last modified by: $Author: rtomlinson $
  *
  * @since 1/24/01
  **/

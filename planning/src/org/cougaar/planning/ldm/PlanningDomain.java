@@ -21,13 +21,16 @@
 
 package org.cougaar.planning.ldm;
 
-import java.util.*;
-import java.util.Iterator;
-import org.cougaar.core.mts.MessageAddress;
-import org.cougaar.core.component.BindingSite;
+import java.util.ArrayList;
+import java.util.Collection;
+
 import org.cougaar.core.component.ServiceBroker;
-import org.cougaar.core.domain.*;
+import org.cougaar.core.domain.DomainAdapter;
+import org.cougaar.core.domain.Factory;
+import org.cougaar.core.domain.RootPlan;
+import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.service.AgentIdentificationService;
+import org.cougaar.core.service.AlarmService;
 import org.cougaar.planning.ldm.lps.AssetTransferLP;
 import org.cougaar.planning.ldm.lps.ComplainingLP;
 import org.cougaar.planning.ldm.lps.DeletionLP;
@@ -42,7 +45,6 @@ import org.cougaar.planning.ldm.lps.ReceiveTaskLP;
 import org.cougaar.planning.ldm.lps.RemoteAllocationLP;
 import org.cougaar.planning.ldm.lps.RescindLP;
 import org.cougaar.planning.service.LDMService;
-import org.cougaar.core.service.AlarmService;
 
 /**
  * This is the "planning" domain, which defines planning

@@ -22,7 +22,6 @@
 package org.cougaar.planning.ldm.plan;
 
 import org.cougaar.planning.ldm.asset.Asset;
-import org.cougaar.planning.ldm.plan.Transferable;
 
 /** TransferableTransfer Interface
   * A Transferable Transfer should be used to transfer a Transferable object to

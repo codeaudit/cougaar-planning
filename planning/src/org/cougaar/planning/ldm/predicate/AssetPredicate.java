@@ -21,7 +21,7 @@
 
 
 package org.cougaar.planning.ldm.predicate;
-import org.cougaar.planning.ldm.asset.*;
+import org.cougaar.planning.ldm.asset.Asset;
 
 /** Utility predicate for selecting assets **/
 

@@ -21,9 +21,6 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.core.util.UID;
-
-import java.util.Enumeration;
 
 /** Deletion Interface
  * Deletion is a message that a task sent to another cluster has been deleted.

@@ -21,8 +21,6 @@
 
 package org.cougaar.planning.plugin.legacy;
 
-import java.io.PrintStream;
-import org.cougaar.core.service.BlackboardService;
 import org.cougaar.util.StateModelException;
 
 /**

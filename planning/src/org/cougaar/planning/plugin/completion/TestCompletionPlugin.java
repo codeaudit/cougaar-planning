@@ -25,22 +25,17 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Vector;
-import org.cougaar.core.mts.MessageAddress;
+
 import org.cougaar.core.agent.service.alarm.Alarm;
-import org.cougaar.planning.plugin.legacy.SimplePlugin;
-import org.cougaar.planning.plugin.util.PluginHelper;
 import org.cougaar.core.service.LoggingService;
 import org.cougaar.planning.ldm.PlanningFactory;
-import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.planning.ldm.measure.CountRate;
 import org.cougaar.planning.ldm.measure.FlowRate;
 import org.cougaar.planning.ldm.measure.Rate;
 import org.cougaar.planning.ldm.plan.AspectRate;
-import org.cougaar.planning.ldm.plan.AspectType; // inlined
+import org.cougaar.planning.ldm.plan.AspectType;
 import org.cougaar.planning.ldm.plan.AspectValue;
-import org.cougaar.planning.ldm.plan.Context;
 import org.cougaar.planning.ldm.plan.NewTask;
-import org.cougaar.planning.ldm.plan.Plan;
 import org.cougaar.planning.ldm.plan.Preference;
 import org.cougaar.planning.ldm.plan.PrepositionalPhrase;
 import org.cougaar.planning.ldm.plan.ScoringFunction;
@@ -48,7 +43,7 @@ import org.cougaar.planning.ldm.plan.Task;
 import org.cougaar.planning.ldm.plan.Verb;
 import org.cougaar.planning.ldm.predicate.TaskPredicate;
 import org.cougaar.planning.plugin.legacy.SimplePlugin;
-import org.cougaar.util.UnaryPredicate;
+import org.cougaar.planning.plugin.util.PluginHelper;
 
 /**
  * A plugin for testing completion detection. Injects a slug of new

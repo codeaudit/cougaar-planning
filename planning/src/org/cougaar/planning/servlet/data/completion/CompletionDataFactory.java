@@ -21,12 +21,9 @@
 package org.cougaar.planning.servlet.data.completion;
 
 import org.cougaar.planning.servlet.data.Failure;
-import org.cougaar.planning.servlet.data.xml.*;
-
-import java.io.Writer;
-import java.io.IOException;
-import java.io.Serializable;
-
+import org.cougaar.planning.servlet.data.xml.DeXMLable;
+import org.cougaar.planning.servlet.data.xml.DeXMLableFactory;
+import org.cougaar.planning.servlet.data.xml.UnexpectedXMLException;
 import org.xml.sax.Attributes;
 
 /**

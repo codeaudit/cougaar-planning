@@ -21,16 +21,14 @@
 
 package org.cougaar.planning.plugin.legacy;
 
-import org.cougaar.core.plugin.PluginBase;
 import org.cougaar.core.component.BindingSite;
 import org.cougaar.core.component.ServiceBroker;
-import org.cougaar.core.component.ServiceRevokedListener;
+import org.cougaar.core.plugin.PluginBase;
 import org.cougaar.core.service.SchedulerService;
 import org.cougaar.util.GenericStateModelAdapter;
 import org.cougaar.util.SyncTriggerModelImpl;
 import org.cougaar.util.Trigger;
 import org.cougaar.util.TriggerModel;
-import org.cougaar.util.TriggerRegistry;
 
 /**
  * A minimal Plugin that illustrates use of the scheduler 

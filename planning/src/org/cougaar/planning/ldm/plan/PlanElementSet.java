@@ -21,12 +21,8 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import java.util.Map;
-import org.cougaar.core.blackboard.*;
 import org.cougaar.core.util.UID;
 import org.cougaar.core.util.UniqueObject;
-import org.cougaar.planning.ldm.plan.PlanElement;
-import org.cougaar.planning.ldm.plan.Task;
 import org.cougaar.util.KeyedSet;
 
 /**

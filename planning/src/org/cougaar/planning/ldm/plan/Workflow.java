@@ -22,10 +22,8 @@
 package org.cougaar.planning.ldm.plan;
 
 import java.util.Enumeration;
-import java.util.List;
-import java.util.Vector;
+
 import org.cougaar.core.util.UniqueObject;
-import org.cougaar.planning.ldm.plan.AllocationResult;
 
 /**
  * Workflow Interface

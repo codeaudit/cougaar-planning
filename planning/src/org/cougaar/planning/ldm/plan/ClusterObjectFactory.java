@@ -21,17 +21,16 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.core.mts.MessageAddress;
-import org.cougaar.planning.ldm.asset.Asset;
-import org.cougaar.planning.ldm.measure.Latitude;
-import org.cougaar.planning.ldm.measure.Longitude;
-import org.cougaar.planning.ldm.policy.Policy;
-import org.cougaar.core.util.UID;
-import org.cougaar.util.TimeSpan;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
+
+import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.core.util.UID;
+import org.cougaar.planning.ldm.asset.Asset;
+import org.cougaar.planning.ldm.policy.Policy;
+import org.cougaar.util.TimeSpan;
 
 /**
  * Top-level Factory for Cluster Objects which can be created by Plugins

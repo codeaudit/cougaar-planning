@@ -20,13 +20,12 @@
  */
 package org.cougaar.planning.servlet.data.xml;
 
-import java.io.Writer;
 import java.io.IOException;
 
 /**
  * Classes conforming to this interface can serialize themselves
  * out in XML format.
- * @author Benjamin Lubin; last modified by: $Author: mthome $
+ * @author Benjamin Lubin; last modified by: $Author: rtomlinson $
  *
  * @since 1/24/01
  **/

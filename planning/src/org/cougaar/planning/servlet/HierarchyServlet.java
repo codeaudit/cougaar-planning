@@ -21,12 +21,7 @@
  
 package org.cougaar.planning.servlet;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.io.PrintWriter;
 
 import org.cougaar.core.servlet.SimpleServletSupport;
 

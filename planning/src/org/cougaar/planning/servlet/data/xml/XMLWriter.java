@@ -20,13 +20,13 @@
  */
 package org.cougaar.planning.servlet.data.xml;
 
-import java.io.Writer;
 import java.io.FilterWriter;
 import java.io.IOException;
+import java.io.Writer;
 
 /**
  * for outputting xml tags
- * @author Benjamin Lubin; last modified by: $Author: mthome $
+ * @author Benjamin Lubin; last modified by: $Author: rtomlinson $
  *
  * @since 1/24/01
  **/

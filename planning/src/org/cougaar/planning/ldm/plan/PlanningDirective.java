@@ -21,8 +21,9 @@
  
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.core.blackboard.Directive;
 import java.io.Serializable;
+
+import org.cougaar.core.blackboard.Directive;
 
 /**
  * Planning directive, which adds a "Plan" marker.

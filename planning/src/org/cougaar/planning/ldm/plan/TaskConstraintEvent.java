@@ -25,7 +25,6 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.planning.ldm.plan.*;
 
 public abstract class TaskConstraintEvent implements SettableConstraintEvent
 {

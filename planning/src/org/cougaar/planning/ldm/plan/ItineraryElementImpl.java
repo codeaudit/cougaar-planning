@@ -21,10 +21,6 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.planning.ldm.plan.ItineraryElement;
-import org.cougaar.planning.ldm.plan.NewItineraryElement;
-import org.cougaar.planning.ldm.plan.Verb;
-import org.cougaar.planning.ldm.plan.Location;
 import java.util.Date;
 
 /**

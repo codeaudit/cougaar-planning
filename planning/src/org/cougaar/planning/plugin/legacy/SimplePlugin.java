@@ -21,16 +21,12 @@
 
 package org.cougaar.planning.plugin.legacy;
 
-import java.io.PrintStream;
-import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.agent.service.alarm.Alarm;
-import org.cougaar.planning.plugin.util.PluginHelper;
-import org.cougaar.core.service.BlackboardService;
-import org.cougaar.planning.ldm.PlanningFactory;
 import org.cougaar.planning.ldm.plan.AllocationResult;
 import org.cougaar.planning.ldm.plan.Expansion;
 import org.cougaar.planning.ldm.plan.NewTask;
 import org.cougaar.planning.ldm.plan.Task;
+import org.cougaar.planning.plugin.util.PluginHelper;
 import org.cougaar.util.StateModelException;
 
 /** SimplePlugin is a replacement for SimplifiedPlugin and

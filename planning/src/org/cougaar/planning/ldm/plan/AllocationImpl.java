@@ -21,23 +21,16 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.planning.ldm.plan.Allocation;
-import org.cougaar.planning.ldm.asset.Asset;
-import org.cougaar.planning.ldm.plan.AllocationResult;
-import org.cougaar.planning.ldm.plan.Task;
-import org.cougaar.planning.ldm.plan.Plan;
-import org.cougaar.planning.ldm.plan.Role;
+import java.beans.IntrospectionException;
+import java.beans.PropertyDescriptor;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Collection;
 
 import org.cougaar.core.blackboard.Subscriber;
-import org.cougaar.core.blackboard.ActiveSubscriptionObject;
 import org.cougaar.core.util.UID;
-
-import java.util.*;
-import java.beans.*;
-
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
-import java.io.IOException;
+import org.cougaar.planning.ldm.asset.Asset;
 
 
 /** AllocationImpl.java

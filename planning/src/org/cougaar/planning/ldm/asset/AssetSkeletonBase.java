@@ -25,17 +25,15 @@
 
 package org.cougaar.planning.ldm.asset;
 
-import org.cougaar.core.domain.*;
-
-import org.cougaar.planning.ldm.*;
-import org.cougaar.core.agent.*;
-import org.cougaar.planning.ldm.asset.*;
-import org.cougaar.planning.ldm.plan.*;
-import java.util.*;
-import java.io.*;
-import org.cougaar.core.util.*;
-import org.cougaar.util.*;
 import java.beans.SimpleBeanInfo;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.Iterator;
+
+import org.cougaar.util.Empty;
+import org.cougaar.util.Enumerator;
 
 public abstract class AssetSkeletonBase
   extends SimpleBeanInfo

@@ -21,9 +21,6 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.planning.ldm.plan.NewLocationRangeScheduleElement;
-import org.cougaar.planning.ldm.plan.LocationRangeScheduleElement;
-import org.cougaar.planning.ldm.plan.Location;
 import java.util.Date;
 
 

@@ -23,41 +23,32 @@
 
 package org.cougaar.planning.ldm.asset;
 
-import org.cougaar.planning.ldm.asset.*;
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
-import java.io.IOException;
-import java.util.*;
-import org.cougaar.planning.ldm.LDMContextTable;
-import org.cougaar.planning.ldm.PlanningFactory;
-import org.cougaar.planning.ldm.plan.RoleSchedule;
-import org.cougaar.planning.ldm.plan.Schedule;
-import org.cougaar.planning.ldm.plan.PlanElement;
-import org.cougaar.planning.ldm.plan.AssetTransfer;
-import org.cougaar.core.util.UniqueObject;
-import org.cougaar.core.util.UID;
-import org.cougaar.core.agent.ClusterContext;
-import org.cougaar.core.agent.ClusterContextTable;
-import org.cougaar.core.mts.MessageAddress;
-import org.cougaar.core.blackboard.Publishable;
-import org.cougaar.core.blackboard.ChangeReport;
-import org.cougaar.planning.ldm.LDMServesPlugin;
-import org.cougaar.core.domain.Factory;
-
-// only for transition period
-import org.cougaar.planning.ldm.plan.RoleScheduleImpl;
-
+import java.beans.IntrospectionException;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-       
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-
-import org.cougaar.core.mts.MessageAddress;
-
 import java.beans.PropertyDescriptor;
-import java.beans.IndexedPropertyDescriptor;
-import java.beans.IntrospectionException;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.lang.reflect.Method;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Vector;
+
+import org.cougaar.core.agent.ClusterContext;
+import org.cougaar.core.agent.ClusterContextTable;
+import org.cougaar.core.blackboard.ChangeReport;
+import org.cougaar.core.blackboard.Publishable;
+import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.core.util.UID;
+import org.cougaar.core.util.UniqueObject;
+import org.cougaar.planning.ldm.LDMContextTable;
+import org.cougaar.planning.ldm.LDMServesPlugin;
+import org.cougaar.planning.ldm.PlanningFactory;
+import org.cougaar.planning.ldm.plan.RoleSchedule;
+import org.cougaar.planning.ldm.plan.RoleScheduleImpl;
+import org.cougaar.planning.ldm.plan.Schedule;
 
 /**
  * Base class for all instantiable assets.

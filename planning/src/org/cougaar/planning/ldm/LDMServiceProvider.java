@@ -22,14 +22,15 @@
 package org.cougaar.planning.ldm;
 
 import java.util.List;
-import org.cougaar.core.mts.MessageAddress;
+
 import org.cougaar.core.component.ServiceBroker;
 import org.cougaar.core.component.ServiceProvider;
 import org.cougaar.core.domain.Factory;
+import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.service.DomainService;
 import org.cougaar.core.service.UIDServer;
-import org.cougaar.planning.service.PrototypeRegistryService;
 import org.cougaar.planning.service.LDMService;
+import org.cougaar.planning.service.PrototypeRegistryService;
 
 /** placeholder to clean up plugin->manager interactions **/
 public class LDMServiceProvider implements ServiceProvider

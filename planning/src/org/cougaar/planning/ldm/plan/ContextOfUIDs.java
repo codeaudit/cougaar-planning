@@ -21,12 +21,10 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import java.io.Serializable;
 import java.util.AbstractCollection;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.HashSet;
-import java.util.HashMap;
+import java.util.Iterator;
 
 import org.cougaar.core.util.UID;
 

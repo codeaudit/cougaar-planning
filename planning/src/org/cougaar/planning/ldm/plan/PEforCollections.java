@@ -22,9 +22,6 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.planning.ldm.plan.PlanElement;
-import org.cougaar.planning.ldm.plan.PlanElementForAssessor;
-import org.cougaar.planning.ldm.plan.AllocationResult;
 
 /** PEforCollections Interface -- represents
   * setter methods for the NotificationLP to set the 

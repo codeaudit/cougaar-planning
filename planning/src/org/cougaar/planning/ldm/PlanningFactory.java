@@ -21,14 +21,10 @@
 
 package org.cougaar.planning.ldm;
 
-import java.io.PrintStream;
-import org.cougaar.core.util.UID;
-import org.cougaar.core.domain.*;
+import org.cougaar.core.domain.Factory;
 import org.cougaar.planning.ldm.asset.Asset;
-import org.cougaar.planning.ldm.asset.AssetFactory;
 import org.cougaar.planning.ldm.asset.EssentialAssetFactory;
 import org.cougaar.planning.ldm.asset.PropertyGroup;
-import org.cougaar.planning.ldm.asset.PropertyGroupFactory;
 import org.cougaar.planning.ldm.plan.ClusterObjectFactory;
 
 /**

@@ -21,10 +21,10 @@
 
 package org.cougaar.planning.plugin.legacy;
 
-import org.cougaar.core.plugin.*;
 import org.cougaar.core.component.BindingSite;
 import org.cougaar.core.component.ServiceBroker;
 import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.core.plugin.PluginBase;
 import org.cougaar.core.service.AgentIdentificationService;
 import org.cougaar.util.ConfigFinder;
 import org.cougaar.util.GenericStateModelAdapter;

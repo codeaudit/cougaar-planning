@@ -21,7 +21,6 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.planning.ldm.asset.Asset;
 
 /**
  * Relationship - maps relationship between any two objects. Each object

@@ -21,30 +21,22 @@
 
 package org.cougaar.planning.ldm;
 
-import java.io.IOException;
-import java.io.FileWriter;
-import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.ResultSet;
-import java.sql.Connection;
-import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Vector;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.Map;
+
+import org.cougaar.core.component.ServiceBroker;
+import org.cougaar.core.component.ServiceProvider;
+import org.cougaar.core.node.DBInitializerService;
+import org.cougaar.planning.plugin.asset.AssetDataDBReader;
+import org.cougaar.planning.plugin.asset.AssetDataReader;
+import org.cougaar.planning.service.AssetInitializerService;
 import org.cougaar.util.log.Logger;
 import org.cougaar.util.log.Logging;
-import org.cougaar.core.component.Service;
-import org.cougaar.core.component.ServiceProvider;
-import org.cougaar.core.component.ServiceBroker;
-import org.cougaar.core.node.DBInitializerService;
-import org.cougaar.planning.plugin.asset.AssetDataReader;
-import org.cougaar.planning.plugin.asset.AssetDataDBReader;
-import org.cougaar.planning.service.AssetInitializerService;
 
 /**
  * Implementation of AssetInitializerServiceProvider that reads

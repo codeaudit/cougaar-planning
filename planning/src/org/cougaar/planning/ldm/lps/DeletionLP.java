@@ -22,16 +22,16 @@
 package org.cougaar.planning.ldm.lps;
 
 import java.util.Collection;
-import java.util.Enumeration;
-import org.cougaar.core.agent.*;
-import org.cougaar.core.blackboard.*;
-import org.cougaar.core.domain.*;
+
+import org.cougaar.core.blackboard.EnvelopeTuple;
+import org.cougaar.core.domain.EnvelopeLogicProvider;
+import org.cougaar.core.domain.LogicProvider;
+import org.cougaar.core.domain.RootPlan;
 import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.util.UID;
-import org.cougaar.planning.ldm.*;
+import org.cougaar.planning.ldm.PlanningFactory;
 import org.cougaar.planning.ldm.plan.NewDeletion;
 import org.cougaar.planning.ldm.plan.Task;
-import org.cougaar.util.UnaryPredicate;
 import org.cougaar.util.log.Logger;
 import org.cougaar.util.log.Logging;
 

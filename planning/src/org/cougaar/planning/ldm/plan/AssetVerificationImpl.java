@@ -21,15 +21,11 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.planning.ldm.asset.Asset;
-
-import org.cougaar.planning.ldm.plan.AssetVerification;
-import org.cougaar.planning.ldm.plan.NewAssetVerification;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
+
+import org.cougaar.planning.ldm.asset.Asset;
 
 
 /** An implementation of AssetVerification

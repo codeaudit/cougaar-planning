@@ -22,7 +22,6 @@
 package org.cougaar.planning.ldm.plan;
 
 import org.cougaar.planning.ldm.asset.Asset;
-import org.cougaar.core.util.UID;
 
 
 /** NewAssetRescind Interface

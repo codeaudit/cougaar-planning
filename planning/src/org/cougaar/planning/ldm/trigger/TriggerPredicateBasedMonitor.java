@@ -22,13 +22,12 @@
 
 package org.cougaar.planning.ldm.trigger;
 
-import org.cougaar.planning.plugin.legacy.PluginDelegate;
-import org.cougaar.core.blackboard.IncrementalSubscription;
-
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 
+import org.cougaar.core.blackboard.IncrementalSubscription;
+import org.cougaar.planning.plugin.legacy.PluginDelegate;
 import org.cougaar.util.UnaryPredicate;
 
 /**

@@ -21,18 +21,17 @@
 
 package org.cougaar.planning.ldm.lps;
 
-import org.cougaar.core.blackboard.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 
-import org.cougaar.core.domain.*;
-import org.cougaar.planning.ldm.*;
+import org.cougaar.core.blackboard.Directive;
+import org.cougaar.core.domain.LogicProvider;
 import org.cougaar.core.domain.MessageLogicProvider;
-
-import java.util.*;
-
-import org.cougaar.core.agent.*;
-
+import org.cougaar.core.domain.RootPlan;
+import org.cougaar.planning.ldm.LogPlan;
+import org.cougaar.planning.ldm.PlanningFactory;
 import org.cougaar.planning.ldm.asset.Asset;
-
 import org.cougaar.planning.ldm.plan.AssetRescind;
 import org.cougaar.planning.ldm.plan.AssignedAvailabilityElement;
 import org.cougaar.planning.ldm.plan.AssignedRelationshipElement;
@@ -42,12 +41,8 @@ import org.cougaar.planning.ldm.plan.NewSchedule;
 import org.cougaar.planning.ldm.plan.Relationship;
 import org.cougaar.planning.ldm.plan.RelationshipSchedule;
 import org.cougaar.planning.ldm.plan.Schedule;
-
-import org.cougaar.core.util.UID;
-
 import org.cougaar.util.Enumerator;
 import org.cougaar.util.MutableTimeSpan;
-import org.cougaar.util.TimeSpan;
 import org.cougaar.util.UnaryPredicate;
 import org.cougaar.util.log.Logger;
 import org.cougaar.util.log.Logging;

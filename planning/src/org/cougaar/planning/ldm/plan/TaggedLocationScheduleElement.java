@@ -21,10 +21,6 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.planning.ldm.plan.NewLocationScheduleElement;
-import org.cougaar.planning.ldm.plan.LocationScheduleElement;
-import org.cougaar.planning.ldm.plan.Location;
-import java.util.Date;
 
 /**
  * A LocationScheduleElement which is additionally tagged with 

@@ -20,15 +20,11 @@
  */
 package org.cougaar.planning.servlet.data.xml;
 
-import java.io.Writer;
-import java.io.IOException;
-import java.io.Serializable;
-
 import org.xml.sax.Attributes;
 
 /**
  * Factory that produces sub-objects based on tags and attributes
- * @author Benjamin Lubin; last modified by: $Author: mthome $
+ * @author Benjamin Lubin; last modified by: $Author: rtomlinson $
  *
  * @since 1/24/01
  **/

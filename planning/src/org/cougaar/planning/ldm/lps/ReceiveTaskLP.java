@@ -21,29 +21,28 @@
 
 package org.cougaar.planning.ldm.lps;
 
-import org.cougaar.core.blackboard.*;
-import org.cougaar.core.agent.*;
-import org.cougaar.core.domain.*;
-import org.cougaar.core.mts.SerializationUtils;
-import org.cougaar.core.mts.MessageAddress;
-import org.cougaar.core.logging.LoggingServiceWithPrefix;
-
-import org.cougaar.planning.ldm.*;
-import org.cougaar.planning.ldm.plan.Task;
-import org.cougaar.planning.ldm.plan.NewTask;
-import org.cougaar.planning.ldm.plan.Preference;
-import org.cougaar.planning.ldm.plan.PlanElement;
-import org.cougaar.planning.ldm.plan.TaskImpl;
-import org.cougaar.planning.ldm.plan.Context;
-
-import org.cougaar.util.log.Logger;
-import org.cougaar.util.log.Logging;
-
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+
+import org.cougaar.core.blackboard.Directive;
+import org.cougaar.core.blackboard.SubscriberException;
+import org.cougaar.core.domain.LogicProvider;
+import org.cougaar.core.domain.MessageLogicProvider;
+import org.cougaar.core.domain.RootPlan;
+import org.cougaar.core.logging.LoggingServiceWithPrefix;
+import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.planning.ldm.LogPlan;
+import org.cougaar.planning.ldm.plan.Context;
+import org.cougaar.planning.ldm.plan.NewTask;
+import org.cougaar.planning.ldm.plan.PlanElement;
+import org.cougaar.planning.ldm.plan.Preference;
+import org.cougaar.planning.ldm.plan.Task;
+import org.cougaar.planning.ldm.plan.TaskImpl;
+import org.cougaar.util.log.Logger;
+import org.cougaar.util.log.Logging;
 
 /**
  * Sample LogicProvider for use by ClusterDispatcher to

@@ -20,8 +20,8 @@
  */
 package org.cougaar.planning.ldm.asset;
 
-import org.cougaar.util.TimeSpan;
 import org.cougaar.util.NewTimeSpan;
+import org.cougaar.util.TimeSpan;
 
 public interface NewTimePhasedPropertyGroup
   extends NewPropertyGroup, NewTimeSpan, TimePhasedPropertyGroup 

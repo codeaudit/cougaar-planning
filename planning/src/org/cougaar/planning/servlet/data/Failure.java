@@ -20,20 +20,21 @@
  */
 package org.cougaar.planning.servlet.data;
 
-import org.cougaar.planning.servlet.data.xml.*;
-
-import java.io.Writer;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringWriter;
-import java.io.PrintWriter;
 
+import org.cougaar.planning.servlet.data.xml.DeXMLable;
+import org.cougaar.planning.servlet.data.xml.UnexpectedXMLException;
+import org.cougaar.planning.servlet.data.xml.XMLWriter;
+import org.cougaar.planning.servlet.data.xml.XMLable;
 import org.xml.sax.Attributes;
 
 /**
  * Represents an error that can be returned instead of the normal
  * object
- * @author Benjamin Lubin; last modified by: $Author: mthome $
+ * @author Benjamin Lubin; last modified by: $Author: rtomlinson $
  *
  * @since 1/24/01
  **/

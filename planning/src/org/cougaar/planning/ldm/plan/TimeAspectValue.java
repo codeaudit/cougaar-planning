@@ -21,8 +21,8 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import java.util.Date;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /** An AspectValue implementation which stores a time.
  */

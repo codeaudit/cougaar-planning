@@ -21,7 +21,6 @@
 
 package org.cougaar.planning.plugin.completion;
 
-import java.io.Serializable;
 
 class Count implements java.io.Serializable {
   public int count = 0;

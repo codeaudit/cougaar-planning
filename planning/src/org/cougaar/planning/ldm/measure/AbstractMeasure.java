@@ -20,7 +20,6 @@
  */
 package org.cougaar.planning.ldm.measure;
 
-import java.io.Serializable;
 
 /** Base (abstract) implementation of all Measure classes.
  * @see Measure for specification.

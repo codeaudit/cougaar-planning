@@ -21,8 +21,8 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import java.util.*;
 import java.io.Serializable;
+import java.util.HashMap;
 /** AllocationResultAggregator is a class which specifies how allocationresults
  * should be aggregated.  Currenlty used by Workflow.computeAllocationResult
  * @see org.cougaar.planning.ldm.plan.AllocationResult

@@ -20,22 +20,21 @@
  */
 package org.cougaar.planning.servlet.data.hierarchy;
 
-import org.cougaar.planning.servlet.data.xml.*;
-
-import java.io.Writer;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.ArrayList;
 
+import org.cougaar.planning.servlet.data.xml.DeXMLable;
+import org.cougaar.planning.servlet.data.xml.UnexpectedXMLException;
+import org.cougaar.planning.servlet.data.xml.XMLWriter;
+import org.cougaar.planning.servlet.data.xml.XMLable;
 import org.xml.sax.Attributes;
 
 /**
  * Represents the data leaving the Hierarchy PSP
- * @author Benjamin Lubin; last modified by: $Author: mthome $
+ * @author Benjamin Lubin; last modified by: $Author: rtomlinson $
  *
  * @since 1/24/01
  **/

@@ -21,7 +21,6 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import java.util.List;
 
 /** NewExpansion Interface
    * Allows access to the single sub-task's allocation result information

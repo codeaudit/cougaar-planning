@@ -21,16 +21,12 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.planning.ldm.asset.Asset;
-import org.cougaar.planning.ldm.plan.AssetAssignment;
-import org.cougaar.planning.ldm.plan.NewAssetAssignment;
-import org.cougaar.planning.ldm.plan.Plan;
-import org.cougaar.planning.ldm.plan.Schedule;
-import org.cougaar.core.mts.MessageAddress;
-
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
+import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.planning.ldm.asset.Asset;
  
 
 /** AssetAssignmentImpl implementation

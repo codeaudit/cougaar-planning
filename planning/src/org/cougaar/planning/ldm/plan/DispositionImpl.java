@@ -21,8 +21,6 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import java.beans.*;
-import java.util.*;
 
 
 /** 

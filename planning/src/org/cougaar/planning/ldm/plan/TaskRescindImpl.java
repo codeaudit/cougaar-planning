@@ -21,15 +21,12 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.core.mts.MessageAddress;
-import org.cougaar.core.util.UID;
-import org.cougaar.planning.ldm.plan.NewTaskRescind;
-import org.cougaar.planning.ldm.plan.Plan;
-import org.cougaar.planning.ldm.plan.Task;
-import org.cougaar.planning.ldm.plan.TaskRescind;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+
+import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.core.util.UID;
 
 /** TaskRescind implementation
  * TaskRescind allows a task to be rescinded from the Plan. 

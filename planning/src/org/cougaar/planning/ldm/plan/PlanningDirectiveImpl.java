@@ -21,11 +21,12 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.core.blackboard.DirectiveImpl;
-import java.io.Serializable;
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
+import org.cougaar.core.blackboard.DirectiveImpl;
 
 /**
  * Planning directive, which adds a "Plan" marker.

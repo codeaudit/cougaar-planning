@@ -21,15 +21,10 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.core.blackboard.Publishable;
-
-import org.cougaar.core.blackboard.ClaimableHolder;
 import org.cougaar.core.blackboard.ChangeReport;
-
-import java.util.Enumeration;
+import org.cougaar.core.blackboard.ClaimableHolder;
+import org.cougaar.core.blackboard.Publishable;
 import org.cougaar.core.util.UniqueObject;
-import org.cougaar.util.TimeSpan;
-import org.cougaar.core.agent.*;
 
 /**
  * PlanElements are the primitive building blocks from which 

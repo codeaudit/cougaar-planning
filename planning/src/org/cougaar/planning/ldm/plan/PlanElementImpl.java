@@ -21,35 +21,33 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.core.blackboard.Claimable;
-import org.cougaar.core.blackboard.ActiveSubscriptionObject;
-
-import org.cougaar.core.blackboard.Subscriber;
-
-import org.cougaar.core.blackboard.PublishableAdapter;
-import org.cougaar.core.blackboard.BlackboardException;
-
-import org.cougaar.planning.ldm.asset.Asset;
-import org.cougaar.planning.ldm.plan.AllocationResult;
-
-import org.cougaar.core.blackboard.Transaction;
-import org.cougaar.core.agent.*;
-
-import org.cougaar.util.log.*;
-
-import java.util.*;
-import org.cougaar.util.SelfDescribingBeanInfo;
-import java.beans.*;
-
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
-import java.io.IOException;
+import java.beans.BeanDescriptor;
+import java.beans.BeanInfo;
+import java.beans.EventSetDescriptor;
+import java.beans.IntrospectionException;
+import java.beans.MethodDescriptor;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.beans.PropertyDescriptor;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Enumeration;
 
-import org.cougaar.core.util.UID;
+import org.cougaar.core.blackboard.ActiveSubscriptionObject;
+import org.cougaar.core.blackboard.BlackboardException;
+import org.cougaar.core.blackboard.Claimable;
+import org.cougaar.core.blackboard.PublishableAdapter;
+import org.cougaar.core.blackboard.Subscriber;
+import org.cougaar.core.blackboard.Transaction;
 import org.cougaar.core.persist.ActivePersistenceObject;
+import org.cougaar.core.util.UID;
+import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.util.log.Logger;
+import org.cougaar.util.log.Logging;
 
 /** PlanElement Implementation
  * PlanElements represent the association of a Plan, a Task,

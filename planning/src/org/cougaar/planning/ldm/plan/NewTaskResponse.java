@@ -23,8 +23,6 @@ package org.cougaar.planning.ldm.plan;
 
 import org.cougaar.core.util.UID;
 
-import java.util.Enumeration;
-
 /** NewNotification Interface
  * provides setter methods to create a Notification object
  * @author  ALPINE <alpine-software@bbn.com>

@@ -22,7 +22,6 @@
 package org.cougaar.planning.ldm.plan;
 
 import java.util.Vector;
-import java.util.Hashtable;
 
 /** AllocationResultDistributor is a class which specifies how allocation results
   * should be distributed amongst 'parent' tasks of a Composition.

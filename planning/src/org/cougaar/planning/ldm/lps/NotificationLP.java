@@ -21,42 +21,29 @@
 
 package org.cougaar.planning.ldm.lps;
 
-import org.cougaar.planning.ldm.*;
-import org.cougaar.core.blackboard.*;
+import java.util.Collection;
+import java.util.Enumeration;
 
-import org.cougaar.core.agent.*;
-
-import org.cougaar.core.domain.*;
-
-import org.cougaar.planning.ldm.asset.Asset;
-
-import org.cougaar.planning.ldm.plan.Aggregation;
-import org.cougaar.planning.ldm.plan.Allocation;
+import org.cougaar.core.blackboard.EnvelopeTuple;
+import org.cougaar.core.domain.EnvelopeLogicProvider;
+import org.cougaar.core.domain.LogicProvider;
+import org.cougaar.core.domain.RestartLogicProvider;
+import org.cougaar.core.domain.RestartLogicProviderHelper;
+import org.cougaar.core.domain.RootPlan;
+import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.core.util.UID;
+import org.cougaar.planning.ldm.LogPlan;
+import org.cougaar.planning.ldm.PlanningFactory;
 import org.cougaar.planning.ldm.plan.AllocationResult;
-import org.cougaar.planning.ldm.plan.AssetTransfer;
-import org.cougaar.planning.ldm.plan.ClusterObjectFactory;
-import org.cougaar.planning.ldm.plan.Disposition;
-import org.cougaar.planning.ldm.plan.Expansion;
 import org.cougaar.planning.ldm.plan.MPTask;
 import org.cougaar.planning.ldm.plan.NewNotification;
-import org.cougaar.planning.ldm.plan.NewTask;
 import org.cougaar.planning.ldm.plan.PEforCollections;
 import org.cougaar.planning.ldm.plan.PlanElement;
-import org.cougaar.planning.ldm.plan.ScheduleElement;
 import org.cougaar.planning.ldm.plan.Task;
 import org.cougaar.planning.ldm.plan.TaskScoreTable;
-
-import org.cougaar.core.mts.MessageAddress;
-
-import org.cougaar.core.util.UID;
-
 import org.cougaar.util.UnaryPredicate;
 import org.cougaar.util.log.Logger;
 import org.cougaar.util.log.Logging;
-
-
-import java.util.Enumeration;
-import java.util.Collection;
 
 /** RescindLogicProvider class provides the logic to capture 
  * rescinded PlanElements (removed from collection)

@@ -20,14 +20,13 @@
  */
 package org.cougaar.planning.servlet.data.completion;
 
-import org.cougaar.planning.servlet.data.xml.*;
-
-import java.io.Writer;
 import java.io.IOException;
-import java.io.Serializable;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
+import org.cougaar.planning.servlet.data.xml.DeXMLable;
+import org.cougaar.planning.servlet.data.xml.UnexpectedXMLException;
+import org.cougaar.planning.servlet.data.xml.XMLWriter;
 import org.xml.sax.Attributes;
 
 /**

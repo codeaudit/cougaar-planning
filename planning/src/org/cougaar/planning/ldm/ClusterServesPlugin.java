@@ -21,12 +21,10 @@
 
 package org.cougaar.planning.ldm;
 
-import org.cougaar.core.mts.MessageAddress;
-import org.cougaar.core.agent.ClusterServesClocks;
 import org.cougaar.core.agent.service.alarm.Alarm;
 import org.cougaar.core.agent.service.alarm.ExecutionTimer;
+import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.service.UIDServer;
-import org.cougaar.planning.ldm.LDMServesPlugin;
 import org.cougaar.util.ConfigFinder;
 
 /**

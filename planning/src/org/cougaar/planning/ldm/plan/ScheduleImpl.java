@@ -21,8 +21,24 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.util.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.ConcurrentModificationException;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.NoSuchElementException;
+import java.util.Vector;
+
+import org.cougaar.util.Collectors;
+import org.cougaar.util.Enumerator;
+import org.cougaar.util.Filters;
+import org.cougaar.util.SynchronizedTimeSpanSet;
+import org.cougaar.util.Thunk;
+import org.cougaar.util.TimeSpan;
+import org.cougaar.util.UnaryPredicate;
 
 /**
  * A Schedule is an encapsulation of spatio-temporal relationships.

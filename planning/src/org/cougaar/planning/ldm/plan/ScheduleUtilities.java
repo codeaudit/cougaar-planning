@@ -21,10 +21,13 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.planning.ldm.plan.ScheduleImpl;
-import java.util.*;
-import org.cougaar.core.util.*;
-import org.cougaar.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Vector;
+
+import org.cougaar.util.Thunk;
 
 public final class ScheduleUtilities {
   public static final long millisperday = (24*60*60*1000L);

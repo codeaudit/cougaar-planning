@@ -22,7 +22,6 @@
 package org.cougaar.planning.ldm.plan;
 
 import org.cougaar.planning.ldm.asset.Asset;
-import org.cougaar.util.TimeSpan;
 
 /**
  * AssignedAvailabilityElement represents the availability to a specific asset

@@ -25,11 +25,6 @@ import java.beans.IndexedPropertyDescriptor;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.beans.SimpleBeanInfo;
-import java.util.Enumeration;
-
-import org.cougaar.core.mts.MessageAddress;
-import org.cougaar.planning.ldm.asset.Asset;
-import org.cougaar.planning.ldm.plan.RoleScheduleImpl;
 
 /**
    Override the default property descriptors.

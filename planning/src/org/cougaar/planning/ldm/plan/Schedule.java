@@ -21,8 +21,14 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.util.*;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.List;
+
+import org.cougaar.util.Thunk;
+import org.cougaar.util.TimeSpan;
+import org.cougaar.util.UnaryPredicate;
 
 /**
  * A Schedule is an encapsulation of spatio-temporal relationships.

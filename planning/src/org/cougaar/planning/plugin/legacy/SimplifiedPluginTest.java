@@ -21,9 +21,6 @@
 
 package org.cougaar.planning.plugin.legacy;
 
-import java.io.PrintStream;
-import java.util.Collection;
-import org.cougaar.core.agent.service.alarm.Alarm;
 import org.cougaar.core.blackboard.IncrementalSubscription;
 import org.cougaar.core.blackboard.Subscription;
 import org.cougaar.planning.ldm.asset.Asset;

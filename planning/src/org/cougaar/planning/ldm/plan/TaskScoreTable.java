@@ -21,9 +21,11 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.core.util.UID;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Hashtable;
 
-import java.util.*;
+import org.cougaar.core.util.UID;
 
 
 /** Provides a table containing tasks (keys) and their AllocationResults

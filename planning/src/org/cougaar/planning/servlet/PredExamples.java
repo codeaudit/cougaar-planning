@@ -24,7 +24,6 @@ package org.cougaar.planning.servlet;
 import org.cougaar.planning.ldm.plan.AllocationResult;
 import org.cougaar.planning.ldm.plan.PlanElement;
 import org.cougaar.planning.ldm.plan.Task;
-import org.cougaar.planning.ldm.plan.Verb;
 
 /**
  * These are example "public static boolean" methods for use by the

@@ -25,36 +25,26 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 import java.util.Vector;
+
 import org.cougaar.core.blackboard.AnonymousChangeReport;
 import org.cougaar.core.blackboard.IncrementalSubscription;
-import org.cougaar.core.blackboard.Subscriber;
 import org.cougaar.core.service.BlackboardService;
 import org.cougaar.planning.ldm.PlanningFactory;
-import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.planning.ldm.plan.Aggregation;
 import org.cougaar.planning.ldm.plan.AllocationResult;
-import org.cougaar.planning.ldm.plan.AspectScorePoint;
-import org.cougaar.planning.ldm.plan.AspectType; // inlined
+import org.cougaar.planning.ldm.plan.AspectType;
 import org.cougaar.planning.ldm.plan.AspectValue;
-import org.cougaar.planning.ldm.plan.Composition;
 import org.cougaar.planning.ldm.plan.Context;
 import org.cougaar.planning.ldm.plan.Expansion;
-import org.cougaar.planning.ldm.plan.MPTask;
 import org.cougaar.planning.ldm.plan.NewComposition;
 import org.cougaar.planning.ldm.plan.NewMPTask;
 import org.cougaar.planning.ldm.plan.NewTask;
 import org.cougaar.planning.ldm.plan.NewWorkflow;
-import org.cougaar.planning.ldm.plan.Plan;
 import org.cougaar.planning.ldm.plan.PlanElement;
-import org.cougaar.planning.ldm.plan.PlanElement.ReportedResultChangeReport;
 import org.cougaar.planning.ldm.plan.Preference;
-import org.cougaar.planning.ldm.plan.ScoringFunction;
 import org.cougaar.planning.ldm.plan.Task;
-import org.cougaar.planning.ldm.plan.Verb;
-import org.cougaar.planning.ldm.plan.Workflow;
 import org.cougaar.util.Enumerator;
 
 public class PluginHelper {

@@ -26,19 +26,19 @@ import java.beans.Beans;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.io.PrintStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.sql.Date;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.Vector;
-import org.cougaar.core.util.*;
+
+import org.cougaar.core.util.PropertyNameValue;
+import org.cougaar.core.util.UID;
+import org.cougaar.core.util.UniqueObject;
 import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.planning.ldm.asset.AssetIntrospection;
 import org.cougaar.planning.ldm.asset.LockedPG;
@@ -47,8 +47,6 @@ import org.cougaar.planning.ldm.measure.AbstractMeasure;
 import org.cougaar.planning.ldm.measure.Capacity;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.Text;
 
 /**
  * Create and return xml for first class log plan objects.

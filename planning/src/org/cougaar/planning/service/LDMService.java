@@ -22,11 +22,16 @@
 package org.cougaar.planning.service;
 
 import java.util.List;
-import org.cougaar.core.mts.MessageAddress;
+
 import org.cougaar.core.component.Service;
 import org.cougaar.core.domain.Factory;
+import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.service.UIDServer;
-import org.cougaar.planning.ldm.*;
+import org.cougaar.planning.ldm.LDMServesPlugin;
+import org.cougaar.planning.ldm.LatePropertyProvider;
+import org.cougaar.planning.ldm.PlanningFactory;
+import org.cougaar.planning.ldm.PropertyProvider;
+import org.cougaar.planning.ldm.PrototypeProvider;
 
 /**
  * Placeholder to clean up plugin-to-manager interactions

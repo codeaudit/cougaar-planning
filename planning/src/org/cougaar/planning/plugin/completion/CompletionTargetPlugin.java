@@ -28,14 +28,10 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+
 import org.cougaar.core.blackboard.ChangeReport;
 import org.cougaar.core.blackboard.IncrementalSubscription;
-import org.cougaar.core.blackboard.Subscription;
-import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.persist.PersistenceNotEnabledException;
-import org.cougaar.core.service.AlarmService;
-import org.cougaar.core.service.BlackboardService;
-import org.cougaar.core.service.LoggingService;
 import org.cougaar.util.UnaryPredicate;
 
 /**

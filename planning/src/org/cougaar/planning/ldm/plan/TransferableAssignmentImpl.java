@@ -21,14 +21,11 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.planning.ldm.plan.Transferable;
-import org.cougaar.planning.ldm.plan.TransferableAssignment;
-import org.cougaar.planning.ldm.plan.NewTransferableAssignment;
-import org.cougaar.core.mts.MessageAddress;
-
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
+import org.cougaar.core.mts.MessageAddress;
 
 /** 
  * PlanningDirective message containing a Transferable 

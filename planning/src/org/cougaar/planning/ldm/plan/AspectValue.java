@@ -22,8 +22,8 @@
 package org.cougaar.planning.ldm.plan;
 
 import java.io.Serializable;
+
 import org.cougaar.util.MoreMath;
-import org.cougaar.planning.ldm.measure.Rate;
 
 /** AspectValue is the essential "value" abstraction with respect to
  * evaluation of the goodness or correctness of a particular solution.

@@ -23,8 +23,6 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.planning.ldm.plan.ConstraintEvent;
-import org.cougaar.planning.ldm.plan.AspectType;
 
 public class AbsoluteConstraintEvent implements ConstraintEvent
 {

@@ -22,10 +22,6 @@
 /* hand generated! */
 package org.cougaar.planning.ldm.asset;
 
-import org.cougaar.planning.ldm.asset.RelationshipBG;
-import org.cougaar.planning.ldm.asset.NewRelationshipPG;
-import org.cougaar.planning.ldm.asset.RelationshipPGImpl;
-
 import org.cougaar.planning.ldm.plan.HasRelationships;
 
 public abstract class EntityAdapter extends Asset {

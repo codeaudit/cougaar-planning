@@ -21,7 +21,7 @@
 
 
 package org.cougaar.planning.ldm.predicate;
-import org.cougaar.planning.ldm.plan.*;
+import org.cougaar.planning.ldm.plan.Allocation;
 
 /** Utility predicate for selecting Allocations 
  * Note that this does not extend PlanElementPredicate so that

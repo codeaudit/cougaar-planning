@@ -21,14 +21,8 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import java.io.Serializable;
-import org.cougaar.planning.ldm.measure.CostRate;
 import org.cougaar.planning.ldm.measure.CountRate;
-import org.cougaar.planning.ldm.measure.FlowRate;
-import org.cougaar.planning.ldm.measure.MassTransferRate;
 import org.cougaar.planning.ldm.measure.Rate;
-import org.cougaar.planning.ldm.measure.Speed;
-import org.cougaar.planning.ldm.measure.TimeRate;
 
 /**
  * An AspectValue represented by a rate measure

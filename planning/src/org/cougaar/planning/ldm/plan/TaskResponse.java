@@ -23,8 +23,6 @@ package org.cougaar.planning.ldm.plan;
 
 import org.cougaar.core.util.UID;
 
-import java.util.Enumeration;
-
 /**
  * TaskResponse interface is the base interface of responses to a task
  * that was sent to an agent and serves to identify the task. The

@@ -21,7 +21,7 @@
 
 
 package org.cougaar.planning.ldm.predicate;
-import org.cougaar.planning.ldm.plan.*;
+import org.cougaar.planning.ldm.plan.Alert;
 
 /** Utility predicate for selecting Alerts 
  * Note that this does not extend PlanElementPredicate so that

@@ -25,17 +25,11 @@
 
 package org.cougaar.planning.ldm.asset ;
 
-import java.util.Enumeration;
-import java.util.Date;
-
-import java.util.Vector;
-
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
-import java.io.IOException;
-import java.beans.PropertyDescriptor;
-import java.beans.IndexedPropertyDescriptor;
 import java.beans.IntrospectionException;
+import java.beans.PropertyDescriptor;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 public class AggregateAssetAdapter extends Asset  {
   private transient Asset myAsset;

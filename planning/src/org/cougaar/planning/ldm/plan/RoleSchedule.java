@@ -21,10 +21,11 @@
 
 package org.cougaar.planning.ldm.plan;
 
+import java.util.Collection;
+import java.util.Date;
+import java.util.Enumeration;
+
 import org.cougaar.planning.ldm.asset.Asset;
-import java.util.*;
-import org.cougaar.core.util.*;
-import org.cougaar.util.*;
 
 /** 
  * A RoleSchedule is a representation of an asset's scheduled

@@ -27,9 +27,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.TimeZone;
-import org.cougaar.core.mts.MessageAddress;
+
 import org.cougaar.core.plugin.ServiceUserPlugin;
-import org.cougaar.core.service.BlackboardService;
 import org.cougaar.util.EmptyIterator;
 import org.cougaar.util.UnaryPredicate;
 

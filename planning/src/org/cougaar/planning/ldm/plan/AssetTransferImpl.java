@@ -21,18 +21,16 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.planning.ldm.asset.Asset;
-import org.cougaar.core.mts.MessageAddress;
+import java.beans.IntrospectionException;
+import java.beans.PropertyDescriptor;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Collection;
 
 import org.cougaar.core.blackboard.Subscriber;
-import org.cougaar.core.blackboard.ActiveSubscriptionObject;
-
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
-import java.io.IOException;
-
-import java.util.*;
-import java.beans.*;
+import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.planning.ldm.asset.Asset;
 
 /** AssetTransferImpl.java
  * Implementation for assetTransfer

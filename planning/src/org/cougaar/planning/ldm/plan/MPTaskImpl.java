@@ -21,36 +21,19 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.core.blackboard.ActiveSubscriptionObject;
-
-import org.cougaar.core.blackboard.Subscriber;
-
-import org.cougaar.core.blackboard.PublishableAdapter;
-
-import java.util.Enumeration;
-import java.util.List;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.HashMap;
+import java.util.List;
 
-import org.cougaar.util.Enumerator;
-import org.cougaar.planning.ldm.plan.Task;
-import org.cougaar.planning.ldm.plan.NewTask;
-import org.cougaar.planning.ldm.plan.MPTask;
-import org.cougaar.planning.ldm.plan.NewMPTask;
-import org.cougaar.planning.ldm.plan.Composition;
+import org.cougaar.core.persist.ActivePersistenceObject;
 import org.cougaar.core.util.UID;
 import org.cougaar.core.util.UniqueObject;
-import org.cougaar.core.persist.ActivePersistenceObject;
+import org.cougaar.util.Enumerator;
 import org.cougaar.util.log.Logger;
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
-import java.io.IOException;
-import java.lang.Long;
-
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
-import java.io.IOException;
 
 
 /** MPTask implementation - MPTasks should only be created or used if they are

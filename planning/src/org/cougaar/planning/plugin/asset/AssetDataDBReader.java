@@ -21,14 +21,10 @@
 
 package org.cougaar.planning.plugin.asset;
 
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.ResultSet;
-import java.sql.Connection;
 import java.util.Arrays;
-import org.cougaar.core.component.ServiceBroker;
-import org.cougaar.planning.service.AssetInitializerService;
+
 import org.cougaar.planning.ldm.asset.NewPropertyGroup;
+import org.cougaar.planning.service.AssetInitializerService;
 import org.cougaar.util.log.Logger;
 import org.cougaar.util.log.Logging;
 

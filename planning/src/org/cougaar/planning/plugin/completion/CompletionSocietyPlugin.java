@@ -22,7 +22,6 @@
 package org.cougaar.planning.plugin.completion;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.util.Collection;
@@ -32,12 +31,11 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import javax.servlet.Servlet;
+
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.cougaar.core.component.ServiceBroker;
-import org.cougaar.core.component.ServiceRevokedListener;
+
 import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.service.EventService;
 import org.cougaar.core.service.ServletService;

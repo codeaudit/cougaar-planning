@@ -21,7 +21,7 @@
 
 
 package org.cougaar.planning.ldm.predicate;
-import org.cougaar.planning.ldm.plan.*;
+import org.cougaar.planning.ldm.plan.Disposition;
 
 /** Utility predicate for selecting (end state) Dispositions.
  * Note that it is a bad idea to write a multi-shot predicate to select for

@@ -21,21 +21,19 @@
 
 package org.cougaar.planning.ldm.policy;
 
-import org.cougaar.planning.ldm.plan.Transferable;
-import org.cougaar.planning.ldm.plan.Context;
-import java.util.Hashtable;
-import java.util.Enumeration;
-import java.io.ObjectInputStream;
-import java.io.IOException;
-import java.io.NotActiveException;
-
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.beans.PropertyChangeEvent;
+import java.io.IOException;
+import java.io.NotActiveException;
+import java.io.ObjectInputStream;
+import java.util.Enumeration;
+import java.util.Hashtable;
 
-import org.cougaar.core.util.UniqueObject;
 import org.cougaar.core.util.OwnedUniqueObject;
-import org.cougaar.core.util.UID;
+import org.cougaar.core.util.UniqueObject;
+import org.cougaar.planning.ldm.plan.Context;
+import org.cougaar.planning.ldm.plan.Transferable;
 
 /** Policy implementation
  * @author  ALPINE <alpine-software@bbn.com>

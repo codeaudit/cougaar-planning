@@ -21,10 +21,8 @@
 
 package org.cougaar.planning.plugin.util;
 
-import org.cougaar.planning.ldm.plan.PlanElement;
 import org.cougaar.planning.ldm.plan.Task;
 import org.cougaar.planning.ldm.plan.Verb;
-import org.cougaar.planning.ldm.plan.Workflow;
 import org.cougaar.util.UnaryPredicate;
 
 public class ExpandableTasksPredicate implements UnaryPredicate, NewExpandableTasksPredicate {

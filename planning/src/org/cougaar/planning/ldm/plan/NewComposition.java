@@ -21,7 +21,6 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import java.util.Enumeration;
 import java.util.Collection;
 
 /** NewComposition Interface

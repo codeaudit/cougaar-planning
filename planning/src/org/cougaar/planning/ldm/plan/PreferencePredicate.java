@@ -21,9 +21,9 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.core.util.*;
-import org.cougaar.util.*;
-import java.util.*;
+import java.util.HashMap;
+
+import org.cougaar.util.UnaryPredicate;
 
 /**
  * A useful predicate class and generator for selecting

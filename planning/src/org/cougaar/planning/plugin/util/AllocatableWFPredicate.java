@@ -22,6 +22,7 @@
 package org.cougaar.planning.plugin.util;
 
 import java.util.Enumeration;
+
 import org.cougaar.planning.ldm.plan.Expansion;
 import org.cougaar.planning.ldm.plan.PlanElement;
 import org.cougaar.planning.ldm.plan.Task;

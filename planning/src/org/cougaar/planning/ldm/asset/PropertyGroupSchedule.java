@@ -23,11 +23,8 @@ package org.cougaar.planning.ldm.asset;
 import java.beans.BeanDescriptor;
 import java.beans.BeanInfo;
 import java.beans.EventSetDescriptor;
-import java.beans.IntrospectionException;
 import java.beans.MethodDescriptor;
-import java.beans.SimpleBeanInfo;
 import java.beans.PropertyDescriptor;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;

@@ -22,6 +22,7 @@
 package org.cougaar.planning.ldm;
 
 import java.util.Collection;
+
 import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.planning.ldm.asset.PropertyGroup;
 

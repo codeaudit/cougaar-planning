@@ -21,9 +21,6 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.core.util.UID;
-
-import java.util.Enumeration;
 
 /** NewDeletion Interface
  * provides setter methods to create a Deletion object

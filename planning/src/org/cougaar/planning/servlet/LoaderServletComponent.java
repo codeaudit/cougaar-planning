@@ -21,28 +21,23 @@
 
 package org.cougaar.planning.servlet;
 
-import org.cougaar.core.mts.MessageAddress;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+
 import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-//import org.cougaar.core.agent.AgentIdentificationService;
-import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.component.ComponentDescription;
-
-import org.cougaar.core.service.AgentContainmentService;
-
+import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.node.NodeIdentificationService;
+import org.cougaar.core.service.AgentContainmentService;
 import org.cougaar.core.service.AgentIdentificationService;
 import org.cougaar.core.service.MessageTransportService;
 import org.cougaar.core.servlet.BaseServletComponent;

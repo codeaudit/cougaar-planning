@@ -23,9 +23,6 @@ package org.cougaar.planning.ldm.plan;
 import java.io.Serializable;
 import java.util.Date;
 
-import org.cougaar.planning.ldm.plan.Report;
-import org.cougaar.planning.ldm.plan.NewReport;
-
 import org.cougaar.core.util.UID;
 
 /** Report Implementation

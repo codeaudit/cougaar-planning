@@ -23,11 +23,11 @@
 
 package org.cougaar.planning.ldm.trigger;
 
-import org.cougaar.planning.ldm.plan.Allocation;
-
-import java.util.List;
 import java.util.Arrays;
+import java.util.List;
 import java.util.ListIterator;
+
+import org.cougaar.planning.ldm.plan.Allocation;
 
 /**
  * A Trigger Tester to determine if an allocation is stale

@@ -21,12 +21,13 @@
 
 package org.cougaar.planning.ldm.plan;
 
+import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Vector;
-import java.util.Arrays;
+
 import org.cougaar.util.Empty;
 import org.cougaar.util.SingleElementEnumeration;
-import java.io.Serializable;
 
 
 /**

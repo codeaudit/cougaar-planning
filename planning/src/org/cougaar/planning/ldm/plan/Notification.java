@@ -21,9 +21,6 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.core.util.UID;
-
-import java.util.Enumeration;
 
 /** Notification Interface
  * Notification is a response to a task that was sent to a cluster.

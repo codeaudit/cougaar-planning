@@ -21,11 +21,11 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import java.util.List;
 import java.util.ArrayList;
-import java.util.ListIterator;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.List;
+import java.util.ListIterator;
 
 import org.cougaar.planning.ldm.asset.Asset;
 

@@ -22,6 +22,7 @@
 package org.cougaar.planning.ldm.plan;
 
 import java.util.Date;
+
 import org.cougaar.util.TimeSpan;
 
 /**

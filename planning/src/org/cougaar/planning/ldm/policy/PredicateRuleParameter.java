@@ -21,9 +21,6 @@
 
 package org.cougaar.planning.ldm.policy;
 
-import org.cougaar.planning.ldm.policy.RuleParameter;
-import org.cougaar.planning.ldm.policy.RuleParameterIllegalValueException;
-
 import org.cougaar.util.UnaryPredicate;
 
 /** 

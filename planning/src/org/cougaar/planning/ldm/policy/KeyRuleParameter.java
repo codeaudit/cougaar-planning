@@ -22,8 +22,6 @@
 
 package org.cougaar.planning.ldm.policy;
 
-import org.cougaar.planning.ldm.policy.RuleParameter;
-import org.cougaar.planning.ldm.policy.RuleParameterIllegalValueException;
 
 /** 
  * @author  ALPINE <alpine-software@bbn.com>

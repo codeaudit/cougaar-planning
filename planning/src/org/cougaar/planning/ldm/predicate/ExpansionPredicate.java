@@ -21,7 +21,7 @@
 
 
 package org.cougaar.planning.ldm.predicate;
-import org.cougaar.planning.ldm.plan.*;
+import org.cougaar.planning.ldm.plan.Expansion;
 
 /** Utility predicate for selecting Expansions 
  * Note that this does not extend PlanElementPredicate so that

@@ -21,7 +21,6 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.planning.ldm.plan.ScoringFunction;
 
 /** Description of an allocation Preference for a task in the same currency
  * as an allocationresult.  

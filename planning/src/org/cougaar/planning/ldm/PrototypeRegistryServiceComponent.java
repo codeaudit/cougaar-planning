@@ -25,10 +25,10 @@ import org.cougaar.core.component.BindingSite;
 import org.cougaar.core.component.Component;
 import org.cougaar.core.component.ServiceBroker;
 import org.cougaar.core.component.ServiceProvider;
-import org.cougaar.planning.service.PrototypeRegistryService;
 import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.planning.ldm.asset.PropertyGroup;
 import org.cougaar.planning.ldm.asset.PrototypeRegistry;
+import org.cougaar.planning.service.PrototypeRegistryService;
 import org.cougaar.util.GenericStateModelAdapter;
 
 /**

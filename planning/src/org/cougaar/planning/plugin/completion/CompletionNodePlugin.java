@@ -31,16 +31,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.WeakHashMap;
+
 import org.cougaar.core.agent.AgentContainer;
 import org.cougaar.core.blackboard.IncrementalSubscription;
-import org.cougaar.core.blackboard.Subscription;
-import org.cougaar.core.component.Container;
 import org.cougaar.core.mts.MessageAddress;
-import org.cougaar.core.node.NodeControlService;
 import org.cougaar.core.node.NodeBusyService;
-import org.cougaar.core.service.BlackboardService;
-import org.cougaar.core.service.LoggingService;
-import org.cougaar.util.UnaryPredicate;
+import org.cougaar.core.node.NodeControlService;
 
 /**
  * This plugin gathers and integrates completion information from

@@ -21,25 +21,7 @@
 
 package org.cougaar.planning.ldm.asset;
 
-import org.cougaar.core.domain.*;
-
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Vector;
-
-import org.cougaar.planning.ldm.*;
-import org.cougaar.planning.ldm.asset.ItemIdentificationPG;
-import org.cougaar.planning.ldm.asset.NewItemIdentificationPG;
-import org.cougaar.planning.ldm.asset.NewPropertyGroup;
-import org.cougaar.planning.ldm.asset.NewTypeIdentificationPG;
-import org.cougaar.planning.ldm.asset.PropertyGroup;
-import org.cougaar.planning.ldm.asset.PropertyGroupFactory;
-import org.cougaar.planning.ldm.asset.TypeIdentificationPG;
-import org.cougaar.planning.ldm.asset.TypeIdentificationPGImpl;
+import org.cougaar.core.domain.FactoryException;
 
 /**
  *   This is the class that is responsible for generating a LDM object 

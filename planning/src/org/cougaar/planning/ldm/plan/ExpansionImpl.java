@@ -21,29 +21,18 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.planning.ldm.plan.Expansion;
-import org.cougaar.planning.ldm.plan.NewExpansion;
-import org.cougaar.planning.ldm.plan.AllocationResult;
-import org.cougaar.planning.ldm.plan.Workflow;
-import org.cougaar.planning.ldm.plan.NewWorkflow;
-import org.cougaar.planning.ldm.plan.WorkflowImpl;
-import org.cougaar.planning.ldm.plan.Plan;
-import org.cougaar.planning.ldm.plan.TaskScoreTable;
-import org.cougaar.planning.ldm.plan.Task;
-import org.cougaar.planning.ldm.plan.NewTask;
-import org.cougaar.planning.ldm.plan.SubTaskResult;
-import org.cougaar.core.blackboard.Subscriber;
-import org.cougaar.core.blackboard.ActiveSubscriptionObject;
-import org.cougaar.core.util.UID;
-
-import org.cougaar.util.log.Logger;
-
-import java.util.*;
-import java.beans.*;
-
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
+import java.beans.IntrospectionException;
+import java.beans.PropertyDescriptor;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.ListIterator;
+
+import org.cougaar.core.blackboard.Subscriber;
+import org.cougaar.util.log.Logger;
  
 /** ExpansionImpl.java
  * Implementation for expansion - a form of PlanElement

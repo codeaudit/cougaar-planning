@@ -25,28 +25,24 @@ package org.cougaar.planning.ldm.lps;
 import java.util.Collection;
 import java.util.Iterator;
 
-import org.cougaar.planning.ldm.*;
 import org.cougaar.core.blackboard.Directive;
-import org.cougaar.core.domain.*;
-
+import org.cougaar.core.domain.LogicProvider;
+import org.cougaar.core.domain.MessageLogicProvider;
+import org.cougaar.core.domain.RootPlan;
+import org.cougaar.planning.ldm.LogPlan;
+import org.cougaar.planning.ldm.PlanningFactory;
 import org.cougaar.planning.ldm.asset.Asset;
-
-import org.cougaar.planning.ldm.plan.AssetVerification;
 import org.cougaar.planning.ldm.plan.AssetRescind;
+import org.cougaar.planning.ldm.plan.AssetVerification;
 import org.cougaar.planning.ldm.plan.AssignedAvailabilityElement;
 import org.cougaar.planning.ldm.plan.AssignedRelationshipElement;
 import org.cougaar.planning.ldm.plan.HasRelationships;
 import org.cougaar.planning.ldm.plan.NewSchedule;
 import org.cougaar.planning.ldm.plan.Relationship;
-import org.cougaar.planning.ldm.plan.RelationshipSchedule;
 import org.cougaar.planning.ldm.plan.Schedule;
 import org.cougaar.planning.ldm.plan.ScheduleElement;
-
-import org.cougaar.core.util.UID;
 import org.cougaar.util.log.Logger;
 import org.cougaar.util.log.Logging;
-
-import org.cougaar.util.TimeSpan;
 
 /**
   * Sample LogicProvider for use by ClusterDispatcher to

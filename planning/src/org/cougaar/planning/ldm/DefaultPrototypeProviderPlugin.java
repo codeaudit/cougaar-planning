@@ -21,19 +21,13 @@
 
 package org.cougaar.planning.ldm;
 
-import java.io.PrintStream;
-import org.cougaar.core.component.ServiceBroker;
-import org.cougaar.core.component.ServiceRevokedEvent;
-import org.cougaar.core.component.ServiceRevokedListener;
 import org.cougaar.core.plugin.ComponentPlugin;
-import org.cougaar.core.plugin.*;
 import org.cougaar.core.service.DomainService;
-import org.cougaar.planning.service.PrototypeRegistryService;
 import org.cougaar.core.service.UIDService;
 import org.cougaar.core.util.UID;
 import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.planning.ldm.asset.NewTypeIdentificationPG;
-import org.cougaar.planning.ldm.asset.TypeIdentificationPG;
+import org.cougaar.planning.service.PrototypeRegistryService;
 
 /** Serve some default prototypes to the system.
  * At this point, this only serves stupid prototypes for

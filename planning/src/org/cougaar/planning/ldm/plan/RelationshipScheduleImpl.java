@@ -21,19 +21,12 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.core.util.UID;
-
 import java.util.Collection;
 import java.util.Iterator;
 
-import org.cougaar.util.Filters;
+import org.cougaar.core.util.UID;
 import org.cougaar.util.TimeSpan;
 import org.cougaar.util.UnaryPredicate;
-
-import org.cougaar.core.agent.*;
-import org.cougaar.core.node.*;
-
-import org.cougaar.planning.ldm.asset.Asset;
 
 /** 
  * A RelationshipSchedule is a representation of an object (must implement

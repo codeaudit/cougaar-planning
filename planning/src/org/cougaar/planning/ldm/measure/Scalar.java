@@ -20,7 +20,6 @@
  */
 package org.cougaar.planning.ldm.measure;
 
-import java.io.Serializable;
 
 /** Base for all Scalar measures classes.
  **/

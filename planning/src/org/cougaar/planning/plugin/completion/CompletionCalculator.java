@@ -24,6 +24,7 @@ package org.cougaar.planning.plugin.completion;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+
 import org.cougaar.planning.ldm.plan.AllocationResult;
 import org.cougaar.planning.ldm.plan.PlanElement;
 import org.cougaar.planning.ldm.plan.Task;

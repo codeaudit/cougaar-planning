@@ -21,9 +21,9 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.planning.plugin.legacy.PluginDelegate;
-
 import java.io.Serializable;
+
+import org.cougaar.planning.plugin.legacy.PluginDelegate;
 
 /**
  *

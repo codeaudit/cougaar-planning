@@ -25,7 +25,6 @@ import org.cougaar.core.component.Service;
 import org.cougaar.planning.ldm.LatePropertyProvider;
 import org.cougaar.planning.ldm.PropertyProvider;
 import org.cougaar.planning.ldm.PrototypeProvider;
-import org.cougaar.core.service.*;
 import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.planning.ldm.asset.PropertyGroup;
 

@@ -22,20 +22,18 @@
 package org.cougaar.planning.ldm.lps;
 
 
-import org.cougaar.core.agent.*;
-import org.cougaar.core.blackboard.*;
-import org.cougaar.core.domain.*;
+import java.util.Collection;
+
+import org.cougaar.core.blackboard.Directive;
+import org.cougaar.core.domain.LogicProvider;
+import org.cougaar.core.domain.MessageLogicProvider;
+import org.cougaar.core.domain.RootPlan;
 import org.cougaar.core.util.UID;
-import org.cougaar.planning.ldm.*;
-import org.cougaar.planning.ldm.asset.Asset;
-import org.cougaar.planning.ldm.plan.*;
+import org.cougaar.planning.ldm.LogPlan;
+import org.cougaar.planning.ldm.plan.Task;
+import org.cougaar.planning.ldm.plan.TaskRescind;
 import org.cougaar.util.log.Logger;
 import org.cougaar.util.log.Logging;
-
-
-import java.util.*;
-
-import org.cougaar.planning.ldm.plan.TaskImpl;
 
 /**
   * LogicProvider for use by ClusterDispatcher to

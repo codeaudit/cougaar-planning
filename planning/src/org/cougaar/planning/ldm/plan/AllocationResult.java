@@ -21,12 +21,16 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import java.io.Serializable;
-import java.io.ObjectInputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-
-import java.util.*;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * The "result" of allocating a task.

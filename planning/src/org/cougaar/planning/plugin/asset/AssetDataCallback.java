@@ -21,11 +21,11 @@
 
 package org.cougaar.planning.plugin.asset;
 
-import org.cougaar.planning.ldm.asset.Asset;
+import java.text.ParseException;
+
 import org.cougaar.planning.ldm.asset.NewPropertyGroup;
 import org.cougaar.planning.ldm.asset.PropertyGroup;
 import org.cougaar.util.ConfigFinder;
-import java.text.ParseException;
 
 public interface AssetDataCallback {
     ConfigFinder getConfigFinder();

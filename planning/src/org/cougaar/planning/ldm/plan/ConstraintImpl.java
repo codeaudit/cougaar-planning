@@ -22,13 +22,9 @@
 package org.cougaar.planning.ldm.plan;
 
 // import org.cougaar.planning.ldm.plan.*;
-import org.cougaar.planning.ldm.plan.Task;
-import org.cougaar.planning.ldm.plan.Constraint;
-import org.cougaar.planning.ldm.plan.NewConstraint;
-
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 /**

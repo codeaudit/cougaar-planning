@@ -21,9 +21,6 @@
 
 package org.cougaar.planning.plugin.asset;
 
-import org.cougaar.planning.ldm.asset.Asset;
-import org.cougaar.util.ConfigFinder;
-import java.text.ParseException;
 
 public interface AssetDataReader {
     void readAsset(String clusterId, AssetDataCallback cb);

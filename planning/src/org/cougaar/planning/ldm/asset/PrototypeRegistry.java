@@ -21,12 +21,12 @@
 
 package org.cougaar.planning.ldm.asset;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+
 import org.cougaar.planning.ldm.LatePropertyProvider;
 import org.cougaar.planning.ldm.PropertyProvider;
 import org.cougaar.planning.ldm.PrototypeProvider;

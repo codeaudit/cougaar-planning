@@ -21,9 +21,6 @@
 
 package org.cougaar.planning.ldm.asset;
 
-import java.util.Map;
-import org.cougaar.core.blackboard.*;
-import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.util.KeyedSet;
 
 /**

@@ -21,8 +21,6 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.core.util.UID;
-
 import java.util.Collection;
 import java.util.Iterator;
 

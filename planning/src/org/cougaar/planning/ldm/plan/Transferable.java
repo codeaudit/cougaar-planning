@@ -21,8 +21,8 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.core.util.UniqueObject;
 import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.core.util.UniqueObject;
 
 /** Transferable 
  *

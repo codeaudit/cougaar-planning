@@ -22,17 +22,14 @@
 package org.cougaar.planning.servlet;
 
 import javax.servlet.Servlet;
-import org.cougaar.core.mts.MessageAddress;
+
 import org.cougaar.core.blackboard.BlackboardClient;
-import org.cougaar.core.component.BindingSite;
-import org.cougaar.planning.ldm.LDMServesPlugin;
-import org.cougaar.planning.service.LDMService;
-import org.cougaar.core.service.BlackboardQueryService;
 import org.cougaar.core.service.BlackboardService;
-import org.cougaar.core.service.LoggingService;
 import org.cougaar.core.service.SchedulerService;
-import org.cougaar.core.servlet.*;
+import org.cougaar.core.servlet.SimpleServletComponent;
+import org.cougaar.core.servlet.SimpleServletSupport;
 import org.cougaar.planning.ldm.PlanningFactory;
+import org.cougaar.planning.service.LDMService;
 import org.cougaar.util.ConfigFinder;
 
 public class BlackboardServletComponent 

@@ -21,15 +21,11 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.core.mts.MessageAddress;
-import org.cougaar.core.util.UID;
-import org.cougaar.planning.ldm.plan.NewTransferableRescind;
-import org.cougaar.planning.ldm.plan.Plan;
-import org.cougaar.planning.ldm.plan.Transferable;
-import org.cougaar.planning.ldm.plan.TransferableRescind;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+
+import org.cougaar.core.util.UID;
 
 /** TransferableRescind implementation
  * TransferableRescind allows a transferable to be rescinded from the Plan. 

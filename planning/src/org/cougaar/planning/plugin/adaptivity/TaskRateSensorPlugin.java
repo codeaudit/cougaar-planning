@@ -21,17 +21,13 @@
 
 package org.cougaar.planning.plugin.adaptivity;
 
-import java.util.Collection;
-import org.cougaar.core.adaptivity.*;
+import org.cougaar.core.adaptivity.OMCRangeList;
+import org.cougaar.core.adaptivity.SensorCondition;
 import org.cougaar.core.blackboard.IncrementalSubscription;
-import org.cougaar.core.blackboard.Subscription;
 import org.cougaar.core.component.ServiceBroker;
-import org.cougaar.core.component.ServiceRevokedListener;
 import org.cougaar.core.persist.NotPersistable;
 import org.cougaar.core.plugin.ServiceUserPlugin;
-import org.cougaar.core.service.BlackboardService;
 import org.cougaar.core.service.ConditionService;
-import org.cougaar.core.service.LoggingService;
 import org.cougaar.planning.ldm.plan.Task;
 import org.cougaar.util.UnaryPredicate;
 

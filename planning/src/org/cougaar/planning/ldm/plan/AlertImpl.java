@@ -20,10 +20,6 @@
  */
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.planning.ldm.plan.Alert;
-import org.cougaar.planning.ldm.plan.NewAlert;
-import org.cougaar.planning.ldm.plan.AlertParameter;
-
 import org.cougaar.core.util.UID;
 
 /** Alert Implementation

@@ -29,6 +29,7 @@ package org.cougaar.planning.plugin.deletion;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
@@ -42,6 +43,7 @@ import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.planning.ldm.asset.ClusterPG;
 import org.cougaar.planning.ldm.plan.Allocation;
 import org.cougaar.planning.ldm.plan.AllocationforCollections;
+import org.cougaar.planning.ldm.plan.AllocationResult;
 import org.cougaar.planning.ldm.plan.Constraint;
 import org.cougaar.planning.ldm.plan.Expansion;
 import org.cougaar.planning.ldm.plan.MPTask;
@@ -168,6 +170,7 @@ public class TaskDeletionPlugin extends DeletionPlugin {
   private PESet peSet = new PESet();
   private PlanElementSet deletablePlanElements = null;
   protected int wakeCount = 0;
+  private int numDeletedTasks = 0;
   /**
   * Called from execute when the alarm expires.
   *
@@ -179,6 +182,7 @@ public class TaskDeletionPlugin extends DeletionPlugin {
   * logplan.
   **/
   protected void checkDeletables() {
+    numDeletedTasks = 0;
     checkDeletablePlanElements();
     if (logger.isDebugEnabled()) {
       if (++wakeCount > 4) {
@@ -189,6 +193,12 @@ public class TaskDeletionPlugin extends DeletionPlugin {
     peSet.clear();
     deletablePlanElements = null;
     super.checkDeletables();
+    if (logger.isInfoEnabled()) {
+      if (numDeletedTasks > 0) {
+        logger.info(","+getAgentIdentifier()+","+new Date(currentTimeMillis())+","+
+		     numDeletedTasks+", tasks deleted this cycle");
+      }
+    }
   }
 
   /**
@@ -359,9 +369,10 @@ public class TaskDeletionPlugin extends DeletionPlugin {
         logger.debug("Checking parent");
       UID ptuid = task.getParentTaskUID();
       if (ptuid == null) {
-        if (logger.isInfoEnabled())
-          logger.info("Deleting root " + task.getUID());
+        if (logger.isDebugEnabled())
+          logger.debug("Deleting root " + task.getUID());
         deleteRootTask(task);
+        numDeletedTasks++;
       } else {
         PlanElement ppe = peSet.findPlanElement(ptuid);
         if (ppe == null) { // Parent is in another cluster
@@ -370,15 +381,17 @@ public class TaskDeletionPlugin extends DeletionPlugin {
             logger.debug(
               "Parent " + ptuid + " is remote, deleting task" + task.getUID());
           deleteReceivedTask(task);
+          numDeletedTasks++;
         } else {
           if (ppe instanceof Expansion) {
-            if (logger.isInfoEnabled())
-              logger.info(
+            if (logger.isDebugEnabled())
+              logger.debug(
                 "Parent is expansion of "
                   + ptuid
                   + ", deleting subtask "
                   + task.getUID());
             deleteSubtask((Expansion) ppe, task);
+            numDeletedTasks++;
           } else {
             if (logger.isDebugEnabled())
               logger.debug("Parent is other, propagating");
@@ -443,7 +456,11 @@ public class TaskDeletionPlugin extends DeletionPlugin {
   private long computeExpirationTime(PlanElement pe) {
     double et;
     Task task = pe.getTask();
-    et = PluginHelper.getEndTime(pe.getEstimatedResult());
+    AllocationResult ar = pe.getReportedResult();
+    if (ar == null) {
+      ar = pe.getEstimatedResult();
+    }
+    et = PluginHelper.getEndTime(ar);
     if (Double.isNaN(et))
       try {
         et = PluginHelper.getEndTime(task);
@@ -451,7 +468,7 @@ public class TaskDeletionPlugin extends DeletionPlugin {
         et = Double.NaN;
       }
     if (Double.isNaN(et))
-      et = PluginHelper.getStartTime(pe.getEstimatedResult());
+      et = PluginHelper.getStartTime(ar);
     if (Double.isNaN(et))
       try {
         et = PluginHelper.getStartTime(task);

@@ -146,6 +146,8 @@ public class ReceiveNotificationLP
       if (logger.isDebugEnabled()) {
 	logger.debug("Received notification about unknown task: "+tuid);
       }
+      // FIXME: Doesn't this mean that the downstream Task's parent is missing or screwy,
+      // and the downstream task should be rescinded?
     }
   }
 

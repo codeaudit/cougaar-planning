@@ -27,6 +27,7 @@ import org.cougaar.planning.ldm.*;
 import org.cougaar.core.blackboard.Directive;
 import org.cougaar.core.domain.*;
 import org.cougaar.core.util.UID;
+import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.planning.ldm.plan.AllocationforCollections;
 import org.cougaar.planning.ldm.plan.Deletion;
 import org.cougaar.planning.ldm.plan.NewTask;
@@ -45,8 +46,7 @@ implements LogicProvider, MessageLogicProvider
 {
   private final LogPlan logplan;
 
-  public ReceiveDeletionLP(
-      LogPlan logplan) {
+  public ReceiveDeletionLP(LogPlan logplan, MessageAddress self) {
     this.logplan = logplan;
   }
 

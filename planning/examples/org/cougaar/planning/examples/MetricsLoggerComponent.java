@@ -28,7 +28,6 @@ package org.cougaar.planning.examples;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.TimerTask;
 import org.cougaar.core.blackboard.DirectiveMessage;
 import org.cougaar.core.component.BindingSite;
 import org.cougaar.core.component.Component;
@@ -50,6 +49,7 @@ import org.cougaar.core.service.MessageWatcherService;
 import org.cougaar.core.service.NodeMetricsService;
 import org.cougaar.planning.service.PrototypeRegistryService;
 import org.cougaar.core.service.ThreadService;
+import org.cougaar.core.thread.Schedulable;
 import org.cougaar.core.blackboard.Directive;
 import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.planning.ldm.plan.Notification;
@@ -455,12 +455,13 @@ implements Component
         logger.error("Unable to obtain ThreadService");
       }
     } else {
-      TimerTask poller = new TimerTask() {
+      Runnable poller = new Runnable() {
         public void run() { 
           logAllMetrics();
         }
       };
-      threadService.schedule(poller, delay, interval);
+      Schedulable sched = threadService.getThread(this, poller);
+      sched.schedule(delay, interval);
     }
   }
 

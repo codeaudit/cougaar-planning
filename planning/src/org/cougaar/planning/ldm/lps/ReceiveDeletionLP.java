@@ -131,8 +131,7 @@ implements LogicProvider, MessageLogicProvider
       rootplan.sendDirective(ntr);
       if (logger.isDebugEnabled()) logger.debug(self + ": ignoring Deletion for deleted task");
     } else {
-      NewTask remoteTask = (NewTask) ((AllocationforCollections) pe).getAllocationTask();
-      remoteTask.setDeleted(true);
+      ((AllocationforCollections) pe).setAllocationTaskDeleted(true);
       if (logger.isDebugEnabled()) logger.debug(self + ": acking Deletion for " + tuid);
       // Now the deleted remoteTask will simply hang around until the
       // deletion plugin gets around to deleting its parent structure.

@@ -25,6 +25,7 @@ import org.cougaar.core.blackboard.*;
 import org.cougaar.core.agent.*;
 import org.cougaar.planning.ldm.*;
 import org.cougaar.core.domain.*;
+import org.cougaar.core.util.UID;
 import org.cougaar.planning.plugin.util.PluginHelper;
 import org.cougaar.planning.ldm.plan.PlanElement;
 import org.cougaar.planning.ldm.plan.Allocation;
@@ -46,25 +47,25 @@ import java.util.Enumeration;
 import org.cougaar.core.service.AlarmService;
 
 
-/** RemoteClusterAllocationLogicProvider class provides the logic to capture 
- * Allocations against remote Clusters 
+/** RemoteAllocationLogicProvider class provides the logic to capture 
+ * Allocations against remote agents 
  *
  **/
 
-public class RemoteClusterAllocationLP
+public class RemoteAllocationLP
 implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
 {
         
   private static final Logger logger = 
-    LoggerFactory.getInstance().createLogger(RemoteClusterAllocationLP.class);
+    LoggerFactory.getInstance().createLogger(RemoteAllocationLP.class);
 
   private final RootPlan rootplan;
   private final PlanningFactory ldmf;
   private final MessageAddress self;
   private final AlarmService alarmService;
-  private final Workflow specialWorkflow = new SpecialWorkflow();
+//   private final Workflow specialWorkflow = new SpecialWorkflow();
 
-  public RemoteClusterAllocationLP(
+  public RemoteAllocationLP(
       RootPlan rootplan,
       PlanningFactory ldmf,
       MessageAddress self,
@@ -83,10 +84,16 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
     return alarmService.currentTimeMillis();
   }
 
-  private void examine(Object obj, Collection changes) {
+  private void examineTask(Object obj, Collection changes) {
+    if (obj instanceof Task) {
+      Task task = (Task) obj;
+      examine(task.getPlanElement(), changes);
+    }
+  }
 
+  private void examine(Object obj, Collection changes) {
     if (! (obj instanceof Allocation)) return;
-    Allocation all = (Allocation) obj;
+    AllocationforCollections all = (AllocationforCollections) obj;
     Task task = all.getTask();
     Asset asset = all.getAsset();
     ClusterPG cpg = asset.getClusterPG();
@@ -96,34 +103,34 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
     if (!taskShouldBeSent(task)) return; // In past
 
     // see if we're reissuing the task... if so, we'll just use it.
-    Task copytask = ((AllocationforCollections)all).getAllocationTask();
-    if (copytask == null) {
-      // if not, make a new task to send.
-      copytask = prepareNewTask(task, destination);
-      ((AllocationforCollections)all).setAllocationTask(copytask);
-      rootplan.change(all, changes); 
-    }
+    UID copyUID = all.getAllocationTaskUID();
+    boolean isDeleted = all.isAllocationTaskDeleted();
+    Task copytask = prepareRemoteTask(task, destination, copyUID, isDeleted);
+    ((AllocationforCollections)all).setAllocationTask(copytask);
+    rootplan.change(all, changes); 
 
     // Give the task directive to the blackboard for transmission
     sendTask(copytask, changes);
   }
 
   private void sendTask(Task copytask, Collection changes) {
-    if (copytask.getWorkflow() == null) {
-      NewTask nt = (NewTask) copytask;
-      nt.setWorkflow(specialWorkflow);
-    }
+//     if (copytask.getWorkflow() == null) {
+//       NewTask nt = (NewTask) copytask;
+//       nt.setWorkflow(specialWorkflow);
+//     }
     rootplan.sendDirective(copytask, changes);
   }
 
   /**
    * Handle one EnvelopeTuple. Call examine to check for objects that
-   * are Allocations to a remote Cluster.
+   * are Allocations to a remote agent.
    **/
   public void execute(EnvelopeTuple o, Collection changes) {
     Object obj = o.getObject();
     if (o.isAdd()) {
       examine(obj, changes);
+    } else if (o.isChange()) {
+      examineTask(obj, changes);
     } else if (o.isBulk()) {
       Collection c = (Collection) obj;
       for (Iterator e = c.iterator(); e.hasNext(); ) {
@@ -160,21 +167,25 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
     Enumeration enum = rootplan.searchBlackboard(pred);
     while (enum.hasMoreElements()) {
       AllocationforCollections alloc = (AllocationforCollections) enum.nextElement();
-      Task remoteTask = alloc.getAllocationTask();
-      if (remoteTask != null && taskShouldBeSent(remoteTask)) {
+      UID remoteTaskUID = alloc.getAllocationTaskUID();
+      Task localTask = alloc.getTask();
+      if (remoteTaskUID != null && taskShouldBeSent(localTask)) {
+        Asset asset = alloc.getAsset();
+        ClusterPG cpg = asset.getClusterPG();
+        MessageAddress destination = cpg.getMessageAddress();
+        Task remoteTask = prepareRemoteTask(localTask, destination, remoteTaskUID, false);
         if (logger.isInfoEnabled()) {
-          Task localTask = alloc.getTask();
           logger.info(
-              self+": Resend"+(cid==null?"*":"")+
-              " task to "+remoteTask.getDestination()+
-              " with remoteUID="+remoteTask.getUID()+
-              " "+localTask);
+              self + ": Resend" + (cid == null ? "*" : "")
+              + " task to " + remoteTask.getDestination()
+              + " with remoteUID=" + remoteTaskUID
+              + " " + localTask);
         }
         sendTask(remoteTask, null);
       }
     }
     if (logger.isInfoEnabled()) {
-      logger.info(self+": Reconciled");
+      logger.info(self + ": Reconciled");
     }
   }
 
@@ -195,7 +206,7 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
     return ((long) et) >= currentTimeMillis();
   }
 
-  private Task prepareNewTask(Task task, MessageAddress dest) {
+  private Task prepareRemoteTask(Task task, MessageAddress dest, UID uid, boolean isDeleted) {
     NewTask nt;
     /*
     if (task instanceof MPTask) {
@@ -203,7 +214,8 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
       ((NewMPTask)nt).setParentTasks(((MPTask)task).getParentTasks());
     }
     */
-    nt = ldmf.newTask();
+    nt = ldmf.newTask(uid);
+    nt.setDeleted(isDeleted);
     nt.setParentTask(task);             // set ParenTask to original task
 
     // redundant: ldmf initializes it.

@@ -82,7 +82,7 @@ implements LogicProvider, EnvelopeLogicProvider
           UID ptuid = task.getParentTaskUID();
           if (ptuid != null) {
             MessageAddress dst = task.getSource();
-            if (!dst.equals(self)) {
+            if (!dst.getPrimary().equals(self)) {
               // Parent task is in another agent so we do our thing
               NewDeletion nd = ldmf.newDeletion();
               nd.setTaskUID(ptuid);

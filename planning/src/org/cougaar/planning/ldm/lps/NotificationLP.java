@@ -163,7 +163,7 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
     }
 
     MessageAddress dest = t.getSource();
-    if (self == dest || self.equals(dest)) {
+    if (self == dest || self.equals(dest.getPrimary())) {
       // deliver intra-agent notifications directly
       ReceiveNotificationLP.propagateNotification(
           rootplan,logplan,ptuid,ar,t.getUID(), changes);

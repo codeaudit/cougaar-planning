@@ -175,7 +175,7 @@ public class ConsistencyChecker {
     MessageAddress dest = t.getSource();
     Workflow w = t.getWorkflow();
     // If pUID is non-null && local, 
-    if (pUID != null && (self == dest || self.equals(dest))) {
+    if (pUID != null && (self == dest || self.equals(dest.getPrimary()))) {
       // 1: this UID should be on the LogPlan.
       Task parent = logplan.findTask(pUID);
       if (parent == null) {

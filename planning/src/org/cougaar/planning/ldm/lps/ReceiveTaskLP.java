@@ -23,9 +23,10 @@ package org.cougaar.planning.ldm.lps;
 
 import org.cougaar.core.blackboard.*;
 import org.cougaar.core.agent.*;
-import org.cougaar.planning.ldm.*;
 import org.cougaar.core.domain.*;
+import org.cougaar.core.mts.SerializationUtils;
 
+import org.cougaar.planning.ldm.*;
 import org.cougaar.planning.ldm.plan.Task;
 import org.cougaar.planning.ldm.plan.NewTask;
 import org.cougaar.planning.ldm.plan.Preference;
@@ -56,7 +57,8 @@ implements LogicProvider, MessageLogicProvider
 
   public ReceiveTaskLP(
       RootPlan rootplan,
-      LogPlan logplan) {
+      LogPlan logplan)
+  {
     this.rootplan = rootplan;
     this.logplan = logplan;
   }
@@ -88,6 +90,12 @@ implements LogicProvider, MessageLogicProvider
         if (existingTask == null) {
           // only add if it isn't already there.
 	  //System.err.print("!");
+          if (tsk.getWorkflow() != null) {
+            // Has been marked and the mark remains meaning tsk is the
+            // same instance as the sending agent has so we clone it
+            System.out.println("Cloning task alias received from same node");
+            tsk = cloneAliasedTask(tsk);
+          }
           rootplan.add(tsk);
         } else if (tsk.isDeleted()) {
           if (existingTask.isDeleted()) {
@@ -116,5 +124,20 @@ implements LogicProvider, MessageLogicProvider
         se.printStackTrace();
       }
     }
+  }
+
+  private Task cloneAliasedTask(final Task task) {
+    final Task[] result = new Task[1];
+    ClusterContextTable.withClusterContext(task.getDestination(), new Runnable() {
+        public void run() {
+          try {
+            result[0] = (Task) SerializationUtils.fromByteArray(SerializationUtils.toByteArray(task));
+          } catch (Exception e) {
+            logger.error("Failed to clone aliased task");
+            result[0] = task;
+          }
+        }
+      });
+    return result[0];
   }
 }

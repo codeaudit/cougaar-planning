@@ -37,6 +37,7 @@ import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.planning.ldm.plan.ClusterObjectFactory;
 import org.cougaar.planning.ldm.plan.AllocationforCollections;
 import org.cougaar.planning.ldm.plan.TaskImpl;
+import org.cougaar.planning.ldm.plan.Workflow;
 import java.util.*;
 import org.cougaar.core.util.*;
 import org.cougaar.util.*;
@@ -51,6 +52,7 @@ public class PreferenceChangeLP
 implements LogicProvider, EnvelopeLogicProvider {
 
   private final RootPlan rootplan;
+  private final Workflow specialWorkflow = new SpecialWorkflow();
 
   public PreferenceChangeLP(RootPlan rootplan) {
     this.rootplan = rootplan;
@@ -92,13 +94,16 @@ implements LogicProvider, EnvelopeLogicProvider {
     if (cpg == null) return;
     MessageAddress destination = cpg.getMessageAddress();
     if (destination == null) return;
-    Task senttask = ((AllocationforCollections)pe).getAllocationTask();
+    NewTask senttask = (NewTask) ((AllocationforCollections)pe).getAllocationTask();
 
     if (senttask != null) {
       if (((TaskImpl)senttask).private_updatePreferences((TaskImpl)task)) {
         // we changed task, so:
 
         // Give the task to the blackboard for transmission
+        if (senttask.getWorkflow() == null) {
+          senttask.setWorkflow(specialWorkflow);
+        }
         rootplan.sendDirective(senttask, changes);
       }
     }

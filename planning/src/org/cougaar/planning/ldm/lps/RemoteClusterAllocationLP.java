@@ -34,6 +34,7 @@ import org.cougaar.planning.ldm.plan.Task;
 import org.cougaar.planning.ldm.plan.MPTask;
 import org.cougaar.planning.ldm.plan.NewMPTask;
 import org.cougaar.planning.ldm.plan.NewTask;
+import org.cougaar.planning.ldm.plan.Workflow;
 import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.planning.ldm.plan.ClusterObjectFactory;
 import org.cougaar.planning.ldm.plan.AllocationforCollections;
@@ -61,6 +62,7 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
   private final PlanningFactory ldmf;
   private final MessageAddress self;
   private final AlarmService alarmService;
+  private final Workflow specialWorkflow = new SpecialWorkflow();
 
   public RemoteClusterAllocationLP(
       RootPlan rootplan,
@@ -103,9 +105,16 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
     }
 
     // Give the task directive to the blackboard for transmission
-    rootplan.sendDirective(copytask, changes);
+    sendTask(copytask, changes);
   }
 
+  private void sendTask(Task copytask, Collection changes) {
+    if (copytask.getWorkflow() == null) {
+      NewTask nt = (NewTask) copytask;
+      nt.setWorkflow(specialWorkflow);
+    }
+    rootplan.sendDirective(copytask, changes);
+  }
 
   /**
    * Handle one EnvelopeTuple. Call examine to check for objects that
@@ -161,7 +170,7 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
               " with remoteUID="+remoteTask.getUID()+
               " "+localTask);
         }
-        rootplan.sendDirective(remoteTask);
+        sendTask(remoteTask, null);
       }
     }
     if (logger.isInfoEnabled()) {

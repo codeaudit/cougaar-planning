@@ -116,14 +116,15 @@ public class ExpansionImpl extends PlanElementImpl
       ListIterator it = sts.listIterator();
       while (it.hasNext()) {
         NewTask asub = (NewTask) it.next();
-	asub.setParentTask(null);
-	asub.setWorkflow(null);
         s.publishRemove(asub);
       }
-      wi.setParentTask(null);      
     } else {      // we're not auto-propagating
       // disconnect the WF from the parent task
       ((NewWorkflow)w).setParentTask(null);
+
+      // FIXME: Is it really OK to re-use a workflow and its sub-tasks in a new task?
+
+
       for (Enumeration e = w.getTasks(); e.hasMoreElements(); ) {
         NewTask wfstask = (NewTask) e.nextElement();
         wfstask.setParentTask(null);

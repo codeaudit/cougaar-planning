@@ -204,25 +204,12 @@ implements LogicProvider, MessageLogicProvider
     }
 
     public void execute(BlackboardServesDomain bb) {
-      Workflow wf = pe.getWorkflow();
+      WorkflowImpl wf = (WorkflowImpl) pe.getWorkflow();
 
       // compute the new result from the subtask results.
       try {
-        AllocationResult ar = wf.aggregateAllocationResults();
-        if (ar != null) {         // if the aggragation is defined:
-          
-          // get the TaskScoreTable used in the aggregation
-          TaskScoreTable aggTST = ((WorkflowImpl)wf).getCurrentTST();
-
-          // get the UID of the child task that caused this aggregation
-          int l = ids.size();
-          for (int i = 0; i<l; i++) {
-            UID childuid = (UID) ids.get(i);
-            // yuck! another n^2 operation.  sigh.
-            // surely we should be able to do better...
-            ((ExpansionImpl)pe).setSubTaskResults(aggTST,childuid);
-          }
-
+        AllocationResult ar = wf.aggregateAllocationResults(ids);
+        if (ar != null) {         // if the aggregation is defined:
           // set the result on the
           ((PEforCollections) pe).setReceivedResult(ar);
 

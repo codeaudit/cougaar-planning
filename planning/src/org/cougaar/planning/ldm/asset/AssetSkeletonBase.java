@@ -236,7 +236,7 @@ public abstract class AssetSkeletonBase
   }
 
 
-  /** Convenient equivalent to searchForPropertyGroupSchedule(pg.getClass()) **/
+  /** Convenient equivalent to searchForPropertyGroupSchedule(pg.getPrimaryClass()) **/
   public final PropertyGroupSchedule searchForPropertyGroupSchedule(PropertyGroup pg) {
     return searchForPropertyGroupSchedule(pg.getPrimaryClass());
   }
@@ -255,9 +255,9 @@ public abstract class AssetSkeletonBase
     return (pg instanceof Null_PG)?null:pg;
   }
       
-  /** Convenient equivalent to searchForPropertyGroup(pg.getClass()) **/
+  /** Convenient equivalent to searchForPropertyGroup(pg.getPrimaryClass()) **/
   public final PropertyGroup searchForPropertyGroup(PropertyGroup pg) {
-    return searchForPropertyGroup(pg.getClass());
+    return searchForPropertyGroup(pg.getPrimaryClass());
   }
 
   /** External api for finding a property group by class at a specific time **/
@@ -266,9 +266,9 @@ public abstract class AssetSkeletonBase
     return (pg instanceof Null_PG)?null:pg;
   }
 
-  /** Convenient equivalent to searchForPropertyGroup(pg.getClass(), time) **/
+  /** Convenient equivalent to searchForPropertyGroup(pg.getPrimaryClass(), time) **/
   public final PropertyGroup searchForPropertyGroup(PropertyGroup pg, long time) {
-    return searchForPropertyGroup(pg.getClass(), time);
+    return searchForPropertyGroup(pg.getPrimaryClass(), time);
   }
 
   /** get and possibly cache a PG value.
@@ -555,7 +555,7 @@ public abstract class AssetSkeletonBase
           throw new RuntimeException("Unable to handle object of Class: " + o.getClass() +
                                      " in otherProperties list.");
         }
-        if (propertyGroupClass.equals(ok)) {
+        if (propertyGroupClass.isAssignableFrom(ok)) {
           return i;
         }
       }

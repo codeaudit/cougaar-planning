@@ -829,9 +829,13 @@ public class TaskImpl extends PlanningDirectiveImpl
   public void changingInBlackboard(Subscriber s) {
     // execution monitoring / commitment time checks
     if (commitmenttime > 0) {
-      if ( s.getClient().currentTimeMillis() > commitmenttime ) {
-        // its after the commitment time, don't publish the change and return false
-        logger.warn("publishChange of "+this+" past commitmenttime "+commitmenttime);
+      long curTime = s.getClient().currentTimeMillis();
+      // Could allow a 5 second buffer perhaps?
+      // IE: if (curTime > commitmenttime + 5000)
+      if ( curTime > commitmenttime ) {
+        // its after the commitment time, should not publish the change 
+	// For now, we do though
+        logger.warn("publishChange of "+this+ (curTime - commitmenttime) + " past commitmenttime "+getCommitmentDate() + " at current time " + (new Date(curTime)) + " by Subscriber " + s);
       }
     }
   }

@@ -368,10 +368,14 @@ public abstract class PlanElementImpl
     Task t = getTask();
     Date comdate = t.getCommitmentDate();
     if (comdate != null) {
-      // make sure the current alp time is before commitment time
-      if ( s.getClient().currentTimeMillis()  > comdate.getTime() ) {
-        // its after the commitment time - don't publish the object
-        logger.warn("publishAdd of "+this+" past commitmenttime "+comdate.getTime());
+      // make sure the current planning time is before commitment time
+      long curTime = s.getClient().currentTimeMillis();
+      // Could allow a 5 second buffer perhaps?
+      // IE: if (curTime > comdate.getTime() + 5000)
+      if ( curTime  > comdate.getTime() ) {
+        // its after the commitment time - shouldn't publish the object
+	// But for now we do so anyhow
+        logger.warn("publishAdd of "+this + (curTime - comdate.getTime()) + " millis past commitmenttime "+comdate + " at curTime: " + (new Date(curTime)) + " by Subscriber " + s);
       }
     }
 

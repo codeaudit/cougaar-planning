@@ -145,6 +145,14 @@ public class AssetReportPlugin extends SimplePlugin
   }
 
   private void allocate(Task task) {
+    if (task.getPlanElement() != null) {
+      myLogger.error(getMessageAddress().toString()+
+		     "/AssetReportPlugin: unable to process " + task.getUID() + 
+		     " - task already has a PlanElement - " + 
+		     task.getPlanElement() + ".\n");
+      return;
+    }
+
     Asset reportingAsset = task.getDirectObject();
 
     if (!reportingAsset.getClusterPG().getMessageAddress().equals(getMessageAddress())) {
@@ -348,8 +356,7 @@ public class AssetReportPlugin extends SimplePlugin
       public boolean execute(Object o) {
 	if (o instanceof Task) {
           Task task = (Task) o;
-	  if ((task.getVerb().equals(Constants.Verb.REPORT)) &&
-              (task.getPlanElement() == null)) {
+	  if (task.getVerb().equals(Constants.Verb.REPORT)) {
 	    return true;
           }
 	}

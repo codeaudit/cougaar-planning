@@ -64,15 +64,27 @@ public interface RelationshipSchedule extends Schedule {
    **/
   Collection getMatchingRelationships(Role role);
 
+  /** getMatchingRelationships - return all Relationships which contain the
+   * specified role and intersect the time.
+   * 
+   * @param role Role to look for
+   * @param time long specifying the time
+   * @return a sorted Collection containing all Relationships which
+   * which match the specified Role and intersect the specified time 
+   **/
+  Collection getMatchingRelationships(Role role, long time);
 
   /** getMatchingRelationships - return all Relationships which contain the
-   * specified role and overlap the specified time span.
+   * specified role and overlap the time span specified by the start and end
+   * time arguments
    * 
    * @param role Role to look for
    * @param startTime long specifying the start of the time span
    * @param endTime long specifying the end of the time span
    * @return a sorted Collection containing all Relationships which
    * which match the specified Role and overlap the specified time span
+   * @deprecated Use getMatchingRelationships(Role role, TimeSpan timeSpan) or
+   * getMatchingRelationships(Role role, long time)
    **/
   Collection getMatchingRelationships(Role role, long startTime, long endTime);
 
@@ -88,21 +100,17 @@ public interface RelationshipSchedule extends Schedule {
   Collection getMatchingRelationships(Role role, TimeSpan timeSpan);
 
 
-  /** getMatchingRelationships - return all Relationships which contain the 
-   * specified other object, match the specified role, and overlap the 
-   * specified time span.
-   *
+  /** getMatchingRelationships - return all Relationships which contain the
+   * specified other object, match the specified role and intersect the time.
+   * 
    * @param role Role to look for
    * @param otherObject HasRelationships 
-   * @param startTime long specifying the start of the time span
-   * @param endTime long specifying the end of the time span
+   * @param time long specifying the time
    * @return a sorted Collection containing all Relationships which contain 
    * the specified other object, match the specified role and direct object 
-   * flag, and overlap the specified time span.
+   * flag, and intersect the specified time.
    **/
-  Collection getMatchingRelationships(Role role, 
-                                      HasRelationships otherObject,
-                                      long startTime, long endTime);
+  Collection getMatchingRelationships(Role role, HasRelationships otherObject, long time);
 
   /** getMatchingRelationships - return all Relationships which contain the 
    * specified other object, match the specified role, and overlap the 
@@ -118,18 +126,36 @@ public interface RelationshipSchedule extends Schedule {
                                       HasRelationships otherObject,
                                       TimeSpan timeSpan);
 
-  /** getMatchingRelationships - return all Relationships which contain the
-   * specified other object and overlap the specified time span.
-   * 
+  /** getMatchingRelationships - return all Relationships which contain the 
+   * specified other object, match the specified role, and overlap the 
+   * the time span specified by the start and end time arguments
+   *
+   * @param role Role to look for
    * @param otherObject HasRelationships 
    * @param startTime long specifying the start of the time span
    * @param endTime long specifying the end of the time span
+   * @return a sorted Collection containing all Relationships which contain 
+   * the specified other object, match the specified role and direct object 
+   * flag, and overlap the specified time span.
+   * @deprecated Use getMatchingRelationships(Role role, HasRelationships otherObject, TimeSpan timeSpan) or
+   * getMatchingRelationships(Role role, HasRelationships otherObject, long time)
+   **/
+  Collection getMatchingRelationships(Role role, 
+                                      HasRelationships otherObject,
+                                      long startTime, long endTime);
+
+
+  /** getMatchingRelationships - return all Relationships which contain the
+   * specified other object and intersect the specified time.
+   * 
+   * @param otherObject HasRelationships 
+   * @param time long 
    * @return a sorted Collection containing all Relationships which
-   * which match the specified Role and overlap the specified time span
+   * which contain the specified other HasRelationships and intersect the 
+   * specified time span
    **/
   Collection getMatchingRelationships(HasRelationships otherObject,
-                                      long startTime,
-                                      long endTime);
+                                      long time);
 
   /** getMatchingRelationships - return all Relationships which contain the
    * specified other object and overlap the specified time span.
@@ -144,22 +170,24 @@ public interface RelationshipSchedule extends Schedule {
                                       TimeSpan timeSpan);
 
   /** getMatchingRelationships - return all Relationships which contain the
-   * specified role suffix andd overlap the specified time span. 
-   * getMatchingRelationships("Provider", startTime, endTime) will return
-   * relationships with providers.
+   * specified other object and overlap the time span specified by the start and end
+   * time arguments.
    * 
-   * @param roleSuffix String specifying the role suffix to match
+   * @param otherObject HasRelationships 
    * @param startTime long specifying the start of the time span
    * @param endTime long specifying the end of the time span
    * @return a sorted Collection containing all Relationships which
-   * which match the specified Role suffix and overlap the specified time span
+   * which match the specified Role and overlap the specified time span
+   * @deprecated Use getMatchingRelationships(HasRelationships otherObject, TimeSpan timeSpan) or
+   * getMatchingRelationships(HasRelationships otherObject, long time)
    **/
-  Collection getMatchingRelationships(String roleSuffix,
+  Collection getMatchingRelationships(HasRelationships otherObject,
                                       long startTime,
                                       long endTime);
 
+
   /** getMatchingRelationships - return all Relationships which contain the
-   * specified other object and overlap the specified time span.
+   * specified role suffix and overlap the specified time span.
    * getMatchingRelationships("Provider", timeSpan) will return
    * relationships with providers.
    * 
@@ -172,16 +200,37 @@ public interface RelationshipSchedule extends Schedule {
   Collection getMatchingRelationships(String roleSuffix,
                                       TimeSpan timeSpan);
 
-
-  /** getMatchingRelationships - return all Relationships which overlap the 
-   * specified time span. 
+  /** getMatchingRelationships - return all Relationships which contain the
+   * specified role suffix and intersect the specified time.
+   * getMatchingRelationships("Provider", time) will return
+   * relationships with providers.
    * 
+   * @param roleSuffix String specifying the role suffix to match
+   * @param time long
+   * @return a sorted Collection containing all Relationships which
+   * which contain the specified role suffix and intersect the 
+   * specified time
+   **/
+  Collection getMatchingRelationships(String roleSuffix,
+                                      long time);
+
+
+  /** getMatchingRelationships - return all Relationships which contain the
+   * specified role suffix and overlap the time span specified by the start and end
+   * time arguments.
+   * getMatchingRelationships("Provider", startTime, endTime) will return
+   * relationships with providers.
+   * 
+   * @param roleSuffix String specifying the role suffix to match
    * @param startTime long specifying the start of the time span
    * @param endTime long specifying the end of the time span
    * @return a sorted Collection containing all Relationships which
-   * which match overlap the specified time span
+   * which match the specified Role suffix and overlap the specified time span
+   * @deprecated Use getMatchingRelationships(String roleSuffix, TimeSpan timeSpan) or
+   * getMatchingRelationships(String roleSuffix, long time)
    **/
-  Collection getMatchingRelationships(long startTime,
+  Collection getMatchingRelationships(String roleSuffix,
+                                      long startTime,
                                       long endTime);
 
   /** getMatchingRelationships - return all Relationships which overlap the 
@@ -193,6 +242,28 @@ public interface RelationshipSchedule extends Schedule {
    **/
   Collection getMatchingRelationships(TimeSpan timeSpan);
 
+  /** getMatchingRelationships - return all Relationships which intersect the 
+   * specified time.
+   * 
+   * @param time long
+   * @return a sorted Collection containing all Relationships which
+   * which intersect the specified time
+   **/
+  Collection getMatchingRelationships(long time);
+
+  /** getMatchingRelationships - return all Relationships which overlap the 
+   * time span specified by the start and end time arguments. 
+   * 
+   * @param startTime long specifying the start of the time span
+   * @param endTime long specifying the end of the time span
+   * @return a sorted Collection containing all Relationships which
+   * which match overlap the specified time span
+   * @deprecated Use getMatchingRelationships(TimeSpan timeSpan) or
+   * getMatchingRelationships(long time)
+   **/
+  Collection getMatchingRelationships(long startTime,
+                                      long endTime);
+
   /** getMyRole - return role for schedule's HasRelationships in the specified
    * relationship.
    *
@@ -201,7 +272,7 @@ public interface RelationshipSchedule extends Schedule {
    */
   Role getMyRole(Relationship relationship);
 
-  /** getMyRole - return role for other HasRelationships in the specified
+  /** getOtherRole - return role for other HasRelationships in the specified
    * relationship.
    *
    * @param relationship Relationship

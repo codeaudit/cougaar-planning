@@ -90,7 +90,7 @@ import org.cougaar.util.UnaryPredicate;
  * associated with all the local asset's relationships. Local asset must have ClusterPG and 
  * RelationshipPG, Presumption is that the 'other' assets in all the 
  * relationships have both Cluster and Relationship PGs.
- * Currently assumes that each Cluster has exactly 1 local asset.
+ * Currently assumes that each Agent has exactly 1 local asset.
  *
  * Extensions of this class load this information from specific media such as files.
  * Now supports adding additional relationships via plugin parameters. Each
@@ -116,6 +116,8 @@ import org.cougaar.util.UnaryPredicate;
  * getDefaultStartTime()/getDefaultEndTime() if not included
  **/
 public class AssetDataPlugin extends SimplePlugin {
+  // See bug 3869 -- should be ComponentPlugin, but not trivial
+
   public static final String SELF = ("Self");
 
   protected static TrivialTimeSpan ETERNITY = 
@@ -238,7 +240,7 @@ public class AssetDataPlugin extends SimplePlugin {
 
   protected void processAssets() {
     try {
-      String cId = getMessageAddress().getAddress();
+      String aId = getAgentIdentifier().toString();
       
       if (myAssetInitializerService == null) {
 	myLogger.fatal("AssetInitializerService is null." +
@@ -246,7 +248,7 @@ public class AssetDataPlugin extends SimplePlugin {
 	return;
       }
       AssetDataReader assetDataReader = getAssetDataReader();
-      assetDataReader.readAsset(cId, new AssetDataCallbackImpl());
+      assetDataReader.readAsset(aId, new AssetDataCallbackImpl());
 
       // Process relationships specified as plugin arguments 
       addParamRelationships();      
@@ -275,12 +277,12 @@ public class AssetDataPlugin extends SimplePlugin {
         }
       }
 
-      publishAdd(myLocalAsset);
+      getBlackboardService().publishAdd(myLocalAsset);
       LocalAssetInfo localAssetInfo = new LocalAssetInfo(myLocalAsset, 
 							 myAssetClassName);
-      publishAdd(localAssetInfo);
+      getBlackboardService().publishAdd(localAssetInfo);
 
-      // Put the assets for this cluster into array
+      // Put the assets for this agent into array
       for (Iterator iterator = myRelationships.iterator(); 
              iterator.hasNext();) {
         Relationship relationship = (Relationship) iterator.next();
@@ -310,7 +312,7 @@ public class AssetDataPlugin extends SimplePlugin {
     RelationshipBG bg = 
       new RelationshipBG(pg, (HasRelationships) myLocalAsset);
 
-    // this asset is local to the cluster
+    // this asset is local to the agent
     pg.setLocal(true);
   }
 
@@ -332,7 +334,7 @@ public class AssetDataPlugin extends SimplePlugin {
       createReportTask(localClone, sendTo, roles, 
                        relationship.getStartTime(),
                        relationship.getEndTime());
-    publishAdd(reportTask);
+    getBlackboardService().publishAdd(reportTask);
   
   }
 
@@ -372,10 +374,10 @@ public class AssetDataPlugin extends SimplePlugin {
   }
 
   protected void addRelationship(String typeId, String itemId,
-                                 String otherClusterId, String roleName,
+                                 String otherAgentId, String roleName,
                                  long start, long end) {
     Asset otherAsset =
-      getAsset(myAssetClassName, itemId, typeId, otherClusterId);
+      getAsset(myAssetClassName, itemId, typeId, otherAgentId);
     Relationship relationship = 
       myPlanningFactory.newRelationship(Role.getRole(roleName),
                                    (HasRelationships) myLocalAsset,
@@ -386,7 +388,7 @@ public class AssetDataPlugin extends SimplePlugin {
  }
 
   //create the Report task to be sent to myself which will result in an asset 
-  //transfer of the copyOfMyself being sent to the cluster I am supporting.
+  //transfer of the copyOfMyself being sent to the agent I am supporting.
   protected NewTask createReportTask(Asset reportingAsset,
                                      Asset sendto,
                                      Collection roles,
@@ -408,7 +410,7 @@ public class AssetDataPlugin extends SimplePlugin {
     reportTask.setPrepositionalPhrases(prepPhrases.elements());
 
     reportTask.setPlan(myPlanningFactory.getRealityPlan());
-    reportTask.setSource(getMessageAddress());
+    reportTask.setSource(getAgentIdentifier());
 
     AspectValue startTAV = 
       TimeAspectValue.create(AspectType.START_TIME, startTime);
@@ -440,7 +442,7 @@ public class AssetDataPlugin extends SimplePlugin {
   }
 
   protected Asset getAsset(String className, String itemIdentification,
-                           String typeIdentification, String clusterName) {
+                           String typeIdentification, String agentName) {
 
     Asset asset = myPlanningFactory.createAsset(className);
   	
@@ -452,7 +454,7 @@ public class AssetDataPlugin extends SimplePlugin {
     itemIdProp.setNomenclature(itemIdentification);
     
     NewClusterPG cpg = (NewClusterPG)asset.getClusterPG();
-    cpg.setMessageAddress(MessageAddress.getMessageAddress(clusterName));
+    cpg.setMessageAddress(MessageAddress.getMessageAddress(agentName));
     
     Asset saved = (Asset) myOtherAssets.get(asset.getKey());
     if (saved == null) {
@@ -1023,10 +1025,10 @@ public class AssetDataPlugin extends SimplePlugin {
     }
 
     public void addRelationship(String typeId, String itemId,
-                                String otherClusterId, String roleName,
+                                String otherAgentId, String roleName,
                                 long start, long end)
     {
-      AssetDataPlugin.this.addRelationship(typeId, itemId, otherClusterId, roleName, start, end);
+      AssetDataPlugin.this.addRelationship(typeId, itemId, otherAgentId, roleName, start, end);
     }
   }
 

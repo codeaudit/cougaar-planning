@@ -350,7 +350,7 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
    * PiecewiseLinearScoringFunction.  Tests used are: must have at least 2 points,
    * all points must have the AspectType, values must be strictly increasing, scores
    * may not be negative.
-   * @throw IllegalArgumentException on illegal curve.
+   * @throws IllegalArgumentException on illegal curve.
    **/
   public final static void checkValidCurve(AspectScorePoint[] curve) {
     try {

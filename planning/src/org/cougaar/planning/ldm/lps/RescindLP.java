@@ -134,6 +134,25 @@ public class RescindLP
       } else if (obj instanceof Task) {
 	taskAdded((Task) obj);
       }
+    } else if (o.isChange()) {
+      if (obj instanceof Task)
+	taskChanged((Task) obj);
+    }
+  }
+
+  private void taskChanged(Task t) {
+    // we really dont care. But use this opportunity to check for consistent blackboard objects
+    // You should not publishChange a Task that is "inconsistent" (ie no parent). 
+
+    // FIXME: Does this check things that could be broken temporarily for a task thats changing?
+    // Will the deferred rescind do the right thing?
+    if (CHECKCONSISTENCY) {
+      if (!isTaskConsistent(t, "Changed Task")) {
+	// create & publish new DeferredRescind
+	if (logger.isDebugEnabled())
+	  logger.debug(self + ": Adding deferred rescind of inconsistent task " + t);
+	rootplan.add(new DeferredRescind(t, "Changed Task"));
+      }
     }
   }
 
@@ -143,11 +162,13 @@ public class RescindLP
     // If so, remove this task.
     
     // Also, if the task results from an Expansion or Aggregation, but that PE is not there, do similar.
-    if (CHECKCONSISTENCY && !isTaskConsistent(t)) {
-      // create & publish new DeferredRescind
-      if (logger.isDebugEnabled())
-	logger.debug(self + ": Adding deferred rescind of inconsistent task " + t);
-      rootplan.add(new DeferredRescind(t));
+    if (CHECKCONSISTENCY) {
+      if (!isTaskConsistent(t, "Added Task")) {
+	// create & publish new DeferredRescind
+	if (logger.isDebugEnabled())
+	  logger.debug(self + ": Adding deferred rescind of inconsistent task " + t);
+	rootplan.add(new DeferredRescind(t, "Added Task"));
+      }
     }
   }
 
@@ -156,7 +177,7 @@ public class RescindLP
   // If the parent was expanded, then it's Exp should be same
   // as the task's workflow's Exp, and similarly the Workflows
   // should be the same. And the Exp should be on the BBoard
-  // 1: pT on bb (if local task claimin a pT)
+  // 1: pT on bb (if local task claiming a pT)
   // 2: pT has PE
   // 3: pT's PE is on bb
   // 4: If pT is Exp, it's workflow == t.getWorkflow != null
@@ -168,7 +189,10 @@ public class RescindLP
   // -- or a ref to the logplan I suppose --,
   // and the self MessageAddress
   // Maybe cleaner that way?
-  private boolean isTaskConsistent(Task t) {
+
+  // The type is a string indicating the kind of task we are checking - or more appropriately, when:
+  // Added Task, Changed Task, Added PE's Task, Removed PE's Task.
+  private boolean isTaskConsistent(Task t, String type) {
     // If using Debug logging, then do all checks
     // even after one fails
     boolean debug = false;
@@ -182,11 +206,11 @@ public class RescindLP
     Task bT = logplan.findTask(t.getUID());
     if (bT == null) {
       if (logger.isDebugEnabled())
-	logger.debug(self + ": Task added but removed by the time I looked: " + t);
+	logger.debug(self + ": " + type + " removed by the time I looked: " + t);
       return true;
     } else if (bT != t) {
       if (logger.isInfoEnabled())
-	logger.info(self + ": Added task doesn't match what logplan had for this UID. Added: " + t + ". LogPlan has: " + bT);
+	logger.info(self + ": " + type + " doesn't match what logplan had for this UID. Checking task: " + t + ". LogPlan has: " + bT);
       if (! debug)
 	return false;
       else
@@ -203,7 +227,7 @@ public class RescindLP
       if (parent == null) {
 	// PROBLEM: Local task claims parent not on LogPlan
 	if (logger.isInfoEnabled())
-	  logger.info(self + ": Added task (local)'s parent not found on LogPlan: " + t);
+	  logger.info(self + ": " + type + " (local)'s parent not found on LogPlan: " + t);
 	// Should later remove this task
 	if (! debug)
 	  return false;
@@ -231,7 +255,7 @@ public class RescindLP
 	  
 	  if (! hasSub) {
 	    if (logger.isInfoEnabled()) 
-	      logger.info(self + ": Added task's workflow does not contain this task. Task: " + t + ", workflow: " + w);
+	      logger.info(self + ": " + type + "'s workflow does not contain this task. Task: " + t + ", workflow: " + w);
 	    if (! debug)
 	      return false;
 	    else
@@ -244,10 +268,10 @@ public class RescindLP
 	    if (wPTask.getUID().equals(pUID)) {
 	      parent = wPTask;
 	      if (logger.isDebugEnabled())
-		logger.debug(self + ": Added task whose parent was missing had a workflow that still pointed to the parent task. Task: " + t);
+		logger.debug(self + ": " + type + " whose parent was missing had a workflow that still pointed to the parent task. Task: " + t);
 	    } else {
 	      if (logger.isInfoEnabled())
-		logger.info(self + ": Added task whose parent was missing had a workflow that pointed to a different parent task. Task: " + t + ", workflow: " + w);
+		logger.info(self + ": " + type + " whose parent was missing had a workflow that pointed to a different parent task. Task: " + t + ", workflow: " + w);
 	      // So the parent was not on the LogPlan, and the workflow
 	      // pointed to a different parent. Bail out.
 	      // FIXME: Could check to see if that wf's parent task refers back to this workflow and/or is on the bboard & of course it's planelement
@@ -258,7 +282,7 @@ public class RescindLP
 	    // is a rescind in progress? From above,
 	    // this task will be marked inconsistent already
 	    if (logger.isInfoEnabled())
-	      logger.info(self + ": Added task with missing parent whose workflow's parent link is null. Task: " + t);
+	      logger.info(self + ": " + type + " with missing parent whose workflow's parent link is null. Task: " + t);
 	    return false;
 	  }
 	} // missing parent but had a workflow
@@ -272,7 +296,7 @@ public class RescindLP
       if (ppe == null) {
 	// problem
 	if (logger.isInfoEnabled()) 
-	  logger.info(self + ": Added task's parent has no PE. Task: " + t + ". Logplan lists pe: " + (bppe != null ? (bppe.getUID() + ":") : "") + bppe);
+	  logger.info(self + ": " + type + "'s parent has no PE. Task: " + t + ". Logplan lists pe: " + (bppe != null ? (bppe.getUID() + ":") : "") + bppe);
 	// Should later remove both this task and the parent!!! FIXME!!!
 	// Or maybe the parent is OK?
 	if (! debug)
@@ -284,6 +308,8 @@ public class RescindLP
 	if (w == null) {
 	  // Added task whose parent's planelement is missing with no workflow.
 	  // Nothing more to check.
+	  if (logger.isInfoEnabled())
+	    logger.info(self + " " + type + " whose parent task's planelement is missing and has no workflow. Task: " + t + ", parent: " + parent);
 	  return result;
 	} else {
 	  // Look at the workflow: Does it contain me?
@@ -301,7 +327,7 @@ public class RescindLP
 	  
 	  if (! hasSub) {
 	    if (logger.isInfoEnabled()) 
-	      logger.info(self + ": Added task's workflow does not contain this task. Task: " + t + ", workflow: " + w);
+	      logger.info(self + ": " + type + "'s workflow does not contain this task. Task: " + t + ", workflow: " + w);
 	    if (! debug)
 	      return false;
 	    else
@@ -313,10 +339,10 @@ public class RescindLP
 	  if (wPTask != null) {
 	    if (wPTask == parent) {
 	      if (logger.isDebugEnabled())
-		logger.debug(self + ": Added task whose parent's PE was missing had a workflow that still pointed to the parent task. Task: " + t);
+		logger.debug(self + ": " + type + " whose parent's PE was missing had a workflow that still pointed to the parent task. Task: " + t);
 	    } else {
 	      if (logger.isInfoEnabled())
-		logger.info(self + ": Added task whose parent's PE was missing had a workflow that pointed to a different parent task. Task: " + t + ", workflow: " + w);
+		logger.info(self + ": " + type + " whose parent's PE was missing had a workflow that pointed to a different parent task. Task: " + t + ", workflow: " + w);
 	      // So the parent's PE was not on the LogPlan, and the workflow
 	      // pointed to a different parent. Bail out.
 	      // FIXME: Could check to see if that wf's parent task refers back to this workflow and/or is on the bboard & of course it's planelement
@@ -325,7 +351,7 @@ public class RescindLP
 	  } else {
 	    // This task's workflow didn't point back to the task's parent!
 	    if (logger.isInfoEnabled())
-	      logger.info(self + ": Added task had parent missing PE & a workflow without a parent task. Task: " + t + ", workflow: " + w);
+	      logger.info(self + ": " + type + " had parent missing PE & a workflow without a parent task. Task: " + t + ", workflow: " + w);
 	    return false;
 	  }
 	} // missing parent's PE but had a workflow
@@ -339,7 +365,7 @@ public class RescindLP
       if (bppe != ppe) {
 	// problem
 	if (logger.isInfoEnabled())
-	  logger.info(self + ": Added task's parent's PE not on LogPlan consistently. Task: " + t + ", parent's PE: " + (ppe!= null ? (ppe.getUID()+":"+ppe) : ppe.toString()) + ", but LogPlan says: " + (bppe != null ? (bppe.getUID()+":"+bppe) : bppe.toString()));
+	  logger.info(self + ": " + type + "'s parent's PE not on LogPlan consistently. Task: " + t + ", parent's PE: " + (ppe!= null ? (ppe.getUID()+":"+ppe) : ppe.toString()) + ", but LogPlan says: " + (bppe != null ? (bppe.getUID()+":"+bppe) : bppe.toString()));
 	// Should later remove both this task and the parent!!! FIXME!!!
 	// Should also probably remove both the planElement's referred
 	// to here.... FIXME!!!
@@ -363,7 +389,7 @@ public class RescindLP
 	Workflow pw = ((Expansion)ppe).getWorkflow();
 	if (pw == null) {
 	  if (logger.isInfoEnabled())
-	    logger.info(self + ": Added task's parent's expansion had no workflow. Task: " + t + ", Expansion: " + ppe.getUID() + ":" + ppe);
+	    logger.info(self + ": " + type + "'s parent's expansion had no workflow. Task: " + t + ", Expansion: " + ppe.getUID() + ":" + ppe);
 	  // Should remove the task, parent, and Expansion? 
 	  // Or maybe just the task? FIXME!!!
 	  if (! debug)
@@ -374,7 +400,7 @@ public class RescindLP
 
 	if (w == null) {
 	  if (logger.isInfoEnabled())
-	    logger.info(self + ": Added task's parent was Expanded, but this task has no workflow. Task: " + t);
+	    logger.info(self + ": " + type + "'s parent was Expanded, but this task has no workflow. Task: " + t);
 	  // Task is clearly bad. But is parent OK? FIXME
 	  if (! debug)
 	    return false;
@@ -384,7 +410,7 @@ public class RescindLP
 
 	if (w != pw) {
 	  if (logger.isInfoEnabled())
-	    logger.info(self + ": Added task's parent's expansion's workflow not same as this task's workflow. Task: " + t + " claims workflow: " + w + ", but parent has workflow: " + pw);
+	    logger.info(self + ": " + type + "'s parent's expansion's workflow not same as this task's workflow. Task: " + t + " claims workflow: " + w + ", but parent has workflow: " + pw);
 	  // Added task is bad. parent may be OK though? FIXME!
 	  // All sub's of the added task's workflow are also suspect
 	  if (! debug)
@@ -396,7 +422,7 @@ public class RescindLP
 	// 4.5: Extra check.
 	if (w != null && w.getParentTask() == null) {
 	  if (logger.isInfoEnabled()) 
-	    logger.info(self + ": Added task's workflow's parent is null. Task: " + t + ", workflow: " + w);
+	    logger.info(self + ": " + type + "'s workflow's parent is null. Task: " + t + ", workflow: " + w);
 	  // The task and all subs of the workflow are bad. FIXME
 	  // But the parent task pointed to this workflow, so is the 
 	  // parent task also bad?
@@ -408,7 +434,7 @@ public class RescindLP
 
 	if (w != null && w.getParentTask() != parent) {
 	  if (logger.isInfoEnabled())
-	    logger.info(self + ": Added task's parent not same as added task's workflow's parent. Task: " + t + ", workflow: " + w);
+	    logger.info(self + ": " + type + "'s parent not same as " + type + "'s workflow's parent. Task: " + t + ", workflow: " + w);
 	  // The workflow is pointed 2 from 2 directions, but it's upwards
 	  // pointer is bad. Huh?
 	  if (! debug)
@@ -433,7 +459,7 @@ public class RescindLP
 
 	  if (! hasSub) {
 	    if (logger.isInfoEnabled()) 
-	      logger.info(self + ": Added task's workflow does not contain this task. Task: " + t + ", workflow: " + w);
+	      logger.info(self + ": " + type + "'s workflow does not contain this task. Task: " + t + ", workflow: " + w);
 	    if (! debug)
 	      return false;
 	    else
@@ -447,7 +473,7 @@ public class RescindLP
 	UID aUID = ((AllocationforCollections)ppe).getAllocationTaskUID();
 	if (aUID == null) {
 	  if (logger.isInfoEnabled())
-	    logger.info(self + ": Added task's parent's allocation says AllocTask is null? Task: " + t + ", parent's alloc: " + ppe.getUID() + ":" + ppe);
+	    logger.info(self + ": " + type + "'s parent's allocation says AllocTask is null? Task: " + t + ", parent's alloc: " + ppe.getUID() + ":" + ppe);
 	  // Task is bad. Allocation & parent may be OK FIXME
 	  if (! debug)
 	    return false;
@@ -455,7 +481,7 @@ public class RescindLP
 	    result = false;
 	} else if (aUID != t.getUID()) {
 	  if (logger.isInfoEnabled())
-	    logger.info(self + ": Added task's parent's allocation's allocTask not same as this task. Task: " + t + ", allocation: " + ppe.getUID() + ":" + ppe);
+	    logger.info(self + ": " + type + "'s parent's allocation's allocTask not same as this task. Task: " + t + ", allocation: " + ppe.getUID() + ":" + ppe);
 	  // Task is bad. Alloc & parent may be OK - FIXME
 	  if (! debug)
 	    return false;
@@ -468,7 +494,7 @@ public class RescindLP
 	Composition c = ((Aggregation)ppe).getComposition();
 	if (c == null) {
 	  if (logger.isInfoEnabled())
-	    logger.info(self + ": Added task's parent's Aggregation PE had no composition. Task: " + t + " aggregation: " + ppe.getUID() + ":" + ppe);
+	    logger.info(self + ": " + type + "'s parent's Aggregation PE had no composition. Task: " + t + " aggregation: " + ppe.getUID() + ":" + ppe);
 	  if (! debug)
 	    return false;
 	  else
@@ -478,14 +504,14 @@ public class RescindLP
 	  MPTask mpt = c.getCombinedTask();
 	  if (mpt == null) {
 	    if (logger.isInfoEnabled())
-	      logger.info(self + ": Added task's parent's aggregation's composition had no CombinedTask. Task: " + t + ", aggregation: " + ppe.getUID() + ":" + ppe);
+	      logger.info(self + ": " + type + "'s parent's aggregation's composition had no CombinedTask. Task: " + t + ", aggregation: " + ppe.getUID() + ":" + ppe);
 	    if (! debug)
 	      return false;
 	    else
 	      result = false;
 	  } else if (mpt != t) {
 	    if (logger.isInfoEnabled())
-	      logger.info(self + ": Added task's parent's aggregation's MPTask not same as this task. Task: " + t + ", mptask: " + mpt + ", aggregation: " + ppe.getUID() + ":" + ppe);
+	      logger.info(self + ": " + type + "'s parent's aggregation's MPTask not same as this task. Task: " + t + ", mptask: " + mpt + ", aggregation: " + ppe.getUID() + ":" + ppe);
 	    if (! debug)
 	      return false;
 	    else
@@ -497,7 +523,7 @@ public class RescindLP
       // task with no parent or parent is remote
       // Had no parent but it says it has a workflow?
       if (logger.isInfoEnabled())
-	logger.info(self + ": Added task had no or non-local parent. Task Source: " + dest + ". For comparison, dest: " + t.getDestination() + ". But it has a workflow! Task: " + t + ", workflow: " + w);
+	logger.info(self + ": " + type + " had no or non-local parent. Task Source: " + dest + ". For comparison, dest: " + t.getDestination() + ". But it has a workflow! Task: " + t + ", workflow: " + w);
       // Keep going? Does the workflow have a parent? Does
       // that parent exist? If so, maybe remove that parent
       // so it propogates back down to the Expansion & clears out
@@ -523,7 +549,7 @@ public class RescindLP
       
       if (! hasSub) {
 	if (logger.isInfoEnabled()) 
-	  logger.info(self + ": Added task's workflow does not contain this task. Task: " + t + ", workflow: " + w);
+	  logger.info(self + ": " + type + "'s workflow does not contain this task. Task: " + t + ", workflow: " + w);
 	if (! debug)
 	  return false;
 	else
@@ -535,17 +561,17 @@ public class RescindLP
       if (wPTask != null) {
 	if (wPTask.getUID().equals(pUID)) {
 	  if (logger.isDebugEnabled())
-	    logger.debug(self + ": Added task whose parent was missing or remote had a workflow that still pointed to the parent task. Task: " + t + ", workflow: " + w);
+	    logger.debug(self + ": " + type + " whose parent was missing or remote had a workflow that still pointed to the parent task. Task: " + t + ", workflow: " + w);
 	} else {
 	  if (logger.isInfoEnabled())
-	    logger.info(self + ": Added task whose parent was missing or remote had a workflow that pointed to a different parent task. Task: " + t + ", workflow: " + w);
+	    logger.info(self + ": " + type + " whose parent was missing or remote had a workflow that pointed to a different parent task. Task: " + t + ", workflow: " + w);
 	  // So the parent was not on the LogPlan, and the workflow
 	  // pointed to a different parent. Bail out.
 	  // FIXME: Could check to see if that wf's parent task refers back to this workflow and/or is on the bboard & of course it's planelement
 	}
       } else {
 	if (logger.isInfoEnabled())
-	  logger.info(self + ": Added Task with remote or missing parent had a workflow with no parent. Task: " + t + ", workflow " + w);
+	  logger.info(self + ": " + type + " with remote or missing parent had a workflow with no parent. Task: " + t + ", workflow " + w);
       }
     } // missing or remote parent but had a workflow
 
@@ -561,6 +587,9 @@ public class RescindLP
 	logger.debug(self + ": Removing added planelement [task not found in the logplan] for " + task + " as " + pe.getUID() + ":" + pe);
       }
       removePlanElement(pe, true);
+
+      // FIXME: Log that I expect removal of any child task from this PE?
+
       // Unless we're doing debug logging, skip out here.
       if (! logger.isDebugEnabled())
 	return;
@@ -641,6 +670,15 @@ public class RescindLP
     }
 
     // Other to do: If it's an Expansion, does it have a workflow?
+
+
+    // If the task referenced by this PlanElement is inconsistent, remove it.
+    if (!isTaskConsistent(task, "Added PE's Task")) {
+      // create & publish new DeferredRescind
+      if (logger.isDebugEnabled())
+	logger.debug(self + ": Adding deferred rescind of inconsistent task " + task);
+      rootplan.add(new DeferredRescind(task, "Added PE's Task"));
+    }
   }
 
   private void removeTaskFromWorkflow(Task t) {
@@ -686,22 +724,22 @@ public class RescindLP
     } else if (deferredRescind.t != null) {
       // Check consistency as above.
       // assert CHECKCONSISTENCY == true
-      if (!isTaskConsistent(deferredRescind.t)) {
+      if (!isTaskConsistent(deferredRescind.t, deferredRescind.type)) {
 	if (DOREMOVES) {
 	  if (logger.isInfoEnabled())
-	    logger.warn(self + ": New task inconsistent after deferral, removing: " + deferredRescind.t);
+	    logger.warn(self + ": " + deferredRescind.type + " inconsistent after deferral, removing: " + deferredRescind.t);
 	  // FIXME: remove parent task & PE too?
 	  // If task is in a workflow, must first remove it from the workflow
 	  removeTaskFromWorkflow(deferredRescind.t);
 	  removeTask(deferredRescind.t);
 	} else {
 	  if (logger.isInfoEnabled())
-	    logger.warn(self + ": New task inconsistent after deferral, NOT REMOVING: " + deferredRescind.t);
+	    logger.warn(self + ": " + deferredRescind.type + " inconsistent after deferral, NOT REMOVING: " + deferredRescind.t);
 	  rootplan.remove(deferredRescind);
 	}
       } else {
 	if (logger.isInfoEnabled())
-	  logger.info(self + ": New task was not, now is consistent after deferral. Leaving: " + deferredRescind.t);
+	  logger.info(self + ": " + deferredRescind.type + " was not, now is consistent after deferral. Leaving: " + deferredRescind.t);
 	rootplan.remove(deferredRescind);
       }
 
@@ -711,6 +749,7 @@ public class RescindLP
   /** remove PE and any cascade objects */
   private void removePlanElement(PlanElement pe, boolean force) {
     if (pe != null) {
+      // FIXME: Should this be lp.find(pe.getTask()) == pe??
       if (force || logplan.findPlanElement(pe.getTask()) != null) {
 	rootplan.remove(pe);
 	//      planElementRemoved(pe);
@@ -723,6 +762,15 @@ public class RescindLP
     // Is the PE on the LogPlan or the Task? - if it is, re remove it
     Task t = pe.getTask();
     if (CHECKCONSISTENCY && t != null) {
+      // First, check that the PEs Task is consistent - plan to remove it if not
+      if (!isTaskConsistent(t, "Removed PE's Task")) {
+	// create & publish new DeferredRescind
+	if (logger.isDebugEnabled())
+	  logger.debug(self + ": Adding deferred rescind of inconsistent task " + t);
+	rootplan.add(new DeferredRescind(t, "Removed PE's Task"));
+      }
+
+      // Now check that the various pointers to the PE agree
       PlanElement bPE = logplan.findPlanElement(t);
       PlanElement tPE = t.getPlanElement();
       if (bPE == pe) {
@@ -737,6 +785,7 @@ public class RescindLP
 	  if (DOREMOVES) {
 	    removePlanElement(pe, true);
 	    // Do the follow-on the next time around...
+	    // FIXME: Log what I expect to happen?
 	    return;
 	  }
 	} else if (tPE == null) {
@@ -859,9 +908,17 @@ public class RescindLP
     // get the planelement with this task
     PlanElement taskpe = task.getPlanElement();
 
+    // FIXME: Does taskpe point to this task? Doe bpe point to this task?
+    Task taskpetask = null;
+    Task bpetask = null;
+
     PlanElement bpe = null;
     if (CHECKCONSISTENCY) {
+      if (taskpe != null)
+	taskpetask = taskpe.getTask();
       bpe = logplan.findPlanElement(task);
+      if (bpe != null)
+	bpetask = bpe.getTask();
       if (taskpe != bpe) {
 	// Task and logplan reference different PEs for this Task
 	if (taskpe == null) {
@@ -870,15 +927,25 @@ public class RescindLP
 	  // Presumably a publishRemove(PE) just happened in another transaction,
 	  // but has not finished.
 	  if (logger.isInfoEnabled())
-	    logger.info(self + ": Removed Task has no PE, but logplan still lists a PE under this UID. Task: " + task + ", LogPlan's PE: " + bpe.getUID() + ":" + bpe);
+	    logger.info(self + ": Removed Task has no PE, but LogPlan still lists a PE under this UID. Task: " + task + ", LogPlan's PE: " + bpe.getUID() + ":" + bpe + ". LogPlan PE's Task: " + bpetask);
 	} else if (bpe == null) {
 	  // Presumably a publishAdd(PE) just happened in another transaction,
 	  // but has not finished
 	  if (logger.isInfoEnabled())
-	    logger.info(self + ": Removed task lists a PE, but LogPlan has no PE under this UID. Task: " + task + ", Task's PE: " + taskpe.getUID() + ":" + taskpe);
+	    logger.info(self + ": Removed task lists a PE, but LogPlan has no PE under this UID. Task: " + task + ", Task's PE: " + taskpe.getUID() + ":" + taskpe + ". Task's PE's Task: " + taskpetask);
 	} else {
-	  if (logger.isWarnEnabled())
+	  if (logger.isWarnEnabled()) {
 	    logger.warn(self + ": Removed task lists a different PE than LogPlan has. Task: " + task + ", Task's PE: " + taskpe.getUID() + ":" + taskpe + ", LogPlan's PE: " + bpe.getUID() + ":" + bpe);
+	    logger.info(self + "..... Task's PE's Task: " + taskpetask + ", LogPlan's PE's Task: " + bpetask);
+	  }
+	}
+      } else {
+	// taskpe == bpe
+	if (bpe == null) {
+	  // Removed task has no PE and neither does LogPlan
+	} else if (taskpetask != task) {
+	  if (logger.isInfoEnabled())
+	    logger.info(self + ": Removed Task lists same PE as LogPlan has for it, but the PE points to a different Task. Task: " + task + ", Task's PE: " + taskpe.getUID() + ":" + taskpe + ". Task's PE's Task: " + taskpetask);
 	}
       } // end of consistency checks
       
@@ -1121,12 +1188,14 @@ public class RescindLP
     public TaskRescind tr = null;
     public Task t = null;
     public int tryCount = 0;
+    public String type = null;
     public DeferredRescind(TaskRescind tr) {
       this.tr = tr;
     }
-
-    public DeferredRescind(Task t) {
+    // Used for deferring the rescind of an inconsistent task
+    public DeferredRescind(Task t, String type) {
       this.t = t;
+      this.type = type;
     }
   }
 

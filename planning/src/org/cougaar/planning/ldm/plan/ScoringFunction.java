@@ -52,6 +52,11 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
   /** Typical "Satisfactory" value **/
   public final static double OK = 0.5;
 
+  /** A Value to be used when the Score is undefined, equivalent to Double.NaN.
+   * @note Should be compared via Double.isNaN() rather than with ==
+   **/
+  public final static double NOVALUE = Double.NaN;
+
   protected int aspectType;
 
   protected ScoringFunction(int type) {

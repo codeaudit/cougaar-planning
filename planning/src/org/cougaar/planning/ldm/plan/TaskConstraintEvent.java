@@ -72,6 +72,7 @@ public abstract class TaskConstraintEvent implements SettableConstraintEvent
    * getValue()
    * @return the allocation result of particular aspect if
    * isConstraining else returns the preference on that aspect.
+   * @note The value may be Double.NaN if the task has an undefined preferred value.
    **/
   public double getValue() {
     if (isConstraining()) {

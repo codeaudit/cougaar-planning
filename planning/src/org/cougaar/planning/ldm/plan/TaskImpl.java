@@ -312,12 +312,12 @@ public class TaskImpl extends PlanningDirectiveImpl
   
   /** return the preferred value for a given aspect type
     * from the defined preference (and scoring function)
-    * will return -1 if there is not a preference defined for this aspect type
+    * will return Double.NaN if there is not a preference defined for this aspect type
     * @param aspect_type The Aspect referenced by the preference
     * @return double
     */
   public double getPreferredValue(int aspect_type) {
-    double valueresult = -1;
+    double valueresult = Double.NaN;
     Preference matchpref = this.getPreference(aspect_type);
     if (matchpref != null) {
       valueresult = matchpref.getScoringFunction().getBest().getValue();

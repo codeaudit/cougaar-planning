@@ -138,8 +138,9 @@ public interface Task
   
   /** return the preferred value for a given aspect type
     * from the defined preference (and scoring function)
-    * will return -1 if there is not a preference defined for this aspect type
+    * will return Double.NaN if there is not a preference defined for this aspect type
     * @param aspect_type The Aspect referenced by the preference
+    * @note Reminder that you must use Double.isNaN to test for NaN, since NaN == NaN is always false.
     */
   double getPreferredValue(int aspect_type);
   

@@ -4107,7 +4107,7 @@ extends HttpServlet
         // missing verb
         return null;
       }
-      Verb v = Verb.getVerb(verbFilter);
+      Verb v = Verb.get(verbFilter);
       return 
         searchUsingPredicate(
             getTaskWithVerbPred(v));

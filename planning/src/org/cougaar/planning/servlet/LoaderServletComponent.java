@@ -41,7 +41,7 @@ import org.cougaar.core.service.AgentContainmentService;
 import org.cougaar.core.service.AgentIdentificationService;
 import org.cougaar.core.service.MessageTransportService;
 import org.cougaar.core.servlet.BaseServletComponent;
-import org.cougaar.util.StringUtility;
+import org.cougaar.util.CSVUtility;
 
 /**
  * Servlet that allows the client to add, remove, and check for
@@ -317,7 +317,7 @@ extends BaseServletComponent
             classname = value;
           } else if (name.equals(PARAMETERS_PARAM)) {
             // parse (s1, s2, .., sN)
-            parameters = StringUtility.parseCSV(value);
+            parameters = CSVUtility.parseToList(value);
           } else if (name.equals(CODEBASE_PARAM)) {
             codebase = value;
           } else {

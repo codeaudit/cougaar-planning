@@ -358,10 +358,13 @@ public abstract class PlanElementImpl
       }
     }
 
-    if (t.getPlanElement() == null) {
+    PlanElement existingPE = t.getPlanElement();
+    if (existingPE == null) {
       ((TaskImpl)t).privately_setPlanElement(this);
+    } else if (existingPE == this) {
+      throw new BlackboardException("publishAdd of miswired PlanElement (task already wired to this PE): " + this);
     } else {
-      throw new BlackboardException("publishAdd of miswired PlanElement (task already has PE): "+this);
+      throw new BlackboardException("publishAdd of miswired PlanElement (task already has other PE): " + existingPE);
     }
   }
   public void changingInBlackboard(Subscriber s) {}

@@ -172,7 +172,11 @@ public final class AssetInitializerServiceComponent
 	// if didn't get a good DBInitializerService, then
 	// use files. This may be INI or XML.
 	sp = new FileAssetInitializerServiceProvider();
-	log.shout("Not using a database, initializing solely from Files.");
+
+	// Only log this when WARN is enabled, but log it at SHOUT level,
+	// since it's more of an announcement
+	if (log.isWarnEnabled())
+	  log.shout("Not using a database, initializing solely from Files.");
       }
 
       return sp;
@@ -200,7 +204,9 @@ public final class AssetInitializerServiceComponent
     }
 
     if (!found) {
-      log.shout("No Cougaar rc file found.");
+      // util.Parameters will tell people this already
+      if (log.isInfoEnabled())
+	log.info("No Cougaar rc file found.");
     }
 
     return found;

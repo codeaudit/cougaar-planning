@@ -67,6 +67,8 @@ import org.cougaar.util.log.Logging;
  * ClusterPG:MessageAddress:MessageAddress:Staples
  * OrganizationPG:Roles:Collection<Role>:Subordinate, PaperProvider, CrayonProvider, PaintProvider
  * LocationSchedulePG:FixedLocation:(31.8500, -81.6000)
+ *
+ *    <em>Note that when using XSLNode, instead of < and >, use &lt; and &gt;</em>
  * 
  **/
 public class AssetDataParamReader implements AssetDataReader {

@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -45,12 +46,14 @@ import org.cougaar.core.blackboard.Transaction;
 import org.cougaar.core.blackboard.Blackboard;
 import org.cougaar.core.blackboard.Transaction;
 import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.core.persist.PersistenceStream;
 import org.cougaar.core.util.UID;
 import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.util.BackedEnumerator;
 import org.cougaar.util.Empty;
 import org.cougaar.util.Enumerator;
 import org.cougaar.util.Filters;
+import org.cougaar.util.CallerTracker;
 import org.cougaar.util.log.Logger;
 import org.cougaar.util.log.Logging;
  
@@ -62,13 +65,13 @@ public class TaskImpl extends PlanningDirectiveImpl
   implements Task, NewTask, Cloneable, ActiveSubscriptionObject, java.io.Serializable
 {
   private static final Logger logger = Logging.getLogger(TaskImpl.class);
-  static final long serialVersionUID = 8223101091726379402L;
+  static final long serialVersionUID = 3637651371788963470L;
 
   private Verb verb;
   private transient Asset directObject;  // changed to transient : Persistence
-  private transient ArrayList phrases = null; // changed to transient : Persistence
+  private transient List phrases = null; // changed to transient : Persistence
   private transient Workflow workflow; // changed to transient : Persistence 
-  private transient ArrayList preferences = null;
+  private transient List preferences = null;
   private byte priority = Priority.UNDEFINED;
   private UID parentUID;
   private UID uid = null;
@@ -104,6 +107,7 @@ public class TaskImpl extends PlanningDirectiveImpl
   public Verb getVerb() {
     return verb;
   }
+
   /** @param aVerb set the verb or action of a task*/
   public void setVerb( Verb aVerb ) {
     verb = aVerb;
@@ -275,18 +279,14 @@ public class TaskImpl extends PlanningDirectiveImpl
    * first time they getPreferences.
    * @return Enumeration{Preference}
    **/
-  private static Set badCallers = new HashSet();
+  private static CallerTracker badCallers = CallerTracker.getShallowTracker();
   public Enumeration getPreferences() {
     boolean useBackedEnumerator = !Thread.holdsLock(this);
     if (useBackedEnumerator && logger.isDebugEnabled()) {
-      Throwable t = new Throwable();
-      StackTraceElement caller = t.getStackTrace()[1];
-      synchronized (badCallers) {
-        if (badCallers.add(caller)) {
-          logger.debug("Unsafe call to Task.getPreferences from " + caller);
-        }
-      }
+      Object caller = badCallers.isNewFrame();
+      logger.debug("Unsafe call to Task.getPreferences from " + caller);
     }
+
     synchronized (this) {
       if (preferences != null && preferences.size()  > 0) {
         // if we need extra protection...
@@ -410,7 +410,7 @@ public class TaskImpl extends PlanningDirectiveImpl
     // should not have preference updates in both directions.
     if (this == that) return false;// if eq, cannot do anything useful.
     synchronized (that) {
-      ArrayList fps = that.preferences;
+      List fps = that.preferences;
       if (fps == preferences) return false; // if prefs are eq, bail out now.
       if (preferences == null) {
         // don't have to test for null, since we'd have caught it
@@ -439,12 +439,7 @@ public class TaskImpl extends PlanningDirectiveImpl
           } else {
             // they are different.
             preferences.clear();
-            int l = fps.size();
-            preferences.ensureCapacity(l);
-            for (Iterator i=fps.iterator(); i.hasNext(); ) {
-              //preferences.add(((Preference)i.next()).clone());
-              preferences.add((Preference)i.next());
-            }
+            preferences.addAll(fps);
             Transaction.noteChangeReport(this,new Task.PreferenceChangeReport());
             return true;
           }
@@ -455,15 +450,17 @@ public class TaskImpl extends PlanningDirectiveImpl
 
   /** Set just one preference in the task's preference list **/
   public synchronized void setPreference(Preference p) {
-    if (preferences == null) preferences = new ArrayList(2);
-
     int at = p.getAspectType();
-    Preference old = (Preference) Filters.findElement(preferences, 
-                                                      PreferencePredicate.get(at));
-    if (old != null) {
-      preferences.remove(old);
+    Preference old;
+    if (preferences == null) {
+      preferences = new ArrayList(1);
+      old = null;
+    } else {
+      old = (Preference) Filters.findElement(preferences, PreferencePredicate.get(at));
+      if (old != null) {
+        preferences.remove(old);
+      }
     }
-    // p = p.clone();
     preferences.add(p);
     Transaction.noteChangeReport(this, new Task.PreferenceChangeReport(at,old));
     decacheTS();
@@ -544,7 +541,7 @@ public class TaskImpl extends PlanningDirectiveImpl
   }
   
   public void addObservableAspect(int aspectType) {
-    if (observableAspects == null) observableAspects = new HashSet();
+    if (observableAspects == null) observableAspects = new HashSet(1);
     observableAspects.add(new Integer(aspectType));
   }
 
@@ -607,60 +604,37 @@ public class TaskImpl extends PlanningDirectiveImpl
     return ts;
   }
  
-  public static void writeArrayList(ObjectOutputStream s, ArrayList l)
-    throws IOException
-  {
-    Object[] objects = (l == null) ? null : l.toArray();
-    // Write out element count
-    s.writeObject(objects);
-  }
-
-  public static ArrayList readArrayList(ObjectInputStream s)
-    throws IOException, ClassNotFoundException
-  {
-    Object[] objects = (Object[]) s.readObject();
-    if (objects == null) return null;
-    ArrayList l = new ArrayList(objects.length);
-    for (int i = 0; i < objects.length; i++) {
-      l.add(objects[i]);
-    }
-    return l;
-  }
-
   /** serialize tasks making certain that references to other tasks and
    * workflows are appropriately proxied.
    */
   private void writeObject(ObjectOutputStream stream) throws IOException {
-    stream.defaultWriteObject();
+    synchronized (this) {     //  make sure the prefs aren't changing while writing
+      stream.defaultWriteObject();
 
-    stream.writeObject(directObject);
-    writeArrayList(stream, phrases);
-    if (stream instanceof org.cougaar.core.persist.PersistenceOutputStream) {
-      stream.writeObject(null); // workflow
-      stream.writeObject(myAnnotation);
-      stream.writeObject(observableAspects);
-    } else {
-      // workflow is never transferred (should be null)
-      //annotation and observables aren't relevant in another agent
+      stream.writeObject(directObject);
+      stream.writeObject(phrases);
+      stream.writeObject(preferences);
     }
 
-    synchronized (this) {     //  make sure the prefs aren't changing while writing
-      stream.writeObject(preferences);
+    // if we're persisting, we'll write some additional bits
+    if (stream instanceof PersistenceStream) {
+      stream.writeObject(myAnnotation);
+      stream.writeObject(observableAspects);
     }
   }
 
   private void readObject(ObjectInputStream stream) throws ClassNotFoundException, IOException {
     stream.defaultReadObject();
+
     directObject = (Asset) stream.readObject();
-    phrases = readArrayList(stream);
-    if (stream instanceof org.cougaar.core.persist.PersistenceInputStream) {
-      //workflow = (Workflow) stream.readObject();
-      stream.readObject(); // drop workflow on the floor
+    phrases = (List) stream.readObject();
+    preferences = (List) stream.readObject();
+
+    // if we're persisting, we'll write some additional bits
+    if (stream instanceof PersistenceStream) {
       myAnnotation = (Annotation) stream.readObject();
       observableAspects = (HashSet) stream.readObject();
-    } else {
     }
-    preferences = (ArrayList) stream.readObject();
 
     pcs = new PropertyChangeSupport(this);
   }
@@ -679,7 +653,7 @@ public class TaskImpl extends PlanningDirectiveImpl
 
     Blackboard.getTracker().checkAccess(this,"getPlanElement");
     return myPE; 
-}
+  }
 
   /**
    * This method sets the PlanElement associated with this Task.

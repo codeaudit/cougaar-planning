@@ -1,3 +1,9 @@
+2003-02-14  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* WorkflowImpl.java:
+	Bug #1954 -- Replace IllegalArgument exception with WARN message.
+	This is happening all the time.
+
 2003-02-12  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* WorkflowImpl.java: 

@@ -40,6 +40,7 @@ import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.util.UID;
 import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.util.Empty;
+import org.cougaar.util.log.*;
 
 /**
  * This class implements Workflow
@@ -49,6 +50,8 @@ public class WorkflowImpl
   extends ClaimableImpl
   implements Workflow, NewWorkflow, java.io.Serializable
 {
+  private static final Logger logger = Logging.getLogger(WorkflowImpl.class);
+
   private transient Task basetask;
   // protected access for MPWorkflowImpl
   protected transient Vector subtasks = new Vector();
@@ -312,7 +315,9 @@ public class WorkflowImpl
     } 
 
     if (!subtasks.removeElement(remTask)) {
-      throw new IllegalArgumentException("removeTask not in Workflow: " + remTask);
+      if (logger.isWarnEnabled()) {
+        logger.warn("removeTask not in Workflow: " + remTask, new IllegalArgumentException());
+      }
     }
     changedSubtasks.remove(remTask.getUID());
     clearTST();

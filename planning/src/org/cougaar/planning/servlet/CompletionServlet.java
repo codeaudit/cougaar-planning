@@ -53,7 +53,17 @@ import org.cougaar.core.service.wp.WhitePagesService;
 import org.cougaar.core.servlet.BaseServletComponent;
 import org.cougaar.core.util.UID;
 import org.cougaar.core.wp.ListAllAgents;
-import org.cougaar.planning.ldm.plan.*;
+
+import org.cougaar.planning.ldm.plan.Task;
+import org.cougaar.planning.ldm.plan.Verb;
+import org.cougaar.planning.ldm.plan.Workflow;
+import org.cougaar.planning.ldm.plan.AllocationResult;
+import org.cougaar.planning.ldm.plan.PlanElement;
+import org.cougaar.planning.ldm.plan.AssetTransfer;
+import org.cougaar.planning.ldm.plan.Disposition;
+import org.cougaar.planning.ldm.plan.Aggregation;
+import org.cougaar.planning.ldm.plan.Expansion;
+import org.cougaar.planning.ldm.plan.Allocation;
 import org.cougaar.planning.plugin.completion.CompletionCalculator;
 import org.cougaar.planning.servlet.data.completion.AbstractTask;
 import org.cougaar.planning.servlet.data.completion.CompletionData;
@@ -64,9 +74,10 @@ import org.cougaar.planning.servlet.data.completion.UnconfidentTask;
 import org.cougaar.planning.servlet.data.completion.UnestimatedTask;
 import org.cougaar.planning.servlet.data.completion.UnplannedTask;
 import org.cougaar.planning.servlet.data.xml.XMLWriter;
+
 import org.cougaar.util.UnaryPredicate;
 import org.cougaar.util.Filters;
-//import org.cougaar.glm.ldm.Constants;
+
 
 /**
  * A <code>Servlet</code>, loaded by the 
@@ -135,18 +146,11 @@ extends BaseServletComponent
   protected LoggingService logger;
 
   protected static UnaryPredicate projectSupplyRootTaskPred =
-      new RootTaskPredicate(org.cougaar.planning.ldm.plan.Verb.get("ProjectSupply"), org.cougaar.planning.ldm.plan.Verb.get("GenerateProjections"));
+      new RootTaskPredicate(Verb.get("ProjectSupply"), Verb.get("GenerateProjections"));
   protected static UnaryPredicate supplyRootTaskPred =
-      new RootTaskPredicate(org.cougaar.planning.ldm.plan.Verb.get("Supply"), org.cougaar.planning.ldm.plan.Verb.get("GenerateProjections"));
+      new RootTaskPredicate(Verb.get("Supply"), Verb.get("GenerateProjections"));
   protected static UnaryPredicate transportRootTaskPred =
-      new RootTaskPredicate(org.cougaar.planning.ldm.plan.Verb.get("Transport"), org.cougaar.planning.ldm.plan.Verb.get("DetermineRequirements"));
-
-//    protected static UnaryPredicate projectSupplyRootTaskPred =
-//        new RootTaskPredicate(Constants.Verb.ProjectSupply, Constants.Verb.GenerateProjections);
-//    protected static UnaryPredicate supplyRootTaskPred =
-//        new RootTaskPredicate(Constants.Verb.Supply, Constants.Verb.GenerateProjections);
-//    protected static UnaryPredicate transportRootTaskPred =
-//        new RootTaskPredicate(Constants.Verb.Transport, Constants.Verb.DetermineRequirements);
+      new RootTaskPredicate(Verb.get("Transport"), Verb.get("DetermineRequirements"));
 
   public CompletionServlet() {
     super();

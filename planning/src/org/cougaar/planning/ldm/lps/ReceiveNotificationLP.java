@@ -160,9 +160,11 @@ public class ReceiveNotificationLP
     if ((pe instanceof Allocation) ||
         (pe instanceof AssetTransfer) ||
         (pe instanceof Aggregation)) {
+
       // compare getReceivedResult .isEqual with this new one -- reconciliation after restart
       // is going to resend all the ARs, and we should avoid propagating the changes
-      if (result == null || result.isEqual(pe.getReceivedResult())) {
+      AllocationResult currAR = pe.getReceivedResult();
+      if ((result == null && currAR == null) || (result != null && result.isEqual(currAR))) {
 	if (logger.isInfoEnabled()) {
 	  logger.info("Not propagating unchanged ReceivedResult for PE " + pe + ", new result: " + result);
 	}
@@ -171,7 +173,7 @@ public class ReceiveNotificationLP
 
       ((PEforCollections) pe).setReceivedResult(result);
       if (logger.isDebugEnabled())
-	logger.debug("pubChanging local pe: " + pe);
+	logger.debug("pubChanging local PE with new ReceivedResult: " + pe);
       rootplan.change(pe, changes);
     } else if (pe instanceof Expansion) {
       // Note that below we avoid pubChanging the expansion if the newly calculated AR is same as
@@ -226,22 +228,23 @@ public class ReceiveNotificationLP
       // compute the new result from the subtask results.
       try {
         AllocationResult ar = wf.aggregateAllocationResults(ids);
-	// if the aggregation is defined
-        if (ar != null) {         
-	  // Only propogate the notification by pubChanging the Expansion
-	  // if the newly computed AllocationResult is different from what was already there
-	  if (! ar.isEqual(pe.getReceivedResult())) {
-	    // set the result on the
-	    ((PEforCollections) pe).setReceivedResult(ar);
-	    
-	    // publish the change to the blackboard.
-	    bb.change(pe, null); // drop the change details.
-	    //bb.change(pe, changes);
-	    //Logging.printDot("=");
-	  } else {
-	    if (logger.isInfoEnabled())
-	      logger.info("NOT publishChanging Expansion " + pe + " - new ReceivedResult same as old: " + ar);
-	  }
+	AllocationResult currAR = pe.getReceivedResult();
+	// If the newly calculated result is at all different from the previously 
+	// calculated result, then make the change and publishChange the Expansion
+	if ((ar == null && currAR != null) || (ar != null && !ar.isEqual(currAR))) {
+	  // set the result on the Expansion
+	  ((PEforCollections) pe).setReceivedResult(ar);
+	  
+	  // publish the change to the blackboard.
+	  
+	  // Note that the above setReceivedResult puts a PlanElement.ReportedResultChangeReport
+	  // on this transaction.
+	  bb.change(pe, null); // drop the change details.
+	  //bb.change(pe, changes);
+	  //Logging.printDot("=");
+	} else {
+	  if (logger.isInfoEnabled())
+	    logger.info("NOT publishChanging Expansion " + pe + " - new ReceivedResult same as old: " + ar);
         }
       } catch (RuntimeException re) {
         logger.error("Caught exception while processing DelayedAggregateResults for "+pe, re);

@@ -22,164 +22,328 @@
  
 package org.cougaar.planning.servlet;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import java.text.DecimalFormat;
-
-import javax.servlet.*;
-import javax.servlet.http.*;
-
-import org.cougaar.core.blackboard.Subscription;
-import org.cougaar.core.servlet.ServletUtil;
-import org.cougaar.core.servlet.SimpleServletSupport;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import javax.servlet.Servlet;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.core.component.ServiceBroker;
+import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.planning.plugin.completion.CompletionCalculator;
+import org.cougaar.core.service.AgentIdentificationService;
+import org.cougaar.core.service.BlackboardQueryService;
+import org.cougaar.core.service.wp.WhitePagesService;
+import org.cougaar.core.servlet.BaseServletComponent;
 import org.cougaar.core.util.UID;
-import org.cougaar.planning.ldm.asset.*;
-import org.cougaar.planning.ldm.plan.*;
-
+import org.cougaar.core.wp.ListAllAgents;
+import org.cougaar.planning.ldm.plan.Aggregation;
+import org.cougaar.planning.ldm.plan.Allocation;
+import org.cougaar.planning.ldm.plan.AllocationResult;
+import org.cougaar.planning.ldm.plan.AssetTransfer;
+import org.cougaar.planning.ldm.plan.Disposition;
+import org.cougaar.planning.ldm.plan.Expansion;
+import org.cougaar.planning.ldm.plan.PlanElement;
+import org.cougaar.planning.ldm.plan.Task;
+import org.cougaar.planning.ldm.plan.Verb;
+import org.cougaar.planning.servlet.data.completion.AbstractTask;
+import org.cougaar.planning.servlet.data.completion.CompletionData;
+import org.cougaar.planning.servlet.data.completion.FailedTask;
+import org.cougaar.planning.servlet.data.completion.FullCompletionData;
+import org.cougaar.planning.servlet.data.completion.SimpleCompletionData;
+import org.cougaar.planning.servlet.data.completion.UnconfidentTask;
+import org.cougaar.planning.servlet.data.completion.UnestimatedTask;
+import org.cougaar.planning.servlet.data.completion.UnplannedTask;
+import org.cougaar.planning.servlet.data.xml.XMLWriter;
 import org.cougaar.util.UnaryPredicate;
-
-import org.cougaar.planning.servlet.data.Failure;
-import org.cougaar.planning.servlet.data.xml.*;
-import org.cougaar.planning.servlet.data.completion.*;
 
 /**
  * A <code>Servlet</code>, loaded by the 
  * <code>SimpleServletComponent</code>, that generates 
  * HTML, XML, and serialized-Object views of Task completion
  * information.
- *
- * @see org.cougaar.core.servlet.SimpleServletComponent
  */
 public class CompletionServlet
-extends HttpServlet
+extends BaseServletComponent
 {
-  private SimpleServletSupport support;
+  protected static final UnaryPredicate TASK_PRED =
+    new UnaryPredicate() {
+      public boolean execute(Object o) {
+        return (o instanceof Task);
+      }
+    };
 
-  public void setSimpleServletSupport(SimpleServletSupport support) {
-    this.support = support;
+  protected static final String[] iframeBrowsers = {
+    "mozilla/5",
+    "msie 5",
+    "msie 6"
+  };
+
+  protected static final int MAX_AGENT_FRAMES = 17;
+
+  protected String path;
+
+  protected MessageAddress localAgent;
+
+  protected String encLocalAgent;
+
+  protected AgentIdentificationService agentIdService;
+  protected BlackboardQueryService blackboardQueryService;
+  protected WhitePagesService whitePagesService;
+
+  protected CompletionCalculator calc;
+  protected final Object lock = new Object();
+
+  public CompletionServlet() {
+    super();
+    path = getDefaultPath();
   }
 
-  public void doGet(
-      HttpServletRequest request,
-      HttpServletResponse response) throws IOException, ServletException
-  {
-    // create a new "Completor" context per request
-    Completor ct = new Completor(support, request, response);
-    ct.execute();    
+  public void setParameter(Object o) {
+    if (o instanceof String) {
+      path = (String) o;
+    } else if (o instanceof Collection) {
+      Collection c = (Collection) o;
+      if (!(c.isEmpty())) {
+        path = (String) c.iterator().next();
+      }
+    } else if (o == null) {
+      // ignore
+    } else {
+      throw new IllegalArgumentException(
+          "Invalid parameter: "+o);
+    }
   }
 
+  protected String getDefaultPath() {
+    return "/completion";
+  }
 
-  public void doPost(
-      HttpServletRequest request,
-      HttpServletResponse response) throws IOException, ServletException
-  {
-    // create a new "Completor" context per request
-    Completor ct = new Completor(support, request, response);
-    ct.execute();  
+  protected String getPath() {
+    return path;
+  }
+
+  protected Servlet createServlet() {
+    return new CompletorServlet();
+  }
+
+  public void setAgentIdentificationService(
+      AgentIdentificationService agentIdService) {
+    this.agentIdService = agentIdService;
+    this.localAgent = agentIdService.getMessageAddress();
+    encLocalAgent = encodeAgentName(localAgent.getAddress());
+  }
+
+  public void setBlackboardQueryService(
+      BlackboardQueryService blackboardQueryService) {
+    this.blackboardQueryService = blackboardQueryService;
+  }
+
+  public void setWhitePagesService(
+      WhitePagesService whitePagesService) {
+    this.whitePagesService = whitePagesService;
+  }
+
+  public void load() {
+    super.load();
+  }
+
+  public void unload() {
+    super.unload();
+    if (whitePagesService != null) {
+      serviceBroker.releaseService(
+          this, WhitePagesService.class, whitePagesService);
+      whitePagesService = null;
+    }
+    if (blackboardQueryService != null) {
+      serviceBroker.releaseService(
+          this, BlackboardQueryService.class, blackboardQueryService);
+      blackboardQueryService = null;
+    }
+    if (agentIdService != null) {
+      serviceBroker.releaseService(
+          this, AgentIdentificationService.class, agentIdService);
+      agentIdService = null;
+    }
+  }
+
+  protected List getAllEncodedAgentNames() {
+    try {
+      // do full WP list (deprecated!)
+      Set s = ListAllAgents.listAllAgents(whitePagesService);
+      // URLEncode the names and sort
+      ArrayList l = new ArrayList(s.size());
+      for (Iterator iter = s.iterator(); iter.hasNext(); ) {
+        String tmp = (String) iter.next();
+        l.add(encodeAgentName(tmp));
+      }
+      Collections.sort(l);
+      return l;
+    } catch (Exception e) {
+      throw new RuntimeException(
+          "List all agents failed", e);
+    }
+  }
+
+  protected Collection queryBlackboard(UnaryPredicate pred) {
+    return blackboardQueryService.query(pred);
+  }
+
+  protected String getEncodedAgentName() {
+    return encLocalAgent;
+  }
+
+  protected String encodeAgentName(String name) {
+    try {
+      return URLEncoder.encode(name, "UTF-8");
+    } catch (java.io.UnsupportedEncodingException e) {
+      // should never happen
+      throw new RuntimeException("Unable to encode to UTF-8?");
+    }
+  }
+
+  protected CompletionCalculator getCalculator() {
+    synchronized (lock) {
+      if (calc == null) {
+        calc = new CompletionCalculator();
+      }
+      return calc;
+    }
+  }
+
+  protected String getTitlePrefix() {
+    return ""; // must not contain special URL characters
+  }
+
+  /**
+   * Inner-class that's registered as the servlet.
+   */
+  protected class CompletorServlet extends HttpServlet {
+    public void doGet(
+        HttpServletRequest request,
+        HttpServletResponse response) throws IOException, ServletException {
+      (new Completor(request, response)).execute();    
+    }
+
+    public void doPost(
+        HttpServletRequest request,
+        HttpServletResponse response) throws IOException, ServletException {
+      (new Completor(request, response)).execute();  
+    }
   }
 
   /** 
    * Inner-class to hold state and generate the response.
    */
-  protected static class Completor {
+  protected class Completor {
 
     public static final int FORMAT_DATA = 0;
     public static final int FORMAT_XML = 1;
     public static final int FORMAT_HTML = 2;
 
-    private boolean anyArgs;
     private int format;
     private boolean showTables;
 
-    // since "Completor" is a static inner class, here
-    // we hold onto the support API.
-    //
-    // this makes it clear that Completor only uses
-    // the "support" from the outer class.
-    private SimpleServletSupport support;
     private HttpServletRequest request;
     private HttpServletResponse response;
 
     // writer from the request for HTML output
     private PrintWriter out;
 
-    // base url
-    private String baseURL;
-
-    public Completor(SimpleServletSupport support,
-                     HttpServletRequest request, 
-                     HttpServletResponse response)
+    public Completor(
+        HttpServletRequest request, 
+        HttpServletResponse response)
     {
-      this.support = support;
       this.request = request;
       this.response = response;
-      format = FORMAT_HTML;
     }         
 
     public void execute() throws IOException, ServletException 
     {
-      // save the absolute address
-      this.baseURL =   
-        request.getScheme()+
-        "://"+
-        request.getServerName()+
-        ":"+
-        request.getServerPort()+
-        "/";
+      String formatParam = request.getParameter("format");
+      if (formatParam == null) {
+        format = FORMAT_HTML; // default
+      } else if ("data".equals(formatParam)) {
+        format = FORMAT_DATA;
+      } else if ("xml".equals(formatParam)) {
+        format = FORMAT_XML;
+      } else if ("html".equals(formatParam)) {
+        format = FORMAT_HTML;
+      } else {
+        format = FORMAT_HTML; // other
+      }
 
-      // create a URL parameter visitor
-      ServletUtil.ParamVisitor vis = 
-        new ServletUtil.ParamVisitor() {
-          public void setParam(String name, String value) {
-            if (eq("format", name)) {
-              anyArgs = true;
-              if (eq("data", value)) {
-                format = FORMAT_DATA;
-              } else if (eq("xml", value)) {
-                format = FORMAT_XML;
-              } else if (eq("html", value)) {
-                format = FORMAT_HTML;
-              }
-            } else if (eq("showTables", name)) {
-              anyArgs = true;
-              showTables =
-                ((value == null) || 
-                 (eq("true", value)));
-              // stay backwards-compatable
-            } else if (eq("data", name)) {
-              anyArgs = true;
-              format = FORMAT_DATA;
-            } else if (eq("xml", name)) {
-              anyArgs = true;
-              format = FORMAT_XML;
-            } else if (eq("html", name)) {
-              anyArgs = true;
-              format = FORMAT_HTML;
-            }
-          }
-        };
+      String showTablesParam = request.getParameter("showTables");
+      if (showTablesParam == null) {
+        showTables = false; // default
+      } else if ("true".equals(showTablesParam)) {
+        showTables = true;
+      } else {
+        showTables = false; // other
+      }
 
-      // visit the URL parameters
-      ServletUtil.parseParams(vis, request);
       String viewType = request.getParameter("viewType");
-      if ("viewAllAgents".equals(viewType)) {
+      if (viewType == null) {
+        viewDefault(); // default
+      } else if ("viewAgentBig".equals(viewType)) {
+        viewAgentBig();
+      } else if ("viewAllAgents".equals(viewType)) {
         viewAllAgents();
-        return;
-      }
-      if ("viewTitle".equals(viewType)) {
+      } else if ("viewTitle".equals(viewType)) {
         viewTitle();
-        return;
-      }
-      if ("viewAgentSmall".equals(viewType)) {
+      } else if ("viewAgentSmall".equals(viewType)) {
         viewAgentSmall();
-        return;
-      }
-      if ("viewMoreLink".equals(viewType)) {
+      } else if ("viewMoreLink".equals(viewType)) {
         viewMoreLink();
-        return;
+      } else {
+        viewDefault(); // other
       }
 
+      // done
+    }
+
+    private void viewDefault() throws IOException {
+      if (format == FORMAT_HTML) {
+        // generate outer frame page:
+        //   top:    select "/agent"
+        //   bottom: "viewAgentBig" frame
+        response.setContentType("text/html");
+        this.out = response.getWriter();
+        out.print(
+            "<html><head><title>Completion Viewer</title></head>"+
+            "<frameset rows=\"10%,90%\">\n"+
+            "<frame src=\""+
+            "/agents?format=select&suffix="+
+            getEncodedAgentName()+
+            "\" name=\"agentFrame\">\n"+
+            "<frame src=\"/$"+
+            getEncodedAgentName()+getPath()+
+            "?viewType=viewAgentBig\" name=\"viewAgentBig\">\n"+
+            "</frameset>\n"+
+            "<noframes>Please enable frame support</noframes>"+
+            "</html>\n");
+        out.flush();
+      } else {
+        // for other formats, just get the data
+        viewAgentBig();
+      }
+    }
+
+    private void viewAgentBig() throws IOException {
       // get result
       CompletionData result = getCompletionData();
 
@@ -187,18 +351,22 @@ extends HttpServlet
       try {
         if (format == FORMAT_HTML) {
           // html      
+          response.setContentType("text/html");
           this.out = response.getWriter();
           printCompletionDataAsHTML(result);
         } else {
           // unsupported
-          OutputStream out = response.getOutputStream();
           if (format == FORMAT_DATA) {      
             // serialize
+            //response.setContentType("application/binary");
+            OutputStream out = response.getOutputStream();
             ObjectOutputStream oos = new ObjectOutputStream(out);
             oos.writeObject(result);
             oos.flush();
           } else {
             // xml
+            response.setContentType("text/plain");
+            OutputStream out = response.getOutputStream();
             out.write(("<?xml version='1.0'?>\n").getBytes());
             XMLWriter w =
               new XMLWriter(
@@ -212,32 +380,29 @@ extends HttpServlet
       }
     }
 
-    private static String[] iframeBrowsers = {
-      "mozilla/5",
-      "msie 5",
-      "msie 6"
-    };
-
-    private static final int MAX_AGENT_FRAMES = 17;
-
     private void viewMoreLink() throws IOException {
       response.setContentType("text/html");
       out = response.getWriter();
       format = FORMAT_HTML;     // Force html format
-      out.print
-        ("<html>\n" +
-         "<head>\n" +
-         "<title>Completion of More Agents</title>\n" +
-         "</head>\n");
-      out.println("<body>");
+      out.println(
+          "<html>\n" +
+          "<head>\n" +
+          "<title>"+
+          getTitlePrefix()+
+          "Completion of More Agents</title>\n" +
+          "</head>\n"+
+          "<body>");
       String firstAgent = request.getParameter("firstAgent");
       if (firstAgent != null) {
-        out.println("<A href=\"completion?viewType=viewAllAgents&firstAgent=" + firstAgent + "\" + target=\"_top\">");
-        out.println("<h2><center>More Agents</h2></center>");
-        out.println("</A>");
+        out.println(
+            "<A href=\"/$"+
+            getEncodedAgentName()+getPath()+
+            "?viewType=viewAllAgents&firstAgent="+
+            firstAgent+"\" + target=\"_top\">\n"+
+            "<h2><center>More Agents</h2></center>\n"+
+            "</A>");
       }
-      out.println("</body>");
-      out.println("</html>");
+      out.println("</body>\n</html>");
     }
 
     private void viewTitle() throws IOException {
@@ -245,15 +410,15 @@ extends HttpServlet
       response.setContentType("text/html");
       out = response.getWriter();
       format = FORMAT_HTML;     // Force html format
-      out.print
-        ("<html>\n" +
-         "<head>\n" +
-         "<title>" + title + "</title>\n" +
-         "</head>\n");
-      out.println("<body>");
-      out.println("<h2><center>" + title + "</h2></center>");
-      out.println("</body>");
-      out.println("</html>");
+      out.println(
+          "<html>\n" +
+          "<head>\n" +
+          "<title>" + title + "</title>\n" +
+          "</head>\n"+
+          "<body>\n"+
+          "<h2><center>" + title + "</h2></center>\n"+
+          "</body>\n"+
+          "</html>");
     }
 
     // Output a page showing summary info for all agents
@@ -261,12 +426,14 @@ extends HttpServlet
       response.setContentType("text/html");
       out = response.getWriter();
       format = FORMAT_HTML;     // Force html format
-      List agents = support.getAllEncodedAgentNames();
-      out.print
-        ("<html>\n" +
-         "<head>\n" +
-         "<title>Completion of All Agents</title>\n" +
-         "</head>\n");
+      List agents = getAllEncodedAgentNames();
+      out.println(
+          "<html>\n" +
+          "<head>\n" +
+          "<title>"+
+          getTitlePrefix()+
+          "Completion of All Agents</title>\n" +
+          "</head>");
       boolean use_iframes = false;
       String browser = request.getHeader("user-agent").toLowerCase();
       if (browser != null) {
@@ -278,13 +445,20 @@ extends HttpServlet
         }
       }
       if (use_iframes) {
-        out.println("<body>");
-        out.println("<h2><center>Completion of All Agents</h2></center>");
+        out.println(
+            "<body>\n"+
+            "<h2><center>"+
+            getTitlePrefix()+
+            "Completion of All Agents</h2></center>");
         for (int i = 0, n = agents.size(); i < n; i++) {
           int col = i % 3;
           String agentName = (String) agents.get(i);
-          out.println("<iframe src=\"/$" + agentName + "/completion?viewType=viewAgentSmall\" scrolling=\"no\" width=300 height=90>" + agentName + "</iframe>");
-          out.println("</td>");
+          out.println(
+              "<iframe src=\"/$" + agentName + getPath() +
+              "?viewType=viewAgentSmall\""+
+              " scrolling=\"no\" width=300 height=90>" + 
+              agentName + "</iframe>\n"+
+              "</td>");
         }
         out.println("</body>");
       } else {
@@ -320,17 +494,30 @@ extends HttpServlet
         for (int row = 0; row < nrows; row++) {
           out.print(",100");
         }
-        out.println("\">");
-        out.println("  <frame src=\"completion?viewType=viewTitle&title=Completion+of+" + title + "\" scrolling=\"no\">");
+        out.println(
+            "\">\n"+
+            "  <frame src=\""+
+            getEncodedAgentName()+getPath()+
+            "?viewType=viewTitle&title="+
+            getTitlePrefix()+"Completion+of+"+title+
+            "\" scrolling=\"no\">");
         for (int row = 0; row < nrows; row++) {
           out.println("  <frameset cols=\"300,300,300\">");
           for (int col = 0; col < 3; col++) {
             int agentn = agent0 + row * 3 + col;
             if (agentn < agent0 + nagents) {
               String agentName = (String) agents.get(agentn);
-              out.println("    <frame src=\"/$" + agentName + "/completion?viewType=viewAgentSmall\" scrolling=\"no\">");
+              out.println(
+                  "    <frame src=\""+
+                  "/$"+agentName+getPath()+"?viewType=viewAgentSmall"+
+                  "\" scrolling=\"no\">");
             } else if (agentn == agent0 + nagents && needMore) {
-              out.println("    <frame src=\"completion?viewType=viewMoreLink&firstAgent=" + (agent0 + MAX_AGENT_FRAMES) + "\" scrolling=\"no\">");
+              out.println(
+                  "    <frame src=\""+
+                  "/$"+getEncodedAgentName()+getPath()+
+                  "?viewType=viewMoreLink&firstAgent="+
+                  (agent0 + MAX_AGENT_FRAMES) +
+                  "\" scrolling=\"no\">");
             }
           }
           out.println("  </frameset>");
@@ -345,8 +532,9 @@ extends HttpServlet
       response.setContentType("text/html");
       out = response.getWriter();
       format = FORMAT_HTML;     // Force html format
-      String agent = support.getEncodedAgentName();
+      String agent = getEncodedAgentName();
       CompletionData result = getCompletionData();
+      double ratio = result.getRatio();
       int nTasks = result.getNumberOfTasks();
       int nUnplannedTasks = result.getNumberOfUnplannedTasks();
       int nPlannedTasks = (nTasks - nUnplannedTasks);
@@ -373,86 +561,97 @@ extends HttpServlet
          (1.0 * nFullConfidenceTasks) / nSuccessfulTasks :
          0.0);
       String bgcolor, fgcolor, lncolor;
-      if (percentPlannedTasks < 0.89 ||
-          percentSuccessfulTasks < 0.89 ||
-          percentFullConfidenceTasks < 0.89) {
+      if (ratio < 0.89) {
         bgcolor = "#aa0000";
         fgcolor = "#ffffff";
         lncolor = "#ffff00";
-      } else if (percentPlannedTasks < 0.99 ||
-                 percentSuccessfulTasks < 0.99 ||
-                 percentFullConfidenceTasks < 0.99) {
+      } else if (ratio < 0.99) {
         bgcolor = "#ffff00";
         fgcolor = "#000000";
         lncolor = "#0000ff";
       } else {
-        bgcolor = "white";
-        fgcolor = "black";
+        bgcolor = "#d0ffd0";
+        fgcolor = "#000000";
         lncolor = "#0000ff";
       }
-      out.println("<html>");
-      out.println("<head>");
-      out.println("</head>");
-      out.println("<body bgcolor=\"" + bgcolor + "\" text=\"" + fgcolor + "\" vlink=\"" + lncolor + "\" link=\"" + lncolor + "\">");
-      out.print("<pre><a href=\"/$" + agent + "/completion\" target=\"_top\">");
-      out.println(formatLabel(agent + " Tasks:") + "</a>" + formatInteger(nTasks));
+      out.println(
+          "<html>\n"+
+          "<head>\n"+
+          "</head>\n"+
+          "<body"+
+          " bgcolor=\"" + bgcolor + 
+          "\" text=\"" + fgcolor + 
+          "\" vlink=\"" + lncolor + 
+          "\" link=\"" + lncolor + "\">\n"+
+          "<pre><a href=\""+
+          "/$" + agent + getPath() +
+          "\" target=\"_top\">"+
+          agent+
+          "</a>");
+      out.println(formatLabel("Ratio:") + "  <b>" + formatPercent(ratio) + "</b> ("+ratio+")");
+      out.println(formatLabel("Tasks:") + formatInteger(nTasks));
       out.println(formatLabel("Planned:")        + formatInteger(nPlannedTasks)        + "(" + formatPercent(percentPlannedTasks)        + ")");
       out.println(formatLabel("Successful:")     + formatInteger(nSuccessfulTasks)     + "(" + formatPercent(percentSuccessfulTasks)     + ")");
       out.println(formatLabel("Completed:")      + formatInteger(nFullConfidenceTasks) + "(" + formatPercent(percentFullConfidenceTasks) + ")</pre>");
-      out.println("</body>");
-      out.println("</html>");
+      out.println("</body>\n</html>");
     }
 
-    private static String formatLabel(String lbl) {
+    private String formatLabel(String lbl) {
       int nchars = lbl.length();
       if (nchars > 24) return lbl;
       return lbl + "                        ".substring(nchars);
     }
 
-    private static String formatInteger(int n) {
+    private String formatInteger(int n) {
       return formatInteger(n, 5);
     }
 
-    private static String formatInteger(int n, int w) {
+    private String formatInteger(int n, int w) {
       String r = String.valueOf(n);
       return "        ".substring(0, w - r.length()) + r;
     }
 
-    private static String formatPercent(double percent) {
+    private String formatPercent(double percent) {
       return formatInteger((int) (percent * 100.0), 3) + "%";
     }
 
-    // startsWithIgnoreCase
-    private static final boolean eq(String a, String b) {
-      return a.regionMatches(true, 0, b, 0, a.length());
+    private String formatColorBar(String color) {
+      return 
+        "<table width=\"100%\" bgcolor=\""+color+
+        "\"><tr><td>&nbsp;</td></tr></table>";
     }
 
-    protected static final UnaryPredicate TASK_PRED =
-      new UnaryPredicate() {
-        public boolean execute(Object o) {
-          return (o instanceof Task);
-        }
-      };
-
-
     protected Collection getAllTasks() {
-      Collection col = support.queryBlackboard(TASK_PRED);
-      if (col == null) {
-        col = new ArrayList(0);
-      }
+      Collection col = queryBlackboard(TASK_PRED);
+      if (col == null) col = Collections.EMPTY_LIST;
       return col;
+    }
+
+    protected double getRatio(Collection tasks) {
+      Collection objs;
+      CompletionCalculator cc = getCalculator();
+      if (cc.getClass() == CompletionCalculator.class) {
+        // short cut for basic task completion
+        objs = tasks;
+      } else {
+        UnaryPredicate pred = cc.getPredicate();
+        objs = queryBlackboard(pred);
+      }
+      return cc.calculate(objs);
     }
 
     protected CompletionData getCompletionData() {
       // get tasks
       Collection tasks = getAllTasks();
       long nowTime = System.currentTimeMillis();
+      double ratio = getRatio(tasks);
       int nTasks = tasks.size();
       Iterator taskIter = tasks.iterator();
       if (showTables) {
         // create and initialize our result
         FullCompletionData result = new FullCompletionData();
         result.setNumberOfTasks(nTasks);
+        result.setRatio(ratio);
         result.setTimeMillis(nowTime);
         // examine tasks
         for (int i = 0; i < nTasks; i++) {
@@ -484,6 +683,7 @@ extends HttpServlet
         // create and initialize our result
         SimpleCompletionData result = new SimpleCompletionData();
         result.setNumberOfTasks(nTasks);
+        result.setRatio(ratio);
         result.setTimeMillis(nowTime);
         // examine tasks
         int nUnplannedTasks = 0;
@@ -582,9 +782,9 @@ extends HttpServlet
       }
       toAbsTask.setUID(sTaskUID);
       String sourceClusterId = 
-        support.encodeAgentName(task.getSource().getAddress());
+        encodeAgentName(task.getSource().getAddress());
       toAbsTask.setUID_URL(
-          getTaskUID_URL(support.getEncodedAgentName(), sTaskUID));
+          getTaskUID_URL(getEncodedAgentName(), sTaskUID));
       // set parent task UID
       UID pTaskUID = task.getParentTaskUID();
       String spTaskUID = ((pTaskUID != null) ? pTaskUID.toString() : null);
@@ -606,8 +806,18 @@ extends HttpServlet
      */
     protected String getTaskUID_URL(
         String clusterId, String sTaskUID) {
+      /*
+        // FIXME prefix with base URL?
+        
+        String baseURL =   
+          request.getScheme()+
+          "://"+
+          request.getServerName()+
+          ":"+
+          request.getServerPort()+
+          "/";
+      */
       return 
-        //baseURL+  // FIXME prefix with base URL?
         "/$"+
         clusterId+
         "/tasks?mode=3&uid="+
@@ -645,53 +855,52 @@ extends HttpServlet
           "<script language=\"JavaScript\">\n"+
           "<!--\n"+
           "function mySubmit() {\n"+
-          "  var tidx = document.myForm.formCluster.selectedIndex\n"+
-          "  var cluster = document.myForm.formCluster.options[tidx].text\n"+
-          "  document.myForm.action=\"/$\"+cluster+\"");
-      out.print(support.getPath());
-      out.print("\"\n"+
+          "  var obj = top.agentFrame.document.agent.name;\n"+
+          "  var encAgent = obj.value;\n"+
+          "  if (encAgent.charAt(0) == '.') {\n"+
+          "    alert(\"Please select an agent name\")\n"+
+          "    return false;\n"+
+          "  }\n"+
+          "  document.myForm.target=\"viewAgentBig\"\n"+
+          "  document.myForm.action=\"/$\"+encAgent+\""+
+          getPath()+"\"\n"+
           "  return true\n"+
           "}\n"+
           "// -->\n"+
           "</script>\n"+
           "<head>\n"+
-          "<title>");
-      out.print(support.getEncodedAgentName());
-      out.print(
+          "<title>"+
+          getEncodedAgentName()+
           "</title>"+
           "</head>\n"+
           "<body>"+
-          "<h2><center>Completion at ");
-      out.print(support.getEncodedAgentName());
-      out.print(
+          "<h2><center>"+
+          getTitlePrefix()+
+          "Completion at "+
+          getEncodedAgentName()+
           "</center></h2>\n"+
           "<form name=\"myForm\" method=\"get\" "+
           "onSubmit=\"return mySubmit()\">\n"+
-          "Completion data at "+
-          "<select name=\"formCluster\">\n");
-      // lookup all known cluster names
-      List names = support.getAllEncodedAgentNames();
-      int sz = names.size();
-      for (int i = 0; i < sz; i++) {
-        String n = (String) names.get(i);
-        out.print("  <option ");
-        if (n.equals(support.getEncodedAgentName())) {
-          out.print("selected ");
-        }
-        out.print("value=\"");
-        out.print(n);
-        out.print("\">");
-        out.print(n);
-        out.print("</option>\n");
-      }
-      out.print(
-          "</select>, \n"+
-          "<input type=\"checkbox\" name=\"showTables\" value=\"true\" ");
+          getTitlePrefix()+
+          "Select an agent above, "+
+          "<input type=\"hidden\""+
+          " name=\"viewType\""+
+          " value=\"viewAgentBig\" "+
+          "<input type=\"checkbox\""+
+          " name=\"showTables\""+
+          " value=\"true\" ");
       if (showTables) {
         out.print("checked");
       }
-      out.print("> show table, \n"+
-          "<input type=\"submit\" name=\"formSubmit\" value=\"Reload\"><br>\n"+
+      out.print(
+          "> show table, \n"+
+          "<input type=\"submit\""+
+          " name=\"formSubmit\""+
+          " value=\"Reload\"><br>\n"+
+          "<a href=\"/$"+
+          getEncodedAgentName()+getPath()+
+          "?viewType=viewAllAgents"+
+          "\" target=\"_top\">Show all agents</a>"+
           "</form>\n");
       printCountersAsHTML(result);
       printTablesAsHTML(result);
@@ -700,16 +909,29 @@ extends HttpServlet
     }
 
     protected void printCountersAsHTML(CompletionData result) {
+      double ratio = result.getRatio();
+      String ratioColor;
+      if (ratio < 0.89) {
+        ratioColor = "red";
+      } else if (ratio < 0.99) {
+        ratioColor = "yellow";
+      } else {
+        ratioColor = "#00d000";
+      }
       out.print(
+          formatColorBar(ratioColor)+
           "<pre>\n"+
           "Time: <b>");
       long timeMillis = result.getTimeMillis();
       out.print(new Date(timeMillis));
       out.print("</b>   (");
       out.print(timeMillis);
-      out.print(
-          " MS)"+
-          "\n\nNumber of Tasks: <b>");
+      out.print(" MS)\n"+
+          getTitlePrefix()+
+          "Completion ratio: <b>"+
+          formatPercent(ratio)+
+          "</b>"+
+          "\nNumber of Tasks: <b>");
       int nTasks = result.getNumberOfTasks();
       out.print(nTasks);
       out.print("\n</b>Subset of Tasks[");
@@ -810,16 +1032,16 @@ extends HttpServlet
             "<p>"+
             "<a href=\"");
         out.print("/$");
-        out.print(support.getEncodedAgentName());
-        out.print(support.getPath());
+        out.print(getEncodedAgentName());
+        out.print(getPath());
         out.print(
-            "?showTables=true\">"+
+            "?showTables=true&viewType=viewAgentBig\" target=\"viewAgentBig\">"+
             "Full Listing of Unplanned/Unestimated/Failed/Unconfident Tasks (");
         out.print(
             (result.getNumberOfTasks() - 
              result.getNumberOfFullySuccessfulTasks()));
-        out.println(" lines)</a><br>");
-        out.println("<a href=\"completion?viewType=viewAllAgents\">Show all agents</a>");
+        out.println(
+            " lines)</a><br>");
       }
     }
 
@@ -830,7 +1052,7 @@ extends HttpServlet
         String title, String subTitle) {
       out.print(
           "<table border=1 cellpadding=3 cellspacing=1 width=\"100%\">\n"+
-          "<tr bgcolor=lightgrey><th align=left colspan=5>");
+          "<tr bgcolor=lightgrey><th align=left colspan=6>");
       out.print(title);
       if (subTitle != null) {
         out.print(

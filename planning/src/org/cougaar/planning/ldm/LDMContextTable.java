@@ -41,7 +41,7 @@ import org.cougaar.core.mts.MessageAddress;
  * <p>
  * The only valid clients:
  *
- * @see org.cougaar.planning.asset.Asset
+ * @see org.cougaar.planning.ldm.asset.Asset
  * @see org.cougaar.planning.ldm.PlanningDomain
  */
 public final class LDMContextTable {
@@ -60,7 +60,7 @@ public final class LDMContextTable {
     }
   }
 
-  /** @see org.cougaar.planning.asset.Asset */
+  /** @see org.cougaar.planning.ldm.asset.Asset */
   public static LDMServesPlugin getLDM(MessageAddress agentAddr) {
     synchronized (table) {
       LDMServesPlugin result = (LDMServesPlugin) table.get(agentAddr);

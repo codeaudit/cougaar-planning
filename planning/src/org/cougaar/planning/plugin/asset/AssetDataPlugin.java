@@ -251,7 +251,7 @@ public class AssetDataPlugin extends SimplePlugin {
     // set up this asset's available schedule
     NewSchedule availsched = 
       myPlanningFactory.newSimpleSchedule(getDefaultStartTime(), 
-                                     getDefaultEndTime());
+					  getDefaultEndTime());
     // set the available schedule
     ((NewRoleSchedule)myLocalAsset.getRoleSchedule()).setAvailableSchedule(availsched);
             
@@ -337,17 +337,6 @@ public class AssetDataPlugin extends SimplePlugin {
                                    start,
                                    end);
     myRelationships.add(relationship);
-
-    if (roleName.equals("AdministrativeSubordinate")) {
-      relationship = 
-        myPlanningFactory.newRelationship(Role.getRole("OperationalSubordinate"),
-                                          (HasRelationships) myLocalAsset,
-                                          (HasRelationships) otherAsset,
-                                          start,
-                                          end);      
-      myRelationships.add(relationship);
-    }
-            
  }
 
   //create the Report task to be sent to myself which will result in an asset 

@@ -688,14 +688,14 @@ public class RescindLP
       // assert CHECKCONSISTENCY == true
       if (!isTaskConsistent(deferredRescind.t)) {
 	if (DOREMOVES) {
-	  if (logger.isWarnEnabled())
+	  if (logger.isInfoEnabled())
 	    logger.warn(self + ": New task inconsistent after deferral, removing: " + deferredRescind.t);
 	  // FIXME: remove parent task & PE too?
 	  // If task is in a workflow, must first remove it from the workflow
 	  removeTaskFromWorkflow(deferredRescind.t);
 	  removeTask(deferredRescind.t);
 	} else {
-	  if (logger.isWarnEnabled())
+	  if (logger.isInfoEnabled())
 	    logger.warn(self + ": New task inconsistent after deferral, NOT REMOVING: " + deferredRescind.t);
 	  rootplan.remove(deferredRescind);
 	}

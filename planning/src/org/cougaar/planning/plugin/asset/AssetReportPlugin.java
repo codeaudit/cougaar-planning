@@ -37,7 +37,9 @@ import org.cougaar.core.blackboard.AnonymousChangeReport;
 import org.cougaar.core.blackboard.ChangeReport;
 import org.cougaar.core.blackboard.IncrementalSubscription;
 import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.core.plugin.ComponentPlugin;
 import org.cougaar.core.service.LoggingService;
+import org.cougaar.core.service.DomainService;
 import org.cougaar.planning.Constants;
 import org.cougaar.planning.ldm.PlanningFactory;
 import org.cougaar.planning.ldm.asset.Asset;
@@ -54,7 +56,6 @@ import org.cougaar.planning.ldm.plan.Relationship;
 import org.cougaar.planning.ldm.plan.RelationshipSchedule;
 import org.cougaar.planning.ldm.plan.Role;
 import org.cougaar.planning.ldm.plan.Task;
-import org.cougaar.planning.plugin.legacy.SimplePlugin;
 import org.cougaar.planning.plugin.util.PluginHelper;
 import org.cougaar.util.UnaryPredicate;
 
@@ -62,12 +63,10 @@ import org.cougaar.util.UnaryPredicate;
 /**
  * AssetReportPlugin manages REPORTFORDUTY and REPORTFORSERVICE relationships
  * Handles both expansion and allocation of these tasks.
- * @see org.cougaar.planning.plugin.legacy.SimplifiedPlugin
- * @see org.cougaar.planning.plugin.legacy.SimplifiedPluginTest
+ * This plugin sees the tasks created by the AssetDataPlugin, and allocates
+ * them correctly so that the LPs force the Asset transfers.
  */
-
-
-public class AssetReportPlugin extends SimplePlugin
+public class AssetReportPlugin extends ComponentPlugin
 {
   protected PlanningFactory myPlanningFactory;
   private IncrementalSubscription myTasks;
@@ -80,16 +79,18 @@ public class AssetReportPlugin extends SimplePlugin
   protected LoggingService myLogger;
 
 
-  //Override the setupSubscriptions() in the SimplifiedPlugin.
   protected void setupSubscriptions() {
-    myPlanningFactory = (PlanningFactory) getFactory("planning");
+    DomainService ds= (DomainService)getServiceBroker().getService(this, 
+								   DomainService.class, null);
+    myPlanningFactory = (PlanningFactory) ds.getFactory("planning");
+    getServiceBroker().releaseService(this, DomainService.class, ds);
     if (myPlanningFactory == null) {
       throw new RuntimeException("Missing \"planning\" factory");
     }
 
 
     myLogger = (LoggingService)
-      getBindingSite().getServiceBroker().getService(this, LoggingService.class, null);
+      getServiceBroker().getService(this, LoggingService.class, null);
     if (myLogger == null) {
       myLogger = LoggingService.NULL;
     }
@@ -97,15 +98,15 @@ public class AssetReportPlugin extends SimplePlugin
 
     // subscribe for incoming Report Tasks 
     myTasks = 
-      (IncrementalSubscription) subscribe(getTaskPredicate());
+      (IncrementalSubscription) getBlackboardService().subscribe(getTaskPredicate());
 
 
     // subscribe to my allocations in order to propagate allocationresults
-    myAssetTransfers = (IncrementalSubscription)subscribe(getAssetTransferPred());
+    myAssetTransfers = (IncrementalSubscription)getBlackboardService().subscribe(getAssetTransferPred());
 
 
     // subscribe to my local assets so I can propagate modifications
-    myLocalAssets = (IncrementalSubscription)subscribe(getLocalAssetPred());
+    myLocalAssets = (IncrementalSubscription)getBlackboardService().subscribe(getLocalAssetPred());
   }
   
   public void execute() {
@@ -137,7 +138,7 @@ public class AssetReportPlugin extends SimplePlugin
             myLogger.info("        with a changed PE to propagate up: " + cpe);
             didLog = true;
           }
-          publishChange(cpe);
+          getBlackboardService().publishChange(cpe);
         } else if (myLogger.isInfoEnabled()) {
           notSent++;
         }
@@ -172,13 +173,13 @@ public class AssetReportPlugin extends SimplePlugin
 
 
   protected UnaryPredicate getLocalAssetPred() {
-    return new allLocalAssetPred(getMessageAddress());
+    return new allLocalAssetPred(getAgentIdentifier());
   }
 
 
   private void allocate(Task task) {
     if (task.getPlanElement() != null) {
-      myLogger.error(getMessageAddress().toString()+
+      myLogger.error(getAgentIdentifier().toString()+
                      "/AssetReportPlugin: unable to process " + task.getUID() + 
                      " - task already has a PlanElement - " + 
                      task.getPlanElement() + ".\n");
@@ -189,7 +190,7 @@ public class AssetReportPlugin extends SimplePlugin
     Asset reportingAsset = task.getDirectObject();
 
 
-    if (!reportingAsset.getClusterPG().getMessageAddress().equals(getMessageAddress())) {
+    if (!reportingAsset.getClusterPG().getMessageAddress().equals(getAgentIdentifier())) {
       allocateRemote(task);
     } else {
       allocateLocal(task);
@@ -205,12 +206,12 @@ public class AssetReportPlugin extends SimplePlugin
     Asset localReportingAsset = findLocalAsset(reportingAsset);
     if ((localReportingAsset == null) ||
         (!((HasRelationships )localReportingAsset).isLocal())) {
-        //(!localReportingAsset.getClusterPG().getMessageAddress().equals(getMessageAddress()))) {
-      myLogger.error(getMessageAddress().toString()+
+        //(!localReportingAsset.getClusterPG().getMessageAddress().equals(getAgentIdentifier()))) {
+      myLogger.error(getAgentIdentifier().toString()+
                      "/AssetReportPlugin: unable to process " + 
                      task.getVerb() + " task - " + 
                      reportingAsset + " reporting to " + reportee + ".\n" +
-                     reportingAsset + " not local to this cluster."
+                     reportingAsset + " not local to this agent."
                      );
       return;
     }
@@ -244,7 +245,7 @@ public class AssetReportPlugin extends SimplePlugin
 
     AllocationResult newEstimatedResult = 
       PluginHelper.createEstimatedAllocationResult(task,
-                                                   theLDMF,
+                                                   myPlanningFactory,
                                                    1.0,
                                                    true);
 
@@ -256,7 +257,7 @@ public class AssetReportPlugin extends SimplePlugin
                                             reportee,
                                             newEstimatedResult, 
                                             Role.ASSIGNED);
-    publishAdd(assetTransfer);
+    getBlackboardService().publishAdd(assetTransfer);
   }
 
 
@@ -265,7 +266,7 @@ public class AssetReportPlugin extends SimplePlugin
       
     AllocationResult newEstimatedResult = 
       PluginHelper.createEstimatedAllocationResult(task,
-                                                   theLDMF,
+                                                   myPlanningFactory,
                                                    1.0,
                                                    true);
     
@@ -274,7 +275,7 @@ public class AssetReportPlugin extends SimplePlugin
                                          reportingAsset,
                                          newEstimatedResult, 
                                          Role.ASSIGNED);
-    publishAdd(allocation);
+    getBlackboardService().publishAdd(allocation);
     return;
   }
 
@@ -284,7 +285,7 @@ public class AssetReportPlugin extends SimplePlugin
     Asset localAsset = null;
     
     // Query subscription to see if clientAsset already exists
-    Collection collection = query(new UnaryPredicate() {
+    Collection collection = getBlackboardService().query(new UnaryPredicate() {
       
       public boolean execute(Object o) {
         if ((o instanceof Asset) &&
@@ -399,7 +400,7 @@ public class AssetReportPlugin extends SimplePlugin
           if (myLogger.isInfoEnabled())
             myLogger.info(getAgentIdentifier() + " IS resending AssetTransfer of self to " + at.getAssignee());
           at.indicateAssetChange();
-          publishChange(at, changeReports);
+          getBlackboardService().publishChange(at, changeReports);
         }
       }
     }
@@ -444,16 +445,16 @@ public class AssetReportPlugin extends SimplePlugin
 
 
   private static class allLocalAssetPred implements UnaryPredicate {
-    private final MessageAddress myCID;
-    public allLocalAssetPred(MessageAddress cid) {
+    private final MessageAddress myAID;
+    public allLocalAssetPred(MessageAddress aid) {
       super();
-      myCID = cid;
+      myAID = aid;
     }
     public boolean execute(Object o) {
       if ((o instanceof Asset) &&
           (o instanceof HasRelationships) &&
           (((Asset) o).hasClusterPG())) {
-        return ((Asset) o).getClusterPG().getMessageAddress().equals(myCID);
+        return ((Asset) o).getClusterPG().getMessageAddress().equals(myAID);
       } else {
         return false;
       }

@@ -191,11 +191,13 @@ public class RescindLP
           pe,
           CHECKCONSISTENCY)) {
       removePlanElement(pe, true);
-    }
 
-    // Unless we're doing debug logging, skip out here.
-    if (! logger.isDebugEnabled())
-      return;
+      // Unless we're doing debug logging, skip out here.
+      // Note that this means an inconsistent PE
+      // will not have its Tasks consistency checked
+      if (! logger.isDebugEnabled())
+	return;
+    }
 
     if (! CHECKCONSISTENCY)
       return;

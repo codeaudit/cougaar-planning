@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import org.cougaar.core.logging.LoggingServiceWithPrefix;
 import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.service.DomainService;
 import org.cougaar.core.service.LoggingService;
@@ -143,6 +144,10 @@ public class AssetDataPlugin extends SimplePlugin {
     if (myLogger == null) {
       myLogger = LoggingService.NULL;
     }
+    myLogger = 
+      LoggingServiceWithPrefix.add(
+          myLogger,
+          getAgentIdentifier() + ": ");
 
     initAssets();
   }
@@ -192,8 +197,7 @@ public class AssetDataPlugin extends SimplePlugin {
 	  String className = 
 	    ((LocalAssetInfo) queryCollection.iterator().next()).getClassName();
 	  if (queryCollection.size() > 1) {
-	    myLogger.warn(getAgentIdentifier() + 
-			  " found " + queryCollection.size() + 
+	    myLogger.warn("Found " + queryCollection.size() + 
 			  " keys for the local Asset." +
 			  " Using - " + key);
 	  }
@@ -209,8 +213,7 @@ public class AssetDataPlugin extends SimplePlugin {
 	    myLocalAsset = (Asset) assetCollection.iterator().next();
 	    myAssetClassName = className;
 	  } else {
-	    myLogger.warn(getAgentIdentifier() + 
-			  " Did not find local asset for key " + key);
+	    myLogger.warn("Did not find local asset for key " + key);
 	  }
 	}
       }
@@ -220,7 +223,7 @@ public class AssetDataPlugin extends SimplePlugin {
       } 
     } catch (Exception e) {
       synchronized (System.err) {
-	myLogger.error(getMessageAddress().toString()+"/"+this+" caught "+e);
+	myLogger.error(this+" caught "+e);
 	e.printStackTrace();
       }
     } finally {
@@ -238,8 +241,7 @@ public class AssetDataPlugin extends SimplePlugin {
       String cId = getMessageAddress().getAddress();
       
       if (myAssetInitializerService == null) {
-	myLogger.fatal(getAgentIdentifier() + 
-		       ": AssetInitializerService is null." +
+	myLogger.fatal("AssetInitializerService is null." +
 		       " Unable to create local asset.");
 	return;
       }
@@ -250,8 +252,7 @@ public class AssetDataPlugin extends SimplePlugin {
       addParamRelationships();      
 
       if (myLogger.isDebugEnabled()) {
-	myLogger.debug(getAgentIdentifier() + 
-		       ": property groups for local asset: ");
+	myLogger.debug("property groups for local asset: ");
         Vector all = myLocalAsset.fetchAllProperties();
         try {
           for (Iterator i = all.iterator(); i.hasNext(); ) {
@@ -549,7 +550,7 @@ public class AssetDataPlugin extends SimplePlugin {
           }
         }
       } catch (Exception e) {
-	myLogger.error(getAgentIdentifier() + ": Exception constructing "+type+" from \""+arg+"\":");
+	myLogger.error("Exception constructing "+type+" from \""+arg+"\":");
         e.printStackTrace();
         throw new RuntimeException("Construction problem "+e);
       }
@@ -659,8 +660,7 @@ public class AssetDataPlugin extends SimplePlugin {
       } catch (NoSuchMethodException nsme) {
         // This is okay - just try the next factory
       } catch (Exception e) { 
-	myLogger.error(getAgentIdentifier() + 
-		       " Problem loading Domain Factory", e);
+	myLogger.error("Problem loading Domain Factory", e);
       }
     }
       
@@ -815,7 +815,7 @@ public class AssetDataPlugin extends SimplePlugin {
       }
       meth.invoke(pg, arguments);
     } catch (Exception e) {
-      myLogger.error(getAgentIdentifier() + " Exception: callSetter("+pg.getClass().getName()+", "+setterName+", "+type+", "+arguments+" : " + e);
+      myLogger.error("Exception: callSetter("+pg.getClass().getName()+", "+setterName+", "+type+", "+arguments+" : " + e);
       e.printStackTrace();
     }
   }
@@ -892,7 +892,7 @@ public class AssetDataPlugin extends SimplePlugin {
       }
 
       if (nextAttribute == null) {
-	myLogger.error(getAgentIdentifier() + ":Unrecognized attribute " + 
+	myLogger.error("Unrecognized attribute " + 
 		       nextAttribute + " in " + param + 
 		       ". No relationship added.");
 	return;
@@ -907,15 +907,14 @@ public class AssetDataPlugin extends SimplePlugin {
       } else if (nextAttribute.equals("StartTime")) { 
 	String timeString = getToken(tokenizer, VALUE_DELIMITER);
 	if (myLogger.isDebugEnabled())
-	  myLogger.debug(getMessageAddress() + " trying to parse timeString: " + timeString + " from " + param);
+	  myLogger.debug("trying to parse timeString: " + timeString + " from " + param);
 	try {
 	  if (timeString != null)
 	    start = parseDate(timeString);
 	  else
 	    start = getDefaultStartTime();
 	} catch (java.text.ParseException pe) {
-	  myLogger.error(getAgentIdentifier() + 
-			 ":Unable to parse start date from " + param +  
+	  myLogger.error("Unable to parse start date from " + param +  
 			 ". Start time defaulting to " + 
 			 getDefaultStartTime());
 	}
@@ -927,13 +926,12 @@ public class AssetDataPlugin extends SimplePlugin {
 	  else
 	    end = getDefaultEndTime();
 	} catch (java.text.ParseException pe) {
-	  myLogger.error(getAgentIdentifier() + 
-			 ":Unable to parse end date from " + param +  
+	  myLogger.error("Unable to parse end date from " + param +  
 			 ". Start time defaulting to " + 
 			 getDefaultEndTime());
 	}
       } else {
-	myLogger.error(getAgentIdentifier() + ":Unrecognized attribute " + 
+	myLogger.error("Unrecognized attribute " + 
 		       nextAttribute + " in " + param + 
 		       ". No relationship added.");
 	return;
@@ -944,8 +942,7 @@ public class AssetDataPlugin extends SimplePlugin {
 	(typeIdentification == null) ||
 	(itemIdentification == null) ||
 	(role == null)) {
-      myLogger.error(getAgentIdentifier() + 
-		     ":Incomplete relationship specification - " + param +
+      myLogger.error("Incomplete relationship specification - " + param +
 		     ". No relationship added.");
     } else {
       addRelationship(typeIdentification, itemIdentification, messageAddress,

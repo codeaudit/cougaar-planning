@@ -262,7 +262,7 @@ public abstract class CompletionSocietyPlugin extends CompletionSourcePlugin {
         tomorrow = newTomorrow;
         persistenceNeeded = true;
         try {
-          demoControlService.setTime(tomorrow, true);
+          demoControlService.setSocietyTime(tomorrow, true);
           if (logger.isInfoEnabled()) {
             logger.info("Advance time from "
                         + formatDate(demoNow)

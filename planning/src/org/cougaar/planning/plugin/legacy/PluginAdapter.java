@@ -433,13 +433,13 @@ public abstract class PluginAdapter
       public LDMServesPlugin getLDM() { return PluginAdapter.this.getLDM(); }
       
       // DemoControl service
-      public void setTime(long time) { getDemoControlService().setTime(time);}
-      public void setTime(long time, boolean foo) { getDemoControlService().setTime(time,foo);}
-      public void setTimeRate(double rate) { getDemoControlService().setTimeRate(rate); }
-      public void advanceTime(long period) { getDemoControlService().advanceTime(period); }
-      public void advanceTime(long period, boolean foo) { getDemoControlService().advanceTime(period, foo); }
-      public void advanceTime(long period, double rate) { getDemoControlService().advanceTime(period, rate); }
-      public void advanceTime(ExecutionTimer.Change[] changes) { getDemoControlService().advanceTime(changes); }
+      public void setTime(long time) { getDemoControlService().setSocietyTime(time);}
+      public void setTime(long time, boolean foo) { getDemoControlService().setSocietyTime(time,foo);}
+      public void setTimeRate(double rate) { getDemoControlService().setSocietyTimeRate(rate); }
+      public void advanceTime(long period) { getDemoControlService().advanceSocietyTime(period); }
+      public void advanceTime(long period, boolean foo) { getDemoControlService().advanceSocietyTime(period, foo); }
+      public void advanceTime(long period, double rate) { getDemoControlService().advanceSocietyTime(period, rate); }
+      public void advanceTime(ExecutionTimer.Change[] changes) { getDemoControlService().advanceSocietyTime(changes); }
       public double getExecutionRate() { return getDemoControlService().getExecutionRate(); }
 
       // alarm service

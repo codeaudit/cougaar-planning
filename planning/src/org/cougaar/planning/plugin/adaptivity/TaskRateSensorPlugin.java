@@ -130,7 +130,7 @@ public class TaskRateSensorPlugin extends ServiceUserPlugin {
         taskRate.setValue(new Double(filteredTaskRate));
         blackboard.publishChange(taskRate);
       }
-      startTimer(2000);
+      resetTimer(2000);
     }
   }
 }

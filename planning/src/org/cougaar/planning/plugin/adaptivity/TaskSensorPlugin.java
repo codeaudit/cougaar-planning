@@ -173,7 +173,7 @@ public class TaskSensorPlugin extends ServiceUserPlugin {
       publishRateCondition.publish();
       disposeRateCondition.publish();
       backlogCondition.publish();
-      startTimer(UPDATE_INTERVAL);
+      resetTimer(UPDATE_INTERVAL);
     }
   }
 }

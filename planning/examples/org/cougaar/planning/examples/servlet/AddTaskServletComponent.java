@@ -106,7 +106,7 @@ implements BlackboardClient
       // add a new task to the blackboard:
       NewTask nt = ldmf.newTask();
       nt.setSource(agentId);
-      nt.setVerb(Verb.getVerb("fromAddTaskServlet"));
+      nt.setVerb(Verb.get("fromAddTaskServlet"));
       try {
         blackboard.openTransaction();
         blackboard.publishAdd(nt);

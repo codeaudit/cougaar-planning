@@ -116,7 +116,7 @@ public class CompletionNodePlugin extends CompletionSourcePlugin {
       if (logger.isErrorEnabled()) {
         logger.error(
             "Unable to list local agents on node "+
-            getMessageAddress());
+            getAgentIdentifier());
       }
       return Collections.EMPTY_SET;
     } else {

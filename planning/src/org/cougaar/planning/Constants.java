@@ -29,7 +29,7 @@ public interface Constants {
     // Keep in alphabetical order
     String REPORT = "Report";
 
-    org.cougaar.planning.ldm.plan.Verb Report= org.cougaar.planning.ldm.plan.Verb.getVerb(REPORT);
+    org.cougaar.planning.ldm.plan.Verb Report= org.cougaar.planning.ldm.plan.Verb.get(REPORT);
   }
 
   interface Preposition {

@@ -110,7 +110,7 @@ public class CompletionTargetPlugin extends CompletionPlugin {
     activitySubscription = (IncrementalSubscription)
       blackboard.subscribe(activityPredicate, new AmnesiaCollection(), true);
     lastActivity = System.currentTimeMillis();
-    startTimer(SLEEP_INTERVAL);
+    resetTimer(SLEEP_INTERVAL);
   }
 
   public void execute() {
@@ -149,7 +149,7 @@ public class CompletionTargetPlugin extends CompletionPlugin {
         updateBlackboardCompletion();
       }
       cancelTimer();
-      startTimer(SLEEP_INTERVAL);
+      resetTimer(SLEEP_INTERVAL);
     }
     maybeRespondToRelays();
   }

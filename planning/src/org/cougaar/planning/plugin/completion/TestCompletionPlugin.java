@@ -58,8 +58,8 @@ import org.cougaar.planning.plugin.util.PluginHelper;
 public class TestCompletionPlugin extends SimplePlugin {
   private static final long ONE_DAY = 86400000L;
   private static final long TIME_OFFSET = ONE_DAY / 2;
-  private static final Verb SUPPLY = Verb.getVerb("Supply");
-  private static final Verb PROJECTSUPPLY = Verb.getVerb("ProjectSupply");
+  private static final Verb SUPPLY = Verb.get("Supply");
+  private static final Verb PROJECTSUPPLY = Verb.get("ProjectSupply");
   private static final String MAINTAINING = "Maintaining";
   private static final String FOR = "For";
   private static final int DEMANDRATE = AspectType.N_CORE_ASPECTS + 0;

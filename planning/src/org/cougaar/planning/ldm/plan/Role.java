@@ -86,30 +86,30 @@ public final class Role implements Serializable, BeanInfo {
   }
 
   public static void create(String roleName, String converseRoleName) {
-    Role role = (Role)roles.get(roleName);
-    Role converse = (Role)roles.get(converseRoleName);
-
-    if (((role != null) && 
-         (!role.nameConverse.equals(converseRoleName))) ||
-        ((converse != null) && 
-        (!converse.nameConverse.equals(roleName)))) {
-      if (role != null) {
-        System.err.println("Role.create() role: " + role.name + 
-                           " already exists, converse: " + 
-                           role.nameConverse);
-      }
-      if (converse != null) {
-        System.err.println("Role.create() role: " + converse.name + 
-                           " already exists, converse: " + 
-                           converse.nameConverse);
-      }
-
-      throw new IllegalArgumentException("Role.create: unable to create role/converse pair - " +
-                                         roleName + "/" + 
-                                         converseRoleName);
-    }
-
     synchronized (lock) {
+      Role role = (Role)roles.get(roleName);
+      Role converse = (Role)roles.get(converseRoleName);
+      
+      if (((role != null) && 
+	   (!role.nameConverse.equals(converseRoleName))) ||
+	  ((converse != null) && 
+	   (!converse.nameConverse.equals(roleName)))) {
+	if (role != null) {
+	  System.err.println("Role.create() role: " + role.name + 
+			     " already exists, converse: " + 
+			     role.nameConverse);
+	}
+	if (converse != null) {
+	  System.err.println("Role.create() role: " + converse.name + 
+			     " already exists, converse: " + 
+			     converse.nameConverse);
+	}
+	
+	throw new IllegalArgumentException("Role.create: unable to create role/converse pair - " +
+					   roleName + "/" + 
+					   converseRoleName);
+      }
+
       roleName = roleName.intern();
       role = new Role(roleName); // calls cacheRole
       role.nameConverse = converseRoleName;
@@ -123,7 +123,7 @@ public final class Role implements Serializable, BeanInfo {
       }
 
       converseRoles.put(converseRoleName, role);
-    }
+    } // end synchronized(lock)
   }
 
     
@@ -155,14 +155,14 @@ public final class Role implements Serializable, BeanInfo {
 
   private transient int _hc = 0;
   public int hashCode() {
-    if (_hc == 0) _hc = name.hashCode()+42;
+    if (_hc == 0) _hc = name.hashCode() + 42;
     return _hc;
   }
 
 
 
   /** Should only be called through Role.getRole */
-  private Role( String string ) {
+  private Role(String string) {
     if ( string == null ) {
       throw new IllegalArgumentException ("Null valued strings are not allowed");
     }

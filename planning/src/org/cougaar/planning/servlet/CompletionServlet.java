@@ -153,8 +153,12 @@ extends BaseServletComponent
   public void setAgentIdentificationService(
       AgentIdentificationService agentIdService) {
     this.agentIdService = agentIdService;
-    this.localAgent = agentIdService.getMessageAddress();
-    encLocalAgent = formURLEncode(localAgent.getAddress());
+    if (agentIdService == null) {
+      // Revocation
+    } else {
+      this.localAgent = agentIdService.getMessageAddress();
+      encLocalAgent = formURLEncode(localAgent.getAddress());
+    }
   }
 
   public void setBlackboardQueryService(

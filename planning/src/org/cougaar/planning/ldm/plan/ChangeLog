@@ -1,3 +1,11 @@
+2003-04-01  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* ScoringFunction.java:
+	Bug #2722 -- ScoringFunction implementations have missing/incorrect equals methods
+	Added equals methods to PiecewiseLinearScoringFunction,
+	ConstantScoringFunction, StrictBetweenWithBest,
+	EnumeratedScoringFunction implementations.
+
 2003-03-31  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* TaskImpl.java:

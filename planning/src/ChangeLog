@@ -1,3 +1,8 @@
+2003-04-01  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/planning/ldm/lps/ReceiveTaskLP.java:
+	Added more logging.
+
 2003-03-31  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* org/cougaar/planning/ldm/lps/ReceiveTaskLP.java: 

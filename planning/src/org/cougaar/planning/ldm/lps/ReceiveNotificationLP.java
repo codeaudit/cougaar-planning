@@ -101,11 +101,10 @@ implements LogicProvider, MessageLogicProvider
 
     // verify that the pe matches the task
     if (!needToRescind &&  (pe instanceof AllocationforCollections)) {
-      Task remoteT = ((AllocationforCollections)pe).getAllocationTask();
-      if (remoteT == null) {
+      UID remoteTUID = ((AllocationforCollections)pe).getAllocationTaskUID();
+      if (remoteTUID == null) {
         needToRescind = true;
       } else {
-        UID remoteTUID = remoteT.getUID();
         if (!(remoteTUID.equals(childuid))) {
           // this was likely due to a race condition...
           logger.error("Got a Notification for the wrong allocation:"+
@@ -216,7 +215,7 @@ implements LogicProvider, MessageLogicProvider
           // publish the change to the blackboard.
           bb.change(pe, null); // drop the change details.
           //bb.change(pe, changes);
-          //System.err.print("=");
+          //Logging.printDot("=");
         }
       } catch (RuntimeException re) {
         logger.error("Caught exception while processing DelayedAggregateResults for "+pe, re);

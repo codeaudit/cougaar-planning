@@ -78,7 +78,7 @@ implements LogicProvider, MessageLogicProvider
 
   private void receiveTaskRescind(TaskRescind tr) {
     UID tuid = tr.getTaskUID();
-    System.err.print("R");
+    logger.printDot("R");
 
     // just rescind the task; let the RescindLP handle the rest
     //
@@ -93,7 +93,3 @@ implements LogicProvider, MessageLogicProvider
     }
   }
 }
- 
-
-
-

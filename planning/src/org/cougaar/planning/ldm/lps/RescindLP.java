@@ -150,7 +150,7 @@ implements LogicProvider, EnvelopeLogicProvider {
 
   /** rescind the cascade of any PE (does not remove the PE) */
   private void planElementRemoved(PlanElement pe) {
-    //System.err.print("p");
+    //logger.printDot("p");
     if (pe instanceof Allocation) {
       // remove planelement from the asset's roleschedule
       //removePERS(pe);
@@ -173,16 +173,16 @@ implements LogicProvider, EnvelopeLogicProvider {
 
   /** rescind the cascade of an allocation */
   private void allocationRemoved(Allocation all) {
-    //System.err.print("a");
+    //logger.printDot("a");
     Asset a = all.getAsset();
     ClusterPG cpg = a.getClusterPG();
     if (cpg != null) {
       MessageAddress cid = cpg.getMessageAddress();
       if (cid != null) {
-        Task rt = ((AllocationforCollections) all).getAllocationTask();
-        if (rt != null) {
-          TaskRescind trm = ldmf.newTaskRescind(rt, cid);
-          ((AllocationforCollections) all).setAllocationTask(null);
+        UID remoteUID = ((AllocationforCollections) all).getAllocationTaskUID();
+        if (remoteUID != null) {
+          TaskRescind trm = ldmf.newTaskRescind(remoteUID, cid);
+          ((AllocationforCollections) all).setAllocationTaskUID(null);
           rootplan.sendDirective((Directive) trm);
         }
       }
@@ -433,6 +433,3 @@ implements LogicProvider, EnvelopeLogicProvider {
   }
 
 }
-
-
-

@@ -25,6 +25,8 @@ import org.cougaar.core.blackboard.*;
 import org.cougaar.core.agent.*;
 import org.cougaar.core.domain.*;
 import org.cougaar.core.mts.SerializationUtils;
+import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.core.logging.LoggingServiceWithPrefix;
 
 import org.cougaar.planning.ldm.*;
 import org.cougaar.planning.ldm.plan.Task;
@@ -50,17 +52,20 @@ import java.util.Collection;
 public class ReceiveTaskLP
 implements LogicProvider, MessageLogicProvider
 {
-  private static Logger logger = Logging.getLogger(ReceiveTaskLP.class);
+  private Logger logger;
 
   private final RootPlan rootplan;
   private final LogPlan logplan;
 
   public ReceiveTaskLP(
       RootPlan rootplan,
-      LogPlan logplan)
+      LogPlan logplan,
+      MessageAddress self)
   {
     this.rootplan = rootplan;
     this.logplan = logplan;
+    logger = new LoggingServiceWithPrefix(Logging.getLogger(ReceiveTaskLP.class),
+                                          self.toString() + ": ");
   }
 
   public void init() {
@@ -87,17 +92,8 @@ implements LogicProvider, MessageLogicProvider
         Task existingTask = logplan.findTask(tsk);
         if (existingTask == null) {
           // only add if it isn't already there.
-          if (tsk.getWorkflow() != null) {
-            // Has been marked and the mark remains meaning tsk is the
-            // same instance as the sending agent has so we clone it
-            if (logger.isDebugEnabled()) {
-              logger.debug("Cloning task from same node " + tsk.getUID());
-            }
-            tsk = cloneAliasedTask(tsk);
-          } else {
-            if (logger.isDebugEnabled()) {
-              logger.debug("Received new task from another node " + tsk.getUID());
-            }
+          if (logger.isDebugEnabled()) {
+            logger.debug("Received new task from another node " + tsk.getUID());
           }
           rootplan.add(tsk);
         } else if (tsk.isDeleted()) {
@@ -115,7 +111,8 @@ implements LogicProvider, MessageLogicProvider
             }
           }
         } else if (tsk == existingTask) {
-          // This never happens any more
+          // This never happens any more because a new task is created
+          // for each transmission
           if (logger.isWarnEnabled()) {
             logger.warn("Received task instance already on blackboard " + tsk.getUID());
           }
@@ -143,31 +140,5 @@ implements LogicProvider, MessageLogicProvider
         logger.error("Could not add Task to LogPlan: " + tsk, se);
       }
     }
-  }
-
-  private Task cloneAliasedTask(final Task task) {
-    final byte[][] result1 = new byte[1][];
-    ClusterContextTable.withMessageContext(task.getSource(), task.getSource(), task.getDestination(), new Runnable() {
-        public void run() {
-          try {
-            result1[0] = SerializationUtils.toByteArray(task);
-          } catch (Exception e) {
-            logger.error("Failed to clone aliased task");
-          }
-        }
-      });
-    if (result1[0] == null) return task;
-    final Task[] result2 = new Task[1];
-    ClusterContextTable.withMessageContext(task.getDestination(), task.getSource(), task.getDestination(), new Runnable() {
-        public void run() {
-          try {
-            result2[0] = (Task) SerializationUtils.fromByteArray(SerializationUtils.toByteArray(task));
-          } catch (Exception e) {
-            logger.error("Failed to clone aliased task");
-            result2[0] = task;
-          }
-        }
-      });
-    return result2[0];
   }
 }

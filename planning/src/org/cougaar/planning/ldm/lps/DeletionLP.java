@@ -35,7 +35,6 @@ import org.cougaar.util.UnaryPredicate;
 import org.cougaar.util.log.Logger;
 import org.cougaar.util.log.Logging;
 
-
 /** RescindLogicProvider class provides the logic to capture 
  * rescinded PlanElements (removed from collection)
   *

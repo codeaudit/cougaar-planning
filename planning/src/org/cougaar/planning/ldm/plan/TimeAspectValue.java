@@ -20,25 +20,52 @@
  */
 
 package org.cougaar.planning.ldm.plan;
+import org.cougaar.util.LRUCache;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.BitSet;
 
 /** An AspectValue implementation which stores a time.
  */
  
-public class TimeAspectValue extends LongAspectValue {
-  static final AspectValue zero[] = new AspectValue[AspectType.N_CORE_ASPECTS];
-  static {
-    zero[AspectType.START_TIME] = new TimeAspectValue(AspectType.START_TIME, 0);
-    zero[AspectType.END_TIME] = new TimeAspectValue(AspectType.END_TIME, 0);
-    zero[AspectType.DURATION] = new TimeAspectValue(AspectType.DURATION, 0);
-    zero[AspectType.INTERVAL] = new TimeAspectValue(AspectType.INTERVAL, 0);
-    zero[AspectType.POD_DATE] = new TimeAspectValue(AspectType.POD_DATE, 0);
+public abstract class TimeAspectValue extends AspectValue {
+  // 0 = LRU
+  // 1 = hashmap
+  private static final int CACHE_STYLE_DEFAULT = 0;
+  private static final int CACHE_STYLE = 
+    Integer.getInteger("org.cougaar.planning.ldm.plan.timeAV.cacheStyle",
+                       CACHE_STYLE_DEFAULT).intValue();
+
+  private static final int CACHE_SIZE_DEFAULT = 256;
+  private static final int CACHE_SIZE =
+    Integer.getInteger("org.cougaar.planning.ldm.plan.timeAV.cacheSize",
+                       CACHE_SIZE_DEFAULT).intValue();
+
+  // blank final!
+  protected final long value;
+
+  protected TimeAspectValue(long l) {
+    this.value = l;
   }
 
-  protected TimeAspectValue(int type, long value) {
-    super(type,value);
+  public final double doubleValue() { return (double) value; }
+  public final long longValue() { return value; }
+  public final float floatValue() { return (float) value; }
+  public final int intValue() { return (int) value; }
+
+  public Date dateValue() { return new Date(longValue()); }
+  public long timeValue() { return longValue(); }
+  
+  // ignore type because they shouldn't coexist anyway
+  public boolean equals(Object v) {
+    return (v instanceof TimeAspectValue) &&
+      ((TimeAspectValue) v).value == value;
+  }
+  public final int hashCode() {
+    return (int)value;
   }
 
   public static AspectValue create(int type, Object o) {
@@ -51,31 +78,9 @@ public class TimeAspectValue extends LongAspectValue {
       throw new IllegalArgumentException("Cannot create a TimeAspectValue from "+o);
     }
 
-    // check for static zeros
-    if (l==0 && type>=0 && type < zero.length) {
-      AspectValue av = zero[type];
-      if (av != null) return av;
-    }
-
-    return new TimeAspectValue(type,l);
+    return create(type, l);
   }
    
-  public static AspectValue create(int type, long o) {
-    return new TimeAspectValue(type,o);
-  }
-
-
-  /** @return The Date representation of the value of the aspect. */
-  public Date dateValue() {
-    return new Date(longValue());
-  }
-
-  /** Alias for longValue() **/
-  public long timeValue() {
-    return longValue();
-  }
-  
-
   // not thrilled with this...
   private static SimpleDateFormat dateTimeFormat =
     new SimpleDateFormat("MM/dd/yy HH:mm:ss.SSS z");
@@ -87,4 +92,119 @@ public class TimeAspectValue extends LongAspectValue {
       return dateTimeFormat.format(formatDate) + "[" + getType() + "]";
     }
   }
+
+  //
+  // unoptimized TAV
+  //
+  public static class TypedTimeAspectValue extends TimeAspectValue {
+    private int type;
+    protected TypedTimeAspectValue(int type, long value) {
+      super(value);
+      this.type = type;
+    }
+    public final int getType() { return type; }
+  }
+
+  //
+  // optimized time AVs
+  //
+
+  /** Base class for optimized time-based Aspect Values
+   **/
+
+  public static abstract class OptimizedTimeAspectValue extends TimeAspectValue {
+    protected OptimizedTimeAspectValue(long value) {
+      super(value);
+    }
+    
+    // always go via the factories on reads
+    private Object readResolve() {
+      return create(getType(), value);
+    }
+
+  }
+
+  public static final class StartTAV extends OptimizedTimeAspectValue {
+    public final int getType() { return AspectType.START_TIME; }
+    public  StartTAV(long l) { super(l); }
+  }
+  public static final class EndTAV extends OptimizedTimeAspectValue {
+    public final int getType() { return AspectType.END_TIME; }
+    public EndTAV(long l) { super(l); }
+  }
+  public static final class DurationTAV extends OptimizedTimeAspectValue {
+    public final int getType() { return AspectType.DURATION; }
+    public DurationTAV(long l) { super(l); }
+  }
+  public static final class IntervalTAV extends OptimizedTimeAspectValue {
+    public final int getType() { return AspectType.INTERVAL; }
+    public IntervalTAV(long l) { super(l); }
+  }
+  public static final class PodTAV extends OptimizedTimeAspectValue {
+    public final int getType() { return AspectType.POD_DATE; }
+    public PodTAV(long l) { super(l); }
+  }
+
+
+  private static abstract class OTF {
+    /** actually create a new instance **/
+    public abstract AspectValue create(long l);
+    
+    private final Map cache;
+    public OTF() {
+      if (CACHE_STYLE == 1) {
+        cache = new HashMap(CACHE_SIZE);
+      } else {
+        cache = new LRUCache(CACHE_SIZE);
+      }
+    }
+
+    /** Find or create an aspect value **/
+    public AspectValue get(long l) {
+      // this is nominally faster than using AVs as keys
+      Long key = new Long(l);
+      synchronized (cache) {
+        AspectValue oav = (AspectValue)cache.get(key);
+        if (oav != null) {
+          return oav;
+        } else {
+          AspectValue av = create(l);
+          cache.put(key,av);
+          return av;
+        }
+      }
+    }
+  }
+
+  private static final int OTFL = AspectType.N_CORE_ASPECTS;
+  private static final OTF[] factory = new OTF[OTFL];
+
+  static {
+    factory[AspectType.START_TIME] = new OTF() { 
+        public AspectValue create(long l) { return new StartTAV(l); }};
+    factory[AspectType.END_TIME] = new OTF() { 
+        public AspectValue create(long l) { return new EndTAV(l); }};
+    factory[AspectType.DURATION] = new OTF() { 
+        public AspectValue create(long l) { return new DurationTAV(l); }};
+    factory[AspectType.INTERVAL] = new OTF() { 
+        public AspectValue create(long l) { return new IntervalTAV(l); }};
+    factory[AspectType.POD_DATE] = new OTF() { 
+        public AspectValue create(long l) { return new PodTAV(l); }}; 
+  }
+          
+  public static AspectValue create(int type, long value) {
+    if (type >= 0 && type < OTFL) {
+      OTF f = factory[type];
+      if (f != null) {
+        return f.get(value);
+      }
+    }
+    return new TypedTimeAspectValue(type, value);
+  }
+
+  // current tested times on my machine are:
+  // secs/ (128 invokes)
+  // 0.011657		create(t,v) without using factory
+  // 0.063640		create(t,v) with factory (including LRU lookup) (5.46x)
+  // 0.035438		create(t,v) with factory (using hashmap) (3.04x)
 }

@@ -29,13 +29,16 @@ import java.util.*;
  *
  */
 
-public final class Verb implements Serializable {
+public class Verb implements Serializable {
   // verb cache - needs to be declared before the statics below
   private static HashMap verbs = new HashMap(29);
   	
   private String name;
 	
-  /** Constructor takes a String that represents the verb */
+  /** Constructor takes a String that represents the verb
+   * @note better to use getVerb than new Verb, as they'll be static
+   * cached.
+   */
   public Verb(String v) {
     if (v == null) throw new IllegalArgumentException();
     name = v.intern();
@@ -43,13 +46,13 @@ public final class Verb implements Serializable {
   }
 	
   /** @return String toString returns the String that represents the verb */
-  public String toString() {
+  public final String toString() {
     return name;
   }
 	
   /** Capabilities are equal IFF they encapsulate the same string
    */
-  public boolean equals(Object v) {
+  public final boolean equals(Object v) {
     // use == since verb strings are interned
     return (this == v || 
             (v instanceof Verb && name == ((Verb)v).name) ||
@@ -58,12 +61,12 @@ public final class Verb implements Serializable {
   }
   
   /** convenience method for verb testing */
-  public boolean equals(String v) {
+  public final boolean equals(String v) {
     return ( name==v || name.equals(v));
   }
 
   private transient int _hc = 0;
-  public int hashCode()
+  public final int hashCode()
   {
     if (_hc == 0) _hc = name.hashCode();
     return _hc;
@@ -94,6 +97,7 @@ public final class Verb implements Serializable {
     }
   }
 
+  /** use getVerb rather than cacheVerb(new Verb()) **/
   public static void cacheVerb(Verb v) {
     String vs = v.toString();
     synchronized (verbs) {

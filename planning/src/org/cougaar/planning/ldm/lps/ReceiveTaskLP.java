@@ -27,6 +27,7 @@
 package org.cougaar.planning.ldm.lps;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -39,6 +40,7 @@ import org.cougaar.core.domain.MessageLogicProvider;
 import org.cougaar.core.domain.RootPlan;
 import org.cougaar.core.logging.LoggingServiceWithPrefix;
 import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.core.service.AlarmService;
 import org.cougaar.planning.ldm.LogPlan;
 import org.cougaar.planning.ldm.PlanningFactory;
 import org.cougaar.planning.ldm.plan.Context;
@@ -67,6 +69,7 @@ public class ReceiveTaskLP
   private final LogPlan logplan;
   private final PlanningFactory ldmf;
   private final MessageAddress self;
+  private final AlarmService alarmService;
   private Set existingPhrases = new HashSet();
   private Set newPhrases = new HashSet();
 
@@ -74,17 +77,23 @@ public class ReceiveTaskLP
       RootPlan rootplan,
       LogPlan logplan,
       MessageAddress self,
-      PlanningFactory ldmf)
+      PlanningFactory ldmf,
+      AlarmService alarmService)
   {
     this.rootplan = rootplan;
     this.logplan = logplan;
     this.self = self;
     this.ldmf = ldmf;
+    this.alarmService = alarmService;
     logger = new LoggingServiceWithPrefix(Logging.getLogger(ReceiveTaskLP.class),
                                           self.toString() + ": ");
   }
 
   public void init() {
+  }
+
+  private Date currentDate() {
+    return new Date(alarmService.currentTimeMillis());
   }
 
   /**
@@ -118,7 +127,14 @@ public class ReceiveTaskLP
             if (logger.isDebugEnabled()) {
               logger.debug("Received new task from another node " + tsk.getUID());
             }
-            rootplan.add(tsk);
+
+	    // First check committment date - dont add if
+	    // its late. (see bug 3757)
+	    if (tsk.beforeCommitment(currentDate())) {
+	      rootplan.add(tsk);
+	    } else if (logger.isInfoEnabled()) {
+	      logger.info("New task arrived past commitment date (" + tsk.getCommitmentDate() + "), not adding " + tsk);
+	    }	
           }
         } else if (tsk.isDeleted()) {
           if (existingTask.isDeleted()) {
@@ -140,7 +156,18 @@ public class ReceiveTaskLP
           if (logger.isWarnEnabled()) {
             logger.warn("Received task instance already on blackboard " + tsk.getUID());
           }
-          rootplan.change(existingTask, changes);
+	  // First check commitment date, dont do if old. (see bug 3757)
+	  if (tsk.beforeCommitment(currentDate())) {
+	    rootplan.change(existingTask, changes);
+	  } else if (logger.isInfoEnabled()) {
+	    logger.info("Task past commitment (" + existingTask.getCommitmentDate() + "), not changing " + tsk);
+	  }
+	} else if (! existingTask.beforeCommitment(currentDate())) {
+	  // Task already commited. Can't change. (see bug 3757)
+	  if (logger.isInfoEnabled()) 
+	    logger.info("Existing task already committed (" + existingTask.getCommitmentDate() + "), not changing " + existingTask);
+	  // Note this also skips sending back a notification of the EstAR
+	  // if the commitment date is past.
         } else {
           // Update task from received task
           boolean changedTask = false;
@@ -149,6 +176,7 @@ public class ReceiveTaskLP
           if (logger.isDebugEnabled()) {
             logger.debug("Comparing " + tsk);
           }
+
           if (!java.util.Arrays.equals(newPreferences, existingPreferences)) {
             if (logger.isDebugEnabled()) {
               logger.debug("Preferences differ "
@@ -243,7 +271,7 @@ public class ReceiveTaskLP
             }
           } 
           if (changedTask) {
-            rootplan.change(existingTask, changes);
+	    rootplan.change(existingTask, changes);
           } else {
             PlanElement pe = existingTask.getPlanElement();
             if (pe != null) {
@@ -255,6 +283,8 @@ public class ReceiveTaskLP
 		if (logger.isDebugEnabled()) {
 		  logger.debug("Got PE.shouldDoNotification. Invoke NotificationLP to send the notification.");
 		}
+		// FIXME: Avoid doing this if commitment date on 
+		// task is past? (see line 165)
 		NotificationLP.checkValues(pe, changes, rootplan, logplan, ldmf, self);
 	      } else {
 		if (logger.isDebugEnabled()) {
@@ -263,8 +293,8 @@ public class ReceiveTaskLP
 	      }
               //rootplan.change(pe, changes);	// Cause estimated result to be resent
             }
-          }
-        }
+          } // end block not changed task
+        } // end block to update local Task with changes
       } catch (SubscriberException se) {
         logger.error("Could not add Task to LogPlan: " + tsk, se);
       }

@@ -144,7 +144,7 @@ public class PlanningDomain extends DomainAdapter {
     addLogicProvider(new ReceiveNotificationLP(rootplan, logplan, ldmf));
     addLogicProvider(new ReceiveDeletionLP(rootplan, logplan, ldmf, self));
     addLogicProvider(new ReceiveRescindLP(rootplan, logplan));
-    addLogicProvider(new ReceiveTaskLP(rootplan, logplan, self, ldmf));
+    addLogicProvider(new ReceiveTaskLP(rootplan, logplan, self, ldmf, alarmService));
     
     // output LPs (+ some input)
     addLogicProvider(new AssetTransferLP(rootplan, logplan, ldmf, self));    

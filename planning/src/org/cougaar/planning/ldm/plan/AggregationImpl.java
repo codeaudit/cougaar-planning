@@ -36,6 +36,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.ListIterator;
 
+import org.cougaar.core.blackboard.Blackboard;
 import org.cougaar.core.blackboard.Subscriber;
 
 
@@ -110,7 +111,10 @@ public class AggregationImpl extends PlanElementImpl
   
   // ActiveSubscription code
   // override PlanElementImpls remove stuff
-  public void removingFromBlackboard(Subscriber s) {
+  public void removingFromBlackboard(Subscriber s, boolean commit) {
+    Blackboard.getTracker().checkpoint(commit, getTask(), "getPlanElement");
+    if (!commit) return;
+
     Task t = getTask();
     ((TaskImpl)t).privately_resetPlanElement();
     Composition c = getComposition();

@@ -415,9 +415,9 @@ public class AssetDataPlugin extends SimplePlugin {
         throw new RuntimeException("Unparsable collection type: "+type);
       }
 
-      Vector l = org.cougaar.util.StringUtility.parseCSV(arg);
-      for (Iterator it = l.iterator(); it.hasNext();) {
-        c.add(parseExpr(etype,(String) it.next()));
+      String[] l = org.cougaar.util.CSVUtility.parse(arg);
+      for (int ix = 0; ix < l.length; ix++) {
+        c.add(parseExpr(etype, l[ix]));
       }
       return c;
     } else if ((i = type.indexOf("/")) >= 0) {
@@ -431,13 +431,16 @@ public class AssetDataPlugin extends SimplePlugin {
       try {
         if (cl.isInterface()) {
           if (TimeSpan.class.isAssignableFrom(cl)) {
-            Vector svs =  org.cougaar.util.StringUtility.parseCSV(arg);
+            String[] svs =  org.cougaar.util.CSVUtility.parse(arg);
             long startTime = getDefaultStartTime();
             long endTime = getDefaultEndTime();
-            for (Enumeration sp = svs.elements(); sp.hasMoreElements();) {
-              String ss = (String) sp.nextElement();
+            for (int ix = 0; ix < svs.length; ix++) {
+              String ss = svs[ix];
 
               int eq = ss.indexOf('=');
+              if (eq < 0) {
+                throw new IllegalArgumentException("Missing \"=\" in " + ss);
+              }
               String slotname = ss.substring(0, eq).trim();
               String vspec = ss.substring(eq + 1).trim();
               try {
@@ -530,12 +533,18 @@ public class AssetDataPlugin extends SimplePlugin {
       // lookup method on ldmf
       Object o = callFactoryMethod(name);
 
-      Vector svs = org.cougaar.util.StringUtility.parseCSV(val);
+      String[] svs = org.cougaar.util.CSVUtility.parse(val);
       // svs should be a set of strings like "slot=value" or "slot=type value"
-      for (Enumeration sp = svs.elements(); sp.hasMoreElements();) {
-        String ss = (String) sp.nextElement();
+      for (int i = 0; i < svs.length; i++) {
+        String ss = svs[i];
+        if (myLogger.isDebugEnabled()) {
+          myLogger.debug("Processing \"" + ss + "\"");
+        }
 
         int eq = ss.indexOf('=');
+        if (eq < 0) {
+          throw new IllegalArgumentException("Missing \"=\" in " + ss);
+        }
         String slotname = ss.substring(0, eq).trim();
         String vspec = ss.substring(eq + 1).trim();
         
@@ -552,7 +561,7 @@ public class AssetDataPlugin extends SimplePlugin {
       }
       return o;
     } catch (Exception e) {
-      e.printStackTrace();
+      myLogger.error("Exception parsing " + val, e);
       return null;
     }
   }

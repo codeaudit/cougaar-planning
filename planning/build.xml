@@ -1,4 +1,4 @@
-<!-- Autobuild-generated ANT script for building the Cougaar module "planning". -->
+<!-- Autobuild-generated ANT v1.5 script for building the Cougaar module "planning". -->
 <!-- The source for this file is in build/data/moduleTemplate.xml -->
 
 <!-- autobuild might execute this with something like:
@@ -152,7 +152,7 @@
     <property name="compile.abs.jarlist" value=""/>
 
     <!-- javadoc package spec for building javadocs -->
-    <property name="javadoc.packages" value="org.cougaar.planning,org.cougaar.planning.ldm,org.cougaar.planning.ldm.asset,org.cougaar.planning.ldm.dq,org.cougaar.planning.ldm.lps,org.cougaar.planning.ldm.measure,org.cougaar.planning.ldm.plan,org.cougaar.planning.ldm.policy,org.cougaar.planning.ldm.predicate,org.cougaar.planning.ldm.trigger,org.cougaar.planning.plugin.adaptivity,org.cougaar.planning.plugin.asset,org.cougaar.planning.plugin.completion,org.cougaar.planning.plugin.legacy,org.cougaar.planning.plugin.node,org.cougaar.planning.plugin.util,org.cougaar.planning.service,org.cougaar.planning.servlet,org.cougaar.planning.servlet.data,org.cougaar.planning.servlet.data.completion,org.cougaar.planning.servlet.data.hierarchy,org.cougaar.planning.servlet.data.xml"/>
+    <property name="javadoc.packages" value="org.cougaar.planning,org.cougaar.planning.ldm,org.cougaar.planning.ldm.asset,org.cougaar.planning.ldm.dq,org.cougaar.planning.ldm.lps,org.cougaar.planning.ldm.measure,org.cougaar.planning.ldm.plan,org.cougaar.planning.ldm.policy,org.cougaar.planning.ldm.predicate,org.cougaar.planning.ldm.trigger,org.cougaar.planning.plugin.adaptivity,org.cougaar.planning.plugin.asset,org.cougaar.planning.plugin.completion,org.cougaar.planning.plugin.legacy,org.cougaar.planning.plugin.util,org.cougaar.planning.service,org.cougaar.planning.servlet,org.cougaar.planning.servlet.data,org.cougaar.planning.servlet.data.completion,org.cougaar.planning.servlet.data.hierarchy,org.cougaar.planning.servlet.data.xml"/>
 
     <!-- Extra jars needed at run / unit-test time. -->
     <!-- WARNING: Only relative paths work here. -->
@@ -398,20 +398,26 @@
       </copy>
     </target>
 
-    <target name="jar.build" depends="compile" if="has.src">
+    <!-- FIXME: Should the if be has.build? -->
+    <!-- Build the jar only for use in runtime zip -->
+    <!-- Compare to the dist-module target -->
+    <target name="jar.build" depends="compile, clean-tests, clean-examples" if="has.src">
       <!-- create the jarfile -->
       <jar jarfile="${module.jar}" basedir="${module.classes}" />
     </target>
       
 
+    <!-- Do the basic installation - called by base product Ant script -->
     <target name="install" depends="install.jar, install.lib">
     </target>
 
+    <!-- Install the Jar file in the target lib directory -->
     <target name="install.jar" depends="jar.build" if="has.build">
       <mkdir dir="${target.lib}"/>
       <copy file="${module.jar}" todir="${target.lib}"/>
     </target>
 
+    <!-- If there are any extra included jar files, install them -->
     <target name="install.lib" if="has.lib">
       <mkdir dir="${target.sys}"/>
       <copy  todir="${target.sys}">

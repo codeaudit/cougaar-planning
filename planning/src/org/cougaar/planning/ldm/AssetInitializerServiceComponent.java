@@ -31,30 +31,39 @@ import org.cougaar.core.component.Component;
 import org.cougaar.core.component.ServiceBroker;
 import org.cougaar.core.component.ServiceProvider;
 import org.cougaar.core.node.DBInitializerService;
-import org.cougaar.core.node.Node;
 import org.cougaar.core.node.NodeControlService;
 import org.cougaar.core.service.LoggingService;
 import org.cougaar.planning.service.AssetInitializerService;
+import org.cougaar.util.ConfigFinder;
 import org.cougaar.util.GenericStateModelAdapter;
+import org.cougaar.util.Parameters;
 
-/** 
- * A component which creates and advertises the appropriate 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+
+/**
+ * A component which creates and advertises the appropriate
  * AssetInitializerService ServiceProvider.
- * <p>
+ * <p/>
  * The rule is that we use the CSMART DB if components were intialized from there.
  * Otherwise, if the components coming from XML,
  * we use the non-CSMART DB. Otherwise we try to initialize from INI-style files.
- * <p>
+ * <p/>
+ *
  * @see FileAssetInitializerServiceProvider
  * @see DBAssetInitializerServiceProvider
  * @see NonCSMARTDBInitializerServiceImpl
- **/
+ */
 public final class AssetInitializerServiceComponent
-extends GenericStateModelAdapter
-implements Component 
-{
-  private static final String INITIALIZER_PROP = 
-    "org.cougaar.core.node.InitializationComponent";
+    extends GenericStateModelAdapter
+    implements Component {
+  private static final String INITIALIZER_PROP =
+      "org.cougaar.core.node.InitializationComponent";
+
+  private static final String DATABASE = "org.cougaar.refconfig.database";
+  private static final String USER = "org.cougaar.refconfig.user";
+  private static final String PASSWORD = "org.cougaar.refconfig.password";
 
   private ServiceBroker sb;
 
@@ -85,12 +94,11 @@ implements Component
     super.load();
 
     log = (LoggingService)
-      sb.getService(this, LoggingService.class, null);
+        sb.getService(this, LoggingService.class, null);
     if (log == null) {
       log = LoggingService.NULL;
     }
 
-    dbInit = (DBInitializerService) sb.getService(this, DBInitializerService.class, null);
 
     // Do not provide this service if there is already one there.
     // This allows someone to provide their own component to provide
@@ -100,8 +108,7 @@ implements Component
       //
       // leave the existing service in place
       if (log.isInfoEnabled()) {
-        log.info(
-            "Not loading the default asset initializer service");
+        log.info("Not loading the default asset initializer service");
       }
       if (log != LoggingService.NULL) {
         sb.releaseService(this, LoggingService.class, log);
@@ -133,24 +140,34 @@ implements Component
       ServiceProvider sp;
       String prop = System.getProperty(INITIALIZER_PROP);
       // If user specified to load from the database
-      if (prop != null && prop.indexOf("DB") != -1 && dbInit != null) {
-	// Init from CSMART DB
+      if (prop != null && prop.indexOf("DB") != -1) {
+        // Init from CSMART DB
         sp = new DBAssetInitializerServiceProvider(dbInit);
-	if (log.isInfoEnabled())
-	  log.info("Will init OrgAssets from CSMART DB");
-	// Else if user specified to load from XML
+
+        dbInit = (DBInitializerService) sb.getService(this, DBInitializerService.class, null);
+
+        if (log.isInfoEnabled())
+          log.info("Will init OrgAssets from CSMART DB");
+        // Else if user specified to load from XML
       } else if (prop != null && prop.indexOf("XML") != -1) {
-	// Initing config from XML. Assets will come from non-CSMART DB
-	// Create a new DBInitializerService
-	DBInitializerService myDbInit = new NonCSMARTDBInitializerServiceImpl();
-	sp = new DBAssetInitializerServiceProvider(myDbInit);
-	if (log.isInfoEnabled())
-	  log.info("Will init OrgAssets from NON CSMART DB!");
+        // Check to see if a valid database connection exists.
+        if (rcFileExists() && isValidRCFile()) {
+          // Initing config from XML. Assets will come from non-CSMART DB
+          // Create a new DBInitializerService
+          DBInitializerService myDbInit = new NonCSMARTDBInitializerServiceImpl();
+          sp = new DBAssetInitializerServiceProvider(myDbInit);
+          if (log.isInfoEnabled()) {
+            log.info("Will init OrgAssets from NON CSMART DB!");
+          }
+        } else {
+          sp = new FileAssetInitializerServiceProvider();
+          log.shout("NOT USING THE DATABASE, initialzing from Files");
+        }
       } else {
-	// default to going from INI files
-	sp = new FileAssetInitializerServiceProvider();
-	if (log.isInfoEnabled())
-	  log.info("Will init OrgAssets from INI Files");
+        // default to going from INI files
+        sp = new FileAssetInitializerServiceProvider();
+        if (log.isInfoEnabled())
+          log.info("Will init OrgAssets from INI Files");
       }
       return sp;
     } catch (Exception e) {
@@ -158,4 +175,37 @@ implements Component
       return null;
     }
   }
+
+  public boolean rcFileExists() {
+    boolean found = false;
+    try {
+      File f = new File(System.getProperty("user.home") + File.separator + ".cougaarrc");
+      if (!f.exists()) {
+        InputStream in = ConfigFinder.getInstance().open("cougaar.rc");
+        if (in != null) {
+          found = true;
+        }
+      } else {
+        found = true;
+      }
+    } catch (IOException e) {
+      //We really do want to ignore this!
+    }
+
+    if (!found) {
+      log.shout("No Cougaar rc file found.");
+    }
+
+    return found;
+  }
+
+  public boolean isValidRCFile() {
+    boolean valid = false;
+
+    valid = (Parameters.findParameter(DATABASE) == null) ? false : true;
+    valid &= (Parameters.findParameter(USER) == null) ? false : true;
+    valid &= (Parameters.findParameter(PASSWORD) == null) ? false : true;
+    return valid;
+  }
+
 }

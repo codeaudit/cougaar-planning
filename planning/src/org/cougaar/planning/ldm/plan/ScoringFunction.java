@@ -552,35 +552,35 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
 
       boolean filling = false;
 
-      for (int i = 0; i < all.size(); i++) {
+      int sz = all.size();
+      for (int i = 0; i < sz; i++) {
         DPair dp = (DPair) all.elementAt(i);
         double x0 = dp.x0;
         double y0 = getScore(x0); // nasty
         double x1 = dp.x1;
         double y1 = getScore(x1); // evil
-        if (x0 < maxx)
+        if (x0 >= maxx)
           break;                // seg is past range: stop
 
-        if (x1 > minx)       // seg is in range: start
-          filling = true;
+        if (x1 <= minx)         // seg is before range: skip ahead
+          next;
 
-        if (filling) {
-          // cut by range start?
-          if (x0 < minx && x1 > minx) {
-            x0 = minx;
-            x0 = getScore(x0);  //  horribly inefficient
-          }
-          // cut by range end?
-          if (x0 < maxx && x1 > maxx) {
-            x1 = maxx;
-            y1 = getScore(x1);  // bad
-          }
-
-          // add a valid range to clipped vector
-          clipped.addElement(new AspectScoreRange(new AspectScorePoint(x0, y0, aspectType),
-                                                  new AspectScorePoint(x1, y1, aspectType)));
+        // cut by range start?
+        if (x0 < minx) {
+          x0 = minx;
+          x0 = getScore(x0);    //  horribly inefficient
         }
+        // cut by range end?
+        if (x1 > maxx) {
+          x1 = maxx;
+          y1 = getScore(x1);    // noxious
+        }
+        
+        // add a valid range to clipped vector
+        clipped.addElement(new AspectScoreRange(new AspectScorePoint(x0, y0, aspectType),
+                                                new AspectScorePoint(x1, y1, aspectType)));
       }
+
       return clipped.elements();
     }
 

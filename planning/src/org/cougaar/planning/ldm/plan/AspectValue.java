@@ -59,13 +59,8 @@ public abstract class AspectValue implements Serializable {
       try {
         return f.newAspectValue(o);
       } catch (IllegalArgumentException iae) {
-        // TWRIGHT
-        System.out.println(
-            "Unable to create new aspect("+type+", "+o+")");
-        iae.printStackTrace();
-        System.exit(-1);
-        return null;
-        // TWRIGHT
+        throw new RuntimeException(
+            "Unable to create new AspectValue("+type+", "+o+")", iae);
       }
     }
   }

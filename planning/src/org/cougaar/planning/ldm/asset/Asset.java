@@ -296,63 +296,21 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
     bindToLDM(ldm);
   }
 
-  /** @return the LDM that this Asset is bound to.  The value itself 
-   * should <em>never</em> be used by anything other than the asset itself, 
-   * though this method may be called to determine if the Asset is correctly
-   * bound (e.g. to the current LDM).
-   **/
-  public final LDMServesPlugin getBoundLDM() {
-    return _ldm.getLDM();
-  }
-
   // serialization
-
-  /** keep track of clusters that we've sent this asset to **/
-  private transient HashSet _sentTo = new HashSet(3);
-  private transient String _tid = null;
-  
-  // default protection!
-  /** was this asset sent (as a prototype) to address **/
-  boolean wasSentTo(MessageAddress address) {
-    return false;               // HACK!! always fail so that we always send the proto
-    //synchronized (_sentTo) {
-    //  return _sentTo.contains(address);
-    //}
-  }
-  // default protection!
-  /** this asset was sent (as a prototype) to address **/
-  void addSentTo(MessageAddress address) {
-    synchronized (_sentTo) {
-      _sentTo.add(address);
-    }
-  }
 
   private void writeObject(ObjectOutputStream out) throws IOException {
     ClusterContextTable.ContextState cs = ClusterContextTable.getContextState();
     if (cs instanceof ClusterContextTable.MessageContext) {
       ClusterContextTable.MessageContext c = (ClusterContextTable.MessageContext)cs;
       MessageAddress dest = c.getToAddress();
-      //boolean protoSentP = (myPrototype==null)?false:(myPrototype.wasSentTo(dest));
 
       out.defaultWriteObject();
 
       out.writeObject(myTypeIdentificationPG);
       out.writeObject(myItemIdentificationPG);
-
-      // send the proto.TIP as the proto description
-      if (myPrototype != null) {
-        // only send the first time.
-        if (myPrototype.wasSentTo(dest)) {
-          TypeIdentificationPG tipg = myPrototype.getTypeIdentificationPG();
-          out.writeObject(tipg);
-        } else {
-          //myPrototype.addSentTo(dest);
-          out.writeObject(myPrototype);
-          myPrototype.addSentTo(dest);
-        }
-      } else {
-        out.writeObject(null);
-      }
+      // Urk!  We really should be sending the TID of the prototype instead of the prototype 
+      // itself.  Older versions has a horrible hack here which needed to be dropped.
+      out.writeObject(myPrototype);
     } else {
       // "Network" serialization
 
@@ -370,8 +328,6 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
   } 
 
   private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException {
-    _sentTo = new HashSet(3);
-
     ClusterContextTable.ContextState cs = ClusterContextTable.getContextState();
     if (cs instanceof ClusterContextTable.MessageContext) {
       ClusterContext cc = cs.getClusterContext();
@@ -389,7 +345,7 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
       Object proto = in.readObject();
 
       if (proto != null) {
-
+        // in practice, this is always an Asset (or null) nowadays
         if (proto instanceof Asset) {
           Asset pa = (Asset) proto;
           TypeIdentificationPG ptip = pa.getTypeIdentificationPG();

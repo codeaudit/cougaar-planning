@@ -45,12 +45,29 @@ public class AllocationResult
   implements AspectType, AuxiliaryQueryType, Serializable, Cloneable
 {
                                     
-  private boolean isSuccess;
-  private float confrating;
-  private AspectValue[] avResults = null;
-  private ArrayList phasedavrs = null;      // A List of AspectValue[], null if not phased
-  private String[] auxqueries = null;
-  
+  // Final and cloned, so these can be accessed outside a lock:
+  private final boolean isSuccess;
+  private final float confrating;
+  private final AspectValue[] avResults;
+  private final ArrayList phasedavrs; // A List of AspectValue[], null if not phased
+
+  // Mutable auxqueries array, typically null.
+  // Locked by "avResults", since it's non-null.
+  // We make this copy-on-write, to reduce cloning and locking
+  // overhead, since we expect far more readers than writers.
+  private String[] auxqueries;
+
+  // Mutable memoized variables.
+  // Locked by "avResults", since it's non-null.
+  // 
+  // Must call "clearMemos()" at end of "readObject", since
+  // transient initializers are not called in deserialization.
+  // To make things consistent, we use an explicit "clearMemos()"
+  // at the end of all constructors.
+  private transient int[] _ats;// Array of aspect types
+  private transient int _lasttype; // Type of last type to index conversion
+  private transient int _lastindex; // Index of last type to index conversion
+
   /** Constructor that takes a result in the form of AspectValues (NON-PHASED).
    * Subclasses of AspectValue, such as TypedQuantityAspectValue are allowed.
    * @param rating The confidence rating of this result.
@@ -63,8 +80,10 @@ public class AllocationResult
    */
   public AllocationResult(double rating, boolean success, AspectValue[] aspectvalues) {
     isSuccess = success;
-    setAspectValueResults(aspectvalues);
     confrating = (float) rating;
+    avResults = cloneAndCheckAVV(aspectvalues);
+    phasedavrs = null;
+    clearMemos();
   }
 
   /** Factory that takes a result in the form of AspectValues (NON-PHASED).
@@ -97,9 +116,10 @@ public class AllocationResult
   public AllocationResult(double rating, boolean success, AspectValue[] rollupavs, Enumeration allresults)
   {
     isSuccess = success;
-    setAspectValueResults(rollupavs);
-    setPhasedResults(allresults);
     confrating = (float) rating;
+    avResults = cloneAndCheckAVV(rollupavs);
+    phasedavrs = copyPhasedResults(allresults);
+    clearMemos();
   }
 
   /** @deprecated Use #AllocationResult(double,boolean,AspectValue[],Collection) instead because
@@ -122,9 +142,10 @@ public class AllocationResult
    */
   public AllocationResult(double rating, boolean success, AspectValue[] rollupavs, Collection phasedresults) {
     isSuccess = success;
-    setAspectValueResults(rollupavs);
-    setPhasedResults(phasedresults);
     confrating = (float) rating;
+    avResults = cloneAndCheckAVV(rollupavs);
+    phasedavrs = copyPhasedResults(phasedresults);
+    clearMemos();
   }
 
   /** AllocationResult factory that takes a PHASED result in the form of AspectValues.
@@ -169,17 +190,34 @@ public class AllocationResult
     int nAspects = mergedavs.size();
     avResults = (AspectValue[]) mergedavs.toArray(new AspectValue[nAspects]);
     confrating = (ar1.confrating * len1 + ar2.confrating * (nAspects - len1)) / nAspects;
+    phasedavrs = null;
 
-    if (ar1.auxqueries != null) {
-      auxqueries = (String[]) ar1.auxqueries.clone();
+    String[] ar1_auxqueries = ar1.currentAuxQueries();
+    boolean is_shared = false;
+    if (ar1_auxqueries != null) {
+      auxqueries = ar1_auxqueries;
+      is_shared = true;
     }
-    if (ar2.auxqueries != null) {
-      String[] mergedQueries = assureAuxqueries();
+    String[] ar2_auxqueries = ar2.currentAuxQueries();
+    if (ar2_auxqueries != null) {
+      if (auxqueries == null) {
+        auxqueries = new String[AQTYPE_COUNT];
+      }
       for (int i = 0; i < AQTYPE_COUNT; i++) {
-        if (mergedQueries[i] == null) mergedQueries[i] = ar2.auxqueries[i];
+        if (auxqueries[i] == null &&
+            ar2_auxqueries[i] != null) {
+          if (is_shared) {
+            // copy-on-write, so we must clone ar1_auxqueries
+            // before modifying it
+            auxqueries = (String[]) auxqueries.clone();
+            is_shared = false;
+          }
+          auxqueries[i] = ar2_auxqueries[i];
+        }
       }
     }
     isSuccess = ar1.isSuccess() || ar2.isSuccess();
+    clearMemos();
   }
 
   /**
@@ -200,18 +238,22 @@ public class AllocationResult
     confrating = ar.confrating;
     isSuccess = ar.isSuccess;
     avResults = (AspectValue[]) ar.avResults.clone();
-    if (ar.phasedavrs != null) {
+    if (ar.phasedavrs == null) {
+      phasedavrs = null;
+    } else {
       phasedavrs = new ArrayList(ar.phasedavrs.size());
       for (Iterator i = ar.phasedavrs.iterator(); i.hasNext(); ) {
         AspectValue[] av = (AspectValue[]) i.next();
         phasedavrs.add(av.clone());
       }
     }
-    if (ar.auxqueries != null) auxqueries = (String[]) ar.auxqueries.clone();
+    auxqueries = ar.currentAuxQueries();
+    clearMemos();
   }
 
 
   private int getIndexOfType(int aspectType) {
+    assert Thread.holdsLock(avResults);
     if (aspectType == _lasttype) return _lastindex; // Use memoized value
     for (int i = 0 ; i < avResults.length; i++) {
       if (avResults[i].getAspectType() == aspectType) return i;
@@ -272,11 +314,13 @@ public class AllocationResult
     * @see org.cougaar.planning.ldm.plan.AspectType
     */
   public boolean isDefined(int aspectType) {
-    int i = getIndexOfType(aspectType);
-    if (i >= 0) {
-      _lasttype = aspectType;
-      _lastindex = i; // memoize lookup
-      return true;
+    synchronized (avResults) {
+      int i = getIndexOfType(aspectType);
+      if (i >= 0) {
+        _lasttype = aspectType;
+        _lastindex = i; // memoize lookup
+        return true;
+      }
     }
     return false;
   }
@@ -304,17 +348,12 @@ public class AllocationResult
     return phasedavrs != null;
   }
 
-  // Memoized variables
-  private transient int[] _ats = null;// Array of aspect types
-  private transient int _lasttype=-1; // Type of last type to index conversion
-  private transient int _lastindex=-1; // Index of last type to index conversion
-  private transient double[] _rs = null;
-
-  private synchronized void clearMemos() {
-    _ats = null;
-    _lasttype=-1;
-    _lastindex=-1;
-    _rs = null;
+  private void clearMemos() {
+    synchronized (avResults) {
+      _ats = null;
+      _lasttype=-1;
+      _lastindex=-1;
+    }
   }
 
   /** A Collection of AspectTypes representative of the type and
@@ -322,7 +361,7 @@ public class AllocationResult
    * @return int[]  The array of AspectTypes
    * @see org.cougaar.planning.ldm.plan.AspectType   
    */
-  public synchronized int[] getAspectTypes() {
+  public int[] getAspectTypes() {
     synchronized (avResults) {
       if (_ats != null) return _ats;
       _ats = new int[avResults.length];
@@ -420,10 +459,9 @@ public class AllocationResult
       throw new IllegalArgumentException("AllocationResult.auxiliaryQuery(int) expects an int "
         + "that is represented in org.cougaar.planning.ldm.plan.AuxiliaryQueryType");
     }
-    if (auxqueries == null)
-      return null;
-    else
-      return auxqueries[aqtype];
+    synchronized (avResults) {
+      return (auxqueries == null ? null : auxqueries[aqtype]);
+    }
   }
   
   
@@ -439,71 +477,74 @@ public class AllocationResult
       throw new IllegalArgumentException("AllocationResult.addAuxiliaryQueryInfo(int, String) expects an int "
         + "that is represented in org.cougaar.planning.ldm.plan.AuxiliaryQueryType");
     }
-    assureAuxqueries();
-    auxqueries[aqtype] = data;
-  }
-  
-  
-  /** @param success Represents whether or not the allocation 
-   * was a success. If any Constraints were violated by the 
-   * allocation, then the isSuccess() method returns false 
-   * and the Plugin that created the subtask should
-   * recognize this event. The Expander may re-expand, change the 
-   * Constraints or Preferences, or indicate failure to its superior. 
-   */
-  private  void setSuccess(boolean success) {
-    isSuccess = success;
-  }
-  
-  /** Set the aspectvalues results by cloning the array and filtering out nulls.
-   * @param aspectvalues  The AspectValues representing the result of each aspect.
-   */
-  private void setAspectValueResults(AspectValue[] aspectvalues) {
-    AspectValue[] avs = (AspectValue[]) aspectvalues.clone();
-    assert isAVVValid(avs);
-    avResults = avs;
-    clearMemos();
+    synchronized (avResults) {
+      if (auxqueries == null) {
+        auxqueries = new String[AQTYPE_COUNT];
+      } else {
+        // copy-on-write, to avoid cloning and minimize locking
+        // overheads, assuming readers far outweight writers
+        auxqueries = (String[]) auxqueries.clone();
+      }
+      auxqueries[aqtype] = data;
+    }
   }
 
-  private boolean isAVVValid(AspectValue[] av) {
+  /** get the current (immutable) shapshot of the auxqueries */
+  private String[] currentAuxQueries() {
+    synchronized (avResults) {
+      return auxqueries;
+    }
+  }
+  
+  /** clone the array and filteri out nulls. */
+  private static AspectValue[] cloneAndCheckAVV(
+      AspectValue[] aspectvalues) {
+    AspectValue[] ret = (AspectValue[]) aspectvalues.clone();
+    assert isAVVValid(ret);
+    // must clearMemos()
+    return ret;
+  }
+
+  private static boolean isAVVValid(AspectValue[] av) {
     for (int i = 0; i < av.length; i++) {
       if (av[i] == null) return false;
     }
     return true;
   }
         
-  /** Set the phased results
-   * @param theresults  An Enumeration of AspectValue[]
-   */
-  private void setPhasedResults(Enumeration theResults) {
-    phasedavrs = new ArrayList();
+  /** copy the phased results in an Enumeration of AspectValue[] */
+  private static ArrayList copyPhasedResults(Enumeration theResults) {
+    ArrayList ret = new ArrayList();
     while (theResults.hasMoreElements()) {
-      phasedavrs.add(convertAVO(theResults.nextElement()));
+      ret.add(convertAVO(theResults.nextElement()));
     }
-    phasedavrs.trimToSize();
+    ret.trimToSize();
+    return ret;
   }
   
-  /** Set the results based on a collection of AspectValue[] representing each phase of the result
-   * @param theresults  
+  /** 
+   * copy the results in a collection of AspectValue[] representing
+   * each phase of the result
    */
-  private void setPhasedResults(Collection theResults) {
-    int l = theResults.size();
-    phasedavrs = new ArrayList(l);
+  private static ArrayList copyPhasedResults(Collection theResults) {
+    int n = theResults.size();
+    ArrayList ret = new ArrayList(n);
     if (theResults instanceof List) {
       List trl = (List) theResults;
-      for (int i=0; i<l; i++) {
-        phasedavrs.add(convertAVO(trl.get(i)));
+      for (int i=0; i<n; i++) {
+        ret.add(convertAVO(trl.get(i)));
       }
     } else {
       for (Iterator it = theResults.iterator(); it.hasNext(); ) {
-        phasedavrs.add(convertAVO(it.next()));
+        ret.add(convertAVO(it.next()));
       }
     }
+    return ret;
   }
 
   /** Convert an logical array of AspectValues to an actual AspectValue[], if needed **/
   // fixes bug 1968
-  private AspectValue[] convertAVO(Object o) {
+  private static AspectValue[] convertAVO(Object o) {
     if (o instanceof AspectValue[]) {
       return (AspectValue[]) o;
     } else if (o instanceof Collection) {
@@ -513,12 +554,6 @@ public class AllocationResult
     }
   }
     
-                
-  /** @param rating The confidence rating of this result. */
-  private void setConfidenceRating(double rating) {
-    confrating = (float) rating;
-  }
-  
   /** checks to see if the AllocationResult is equal to this one.
      */
   public boolean isEqual(AllocationResult that) {
@@ -533,25 +568,25 @@ public class AllocationResult
     //check the real stuff now!
     //check the aspect types
     //check the summary results
-    synchronized (avResults) {
-      if (!AspectValue.nearlyEquals(this.avResults, that.avResults)) return false;
-      // check the phased results
-      if (isPhased()) {
-        Iterator i1 = that.phasedavrs.iterator();
-        Iterator i2 = this.phasedavrs.iterator();
-        while (i1.hasNext()) {
-          if (!i2.hasNext()) return false;
-          if (!AspectValue.nearlyEquals((AspectValue[]) i1.next(), (AspectValue[]) i2.next())) return false;
-        }
-        if (i2.hasNext()) return false;
+    if (!AspectValue.nearlyEquals(this.avResults, that.avResults)) return false;
+    // check the phased results
+    if (isPhased()) {
+      Iterator i1 = that.phasedavrs.iterator();
+      Iterator i2 = this.phasedavrs.iterator();
+      while (i1.hasNext()) {
+        if (!i2.hasNext()) return false;
+        if (!AspectValue.nearlyEquals((AspectValue[]) i1.next(), (AspectValue[]) i2.next())) return false;
       }
+      if (i2.hasNext()) return false;
     }
 
     // check the aux queries
     
-    String[] taux = that.auxqueries;
-    if (auxqueries != taux) {
-      if (!Arrays.equals(taux, auxqueries)) return false;
+    String[] taux = that.currentAuxQueries();
+    synchronized (avResults) {
+      if (auxqueries != taux) {
+        if (!Arrays.equals(taux, auxqueries)) return false;
+      }
     }
 
     // must be equals...
@@ -561,43 +596,37 @@ public class AllocationResult
   // added to support AllocationResultBeanInfo
 
   public String[] getAspectTypesAsArray() {
-    String[] aspectStrings = new String[avResults.length];
-    for (int i = 0; i < aspectStrings.length; i++)
-      aspectStrings[i] =  AspectValue.aspectTypeToString(avResults[i].getAspectType());
-    return aspectStrings;
+    String[] ret = new String[avResults.length];
+    for (int i = 0; i < ret.length; i++)
+      ret[i] =  AspectValue.aspectTypeToString(avResults[i].getAspectType());
+    return ret;
   }
 
   public String getAspectTypeFromArray(int i) {
-    synchronized (avResults) {
-      if (i < 0 || i >= avResults.length)
-        throw new IllegalArgumentException("AllocationResult.getAspectType(int " + i + " not defined.");
-      return AspectValue.aspectTypeToString(avResults[i].getAspectType());
-    }
+    if (i < 0 || i >= avResults.length)
+      throw new IllegalArgumentException("AllocationResult.getAspectType(int " + i + " not defined.");
+    return AspectValue.aspectTypeToString(avResults[i].getAspectType());
   }
 
   public String[] getResultsAsArray() {
-    synchronized (avResults) {
-      String[] resultStrings = new String[avResults.length];
-      for (int i = 0; i < resultStrings.length; i++) {
-        resultStrings[i] = getResultFromArray(i);
-      }
-      return resultStrings;
+    String[] resultStrings = new String[avResults.length];
+    for (int i = 0; i < resultStrings.length; i++) {
+      resultStrings[i] = getResultFromArray(i);
     }
+    return resultStrings;
   }
 
   public String getResultFromArray(int i) {
-    synchronized (avResults) {
-      if (i < 0 || i >= avResults.length)
-        throw new IllegalArgumentException("AllocationResult.getAspectType(int " + i + " not defined.");
-      int type = avResults[i].getAspectType();
-      double value = avResults[i].getValue();
-      if (type == AspectType.START_TIME || 
-	  type == AspectType.END_TIME) {
-	Date d = new Date((long) value);
-	return d.toString();
-      } else {
-        return String.valueOf(value);
-      }
+    if (i < 0 || i >= avResults.length)
+      throw new IllegalArgumentException("AllocationResult.getAspectType(int " + i + " not defined.");
+    int type = avResults[i].getAspectType();
+    double value = avResults[i].getValue();
+    if (type == AspectType.START_TIME || 
+	type == AspectType.END_TIME) {
+      Date d = new Date((long) value);
+      return d.toString();
+    } else {
+      return String.valueOf(value);
     }
   }
 
@@ -629,13 +658,6 @@ public class AllocationResult
     return convertToDouble((AspectValue[]) phasedavrs.get(i));
   }
     
-  private String[] assureAuxqueries() {
-    if (auxqueries == null) {
-      auxqueries = new String[AQTYPE_COUNT];
-    }
-    return auxqueries;
-  }
-
   private void appendAVS(StringBuffer buf, AspectValue[] avs) {
     buf.append('[');
     for (int i = 0; i < avs.length; i++) {
@@ -685,7 +707,7 @@ public class AllocationResult
       AspectValue prefAV = null;
 
       for (int j=0; j<prefs.length; j++) {
-	prefAV = prefs[j].getScoringFunction().getBest().getAspectValue();
+  	prefAV = prefs[j].getScoringFunction().getBest().getAspectValue();
 	if (prefAV.getAspectType() == avResults[i].getAspectType()) {
 	  found = true;
 	  break;

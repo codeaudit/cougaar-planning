@@ -578,15 +578,12 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
     return properties;
   }
 
-  private transient int _hc = 0;
   public int hashCode() {
-    if (_hc != 0) return _hc;
+    int hc = 1;
     String tid = getTypeIdentificationPG().getTypeIdentification();
     String iid = getItemIdentificationPG().getItemIdentification();
-    int hc = 1;
     if (tid != null) hc+=tid.hashCode();
     if (iid != null) hc+=iid.hashCode();
-    _hc = hc;
     return hc;
   }
 

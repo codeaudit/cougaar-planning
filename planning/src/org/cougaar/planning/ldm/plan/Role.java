@@ -158,10 +158,8 @@ public final class Role implements Serializable, BeanInfo {
     return name;
   }
 
-  private transient int _hc = 0;
   public int hashCode() {
-    if (_hc == 0) _hc = name.hashCode() + 42;
-    return _hc;
+    return name.hashCode();
   }
 
 

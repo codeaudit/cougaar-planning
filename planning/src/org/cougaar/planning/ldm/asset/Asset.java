@@ -59,6 +59,7 @@ import org.cougaar.planning.ldm.plan.RoleScheduleImpl;
 import org.cougaar.planning.ldm.plan.Schedule;
 import org.cougaar.util.log.Logging;
 import org.cougaar.util.log.Logger;
+import org.cougaar.util.ToStringMemo;
 import org.cougaar.util.PropertyParser;
 
 /**
@@ -67,6 +68,12 @@ import org.cougaar.util.PropertyParser;
  * @property org.cougaar.planning.ldm.asset.Asset.regeneratePrototypeCache If set to true
  * (the default), the prototypeCache will be regenerated as much as possible
  * from persistence information on rehydration.
+ * @property org.cougaar.planning.ldm.asset.Asset.sendPrototypeAsID If set to false (the default)
+ * then when an Asset is sent through a messaging system, we will send the Asset's prototype
+ * as a real object if possible.  When set to true, the prototype will be sent merely as the
+ * TypeIdentification string.  This latter mode has the effect of allowing the "shape" of an
+ * asset to shift as it traverses the messaging system so that agents may choose to know exactly which
+ * prototypical parameters are required.
  **/
 
 public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
@@ -75,11 +82,14 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
   public static final boolean regeneratePrototypeCacheP = 
     PropertyParser.getBoolean("org.cougaar.planning.ldm.asset.Asset.regeneratePrototypeCache", true);
 
+  public static final boolean sendPrototypeAsIDP = 
+    PropertyParser.getBoolean("org.cougaar.planning.ldm.asset.Asset.sendPrototypeAsID", false);
+
   static final long serialVersionUID = -7188316484839955973L;
 
   private transient RoleSchedule roleschedule;
 
-  private static final String AGGREGATE_TYPE_ID = "AggregateAsset" ;
+  private static final String AGGREGATE_TYPE_ID = "AggregateAsset";
   
   private static final Logger log = Logging.getLogger(Asset.class);
 
@@ -322,26 +332,24 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
   // serialization
 
   private void writeObject(ObjectOutputStream out) throws IOException {
+    out.defaultWriteObject();
+    out.writeObject(myTypeIdentificationPG);
+    out.writeObject(myItemIdentificationPG);
+
     ClusterContextTable.ContextState cs = ClusterContextTable.getContextState();
     if (cs instanceof ClusterContextTable.MessageContext) {
-      ClusterContextTable.MessageContext c = (ClusterContextTable.MessageContext)cs;
-      MessageAddress dest = c.getToAddress();
-
-      out.defaultWriteObject();
-
-      out.writeObject(myTypeIdentificationPG);
-      out.writeObject(myItemIdentificationPG);
-      // Urk!  We really should be sending the TID of the prototype instead of the prototype 
-      // itself.  Older versions has a horrible hack here which needed to be dropped.
-      out.writeObject(myPrototype);
-    } else {
       // "Network" serialization
 
-      //System.err.println("Default serialization of "+this);
-      out.defaultWriteObject();
-
-      out.writeObject(myTypeIdentificationPG);
-      out.writeObject(myItemIdentificationPG);
+      // Urk!  We really should be sending the TID of the prototype instead of the prototype 
+      // itself.  Older versions has a horrible hack here which needed to be dropped.
+      Object sp = myPrototype;
+      if (sp != null && sendPrototypeAsIDP) {
+        TypeIdentificationPG ptip = myPrototype.getTypeIdentificationPG();
+        sp = ptip.getTypeIdentification();
+      }
+      out.writeObject(sp);
+    } else {
+      // "File" serialization
       out.writeObject(myPrototype);
 
       if (out instanceof org.cougaar.core.persist.PersistenceOutputStream) {
@@ -351,160 +359,132 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
   } 
 
   private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException {
+    in.defaultReadObject();
+    myTypeIdentificationPG = (TypeIdentificationPG) in.readObject();
+    myItemIdentificationPG = (ItemIdentificationPG) in.readObject();
+
     ClusterContextTable.ContextState cs = ClusterContextTable.getContextState();
-    if (cs instanceof ClusterContextTable.MessageContext) {
-      ClusterContext cc = cs.getClusterContext();
+    ClusterContext cc = cs.getClusterContext();
+    LDMServesPlugin ldm;
+    if (cc != null) {
       MessageAddress ma = cc.getMessageAddress();
-      LDMServesPlugin ldm = LDMContextTable.getLDM(ma);
+      ldm = LDMContextTable.getLDM(ma);
       bindToLDM(ldm);
-
-      in.defaultReadObject();
-
-      myTypeIdentificationPG = (TypeIdentificationPG) in.readObject();
-      myItemIdentificationPG = (ItemIdentificationPG) in.readObject();
-
-      //MessageAddress dest = c.getToAddress();
-
-      Object proto = in.readObject();
-
-      if (proto != null) {
-        // in practice, this is always an Asset (or null) nowadays
-        if (proto instanceof Asset) {
-          Asset pa = (Asset) proto;
-          TypeIdentificationPG ptip = pa.getTypeIdentificationPG();
-          String tid = ptip.getTypeIdentification();
-
-          myPrototype = ldm.getPrototype(tid);
-          // if we found it, we'll just drop what was sent on the floor.
-          if (myPrototype != null) {
-            // ok - all done.
-          } else {
-            // didn't find it.
-            // So - add extra (local properties - strange but possible)
-            ldm.fillProperties(pa);
-            // cache it so we'll find it next time...
-            ldm.cachePrototype(tid,pa);
-            // set it and continue.
-            myPrototype=pa;
-          }
-        } else if (proto instanceof TypeIdentificationPG) {
-        // proto was sent as only the TIP 
-
-          TypeIdentificationPG protoTIP = (TypeIdentificationPG) proto;
-
-          // get the proto from OUR ldm...
-          // for now, we just look at the TId of the TIP sent.
-          String tid = protoTIP.getTypeIdentification();
-          myPrototype = ldm.getPrototype(tid);
-          // if no proto found, we're on our own,
-          // so we'll create a proto with the tid and no other
-          // props.
-          if (myPrototype == null) {
-            PlanningFactory ldmf = (PlanningFactory) ldm.getFactory("planning");
-            Asset prot = ldmf.createPrototype(Asset.class, tid);
-            // even though there is no prototype provider, there
-            // might be property providers that can handle it, so
-            // we'll expose our new instance to them.
-            ldm.fillProperties(prot);
-            // might as well register it, since we're unlikely to get
-            // a proto provider later.
-            ldm.cachePrototype(tid,prot);
-            myPrototype=prot;
-          } else {
-          }
-        } else {
-          log.error("Deserialized an unknown prototype class: "+proto); 
-        }
-      } else {
-        myPrototype = null;
-      }
-
-      initRoleSchedule();
     } else {
-      ClusterContext cc = ClusterContextTable.getClusterContext();
-      LDMServesPlugin ldm = null;
-      if (cc != null) {
-        MessageAddress ma = cc.getMessageAddress();
-        ldm = LDMContextTable.getLDM(ma);
-        bindToLDM(ldm);
-      } // else delay warning to below so that we can print it
+      log.error("Contextless deserialization of "+this);
+      ldm = null;
+    }
+      
+    Object proto = in.readObject();
+    myPrototype = grokPrototype(ldm, proto);
 
-      // plain serialization
-      in.defaultReadObject();
-
-      myTypeIdentificationPG=(TypeIdentificationPG)in.readObject();
-      myItemIdentificationPG=(ItemIdentificationPG)in.readObject();
-      myPrototype=(Asset)in.readObject();
-
-      if (cc == null) {         // delayed warning from above
-        log.error("Contextless deserialization of "+this);
-      }
-
-      // if we're trying to regenerate the prototype cache,
-      // AND we've got a prototype AND we have a live LDM, then try to cache it
-      if (regeneratePrototypeCacheP && myPrototype != null && ldm != null) {
-        // we could probably use myTypeIdentificationPG, but let's use the proto instead
-        TypeIdentificationPG tipg = myPrototype.getTypeIdentificationPG();
-        String tid = tipg.getTypeIdentification();
-        if (ldm.isPrototypeCached(tid)) { // is there a cached prototype?
-          // use the cached one instead of this
-          Asset putativeProto = ldm.getPrototype(tid);
-          if (putativeProto != myPrototype) {
-            if (log.isInfoEnabled()) {
-              log.info("Deserialization used cached prototype "+putativeProto+
-                       " instead of stored prototype "+myPrototype);
-            }
-            // use the cached one instead
-            myPrototype = putativeProto;
-          } else {
-            // no problem - they're identical.  might want to log an info
-          } 
-        } else {
-          // not cached... so let's cache it right now
-          ldm.cachePrototype(tid, myPrototype);
-          if (log.isDebugEnabled()) {
-            log.debug("Deserialization cached prototype "+myPrototype);
-          } 
-        }
-      }
-
-      initRoleSchedule();
+    if (cs instanceof ClusterContextTable.MessageContext) { // a message?
+      // done
+    } else {                    // from a file?
       if (in instanceof org.cougaar.core.persist.PersistenceInputStream) {
         Schedule schedule = (Schedule) in.readObject();
         ((RoleScheduleImpl)roleschedule).setAvailableSchedule(schedule);
       }
-    }      // End Network serialization
-
-  }
-
-  private transient String cachedToString = null;
-  public String toString() {
-    if (cachedToString == null) {
-      String cn = this.getClass().getName();
-      int p = cn.lastIndexOf('.');
-      if (p>=0) cn = cn.substring(p+1);
-
-      String ti = myTypeIdentificationPG.getTypeIdentification();
-      String ii = myItemIdentificationPG.getItemIdentification();
-
-      boolean bogus = false;
-      
-      if (ti == null) {
-        ti = "?";
-        bogus = true;
-      }
-      if (ii == null) {
-        ii = "#"+hashCode();
-      }
-
-      String whole = "<"+cn+" "+ti+" "+ii+">";
-      if (bogus) return whole;
-      cachedToString = whole;
     }
-    return cachedToString;
+
+    initRoleSchedule();
   }
 
-  void recacheToString() { cachedToString=null; }
+  private static Asset grokPrototype(LDMServesPlugin ldm, Object po) {
+    if (po == null) {
+      return null;
+    } else {
+      if (po instanceof Asset) {
+        return grokPrototypeAsAsset(ldm, (Asset) po);
+      } else if (po instanceof String) {
+        return grokPrototypeAsTID(ldm, (String) po);
+      } else {
+        log.error("Deserialized an unknown prototype class: "+po); 
+        return null;
+      }
+    }
+  }
+
+  private static Asset grokPrototypeAsAsset(LDMServesPlugin ldm, Asset pa) {
+    if (ldm != null) {      // if we've got an LDM, check the prototype cache
+      TypeIdentificationPG ptip = pa.getTypeIdentificationPG();
+      String tid = ptip.getTypeIdentification();
+
+      if (ldm.isPrototypeCached(tid)) { // is there a cached prototype already? yes.
+        // use the cached one instead of this
+        Asset putativeProto = ldm.getPrototype(tid);
+        if (putativeProto != pa) {
+          if (log.isInfoEnabled()) {
+            log.info("Deserialization used cached prototype "+putativeProto+
+                     " instead of stored prototype "+pa);
+          }
+        }
+        // use the cached one instead
+        pa = putativeProto;
+      } else {                // is there a cached prototype already? no.
+        // consider caching it
+        // if we're trying to regenerate the prototype cache,
+        // AND we've got a prototype AND we have a live LDM, then try to cache it
+        if (regeneratePrototypeCacheP) {
+          ldm.cachePrototype(tid, pa);
+          if (log.isDebugEnabled()) {
+            log.debug("Deserialization cached prototype "+pa);
+          } 
+        }
+      }
+    } else {
+      // log.warn("Performance problem: Deserialization of Asset Prototypes without LDM context");
+    }
+    return pa;
+  }
+
+  private static Asset grokPrototypeAsTID(LDMServesPlugin ldm, String tid) {
+    Asset pa = null;
+    if (ldm != null) {
+      // get the proto from OUR ldm...
+      // for now, we just look at the TId of the TIP sent.
+      pa = ldm.getPrototype(tid);
+
+      // if no proto found, we're on our own,
+      // so we'll create a proto with the tid and no other
+      // props.
+      if (pa == null) {
+        PlanningFactory ldmf = (PlanningFactory) ldm.getFactory("planning");
+        pa = ldmf.createPrototype(Asset.class, tid);
+        // even though there is no prototype provider, there
+        // might be property providers that can handle it, so
+        // we'll expose our new instance to them.
+        ldm.fillProperties(pa);
+        // might as well register it, since we're unlikely to get
+        // a proto provider later.
+        ldm.cachePrototype(tid,pa);
+        log.error("Deserialized an Asset with an unknown prototype ID "+tid+" (prototype will be empty)");
+      } // else got a prototype from the cache, so we're done
+    } else {
+      // no ldm, so we cannot do anything here
+      log.error("Deserialized an asset with prototype "+tid+" without an LDM context (will not have a prototype)");
+    }
+    return pa;
+  }
+
+  private transient ToStringMemo toStringMemo = null;
+  public synchronized String toString() {
+    if (toStringMemo == null) {
+      toStringMemo = new ToStringMemo() {
+          protected String generate() {
+            String cn = Asset.this.getClass().getName();
+            int p = cn.lastIndexOf('.');
+            if (p>=0) cn = cn.substring(p+1);
+            String ti = myTypeIdentificationPG.getTypeIdentification();
+            String ii = myItemIdentificationPG.getItemIdentification(); 
+            if (ti == null) { ti = "?"; }
+            if (ii == null) { ii = "#"+hashCode(); }
+            return "<"+cn+" "+ti+" "+ii+">";
+          }
+        };
+    }
+    return toStringMemo.toString();
+  }
 
   //dummy PropertyChangeSupport for the Jess Interpreter.
   public transient PropertyChangeSupport pcs = new PropertyChangeSupport(this);

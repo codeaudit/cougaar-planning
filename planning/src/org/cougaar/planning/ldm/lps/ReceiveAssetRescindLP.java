@@ -37,6 +37,7 @@ import org.cougaar.planning.ldm.plan.AssetRescind;
 import org.cougaar.planning.ldm.plan.AssignedAvailabilityElement;
 import org.cougaar.planning.ldm.plan.AssignedRelationshipElement;
 import org.cougaar.planning.ldm.plan.HasRelationships;
+import org.cougaar.planning.ldm.plan.NewRoleSchedule;
 import org.cougaar.planning.ldm.plan.NewSchedule;
 import org.cougaar.planning.ldm.plan.Relationship;
 import org.cougaar.planning.ldm.plan.RelationshipSchedule;
@@ -148,6 +149,18 @@ implements LogicProvider, MessageLogicProvider
     NewSchedule assetAvailSchedule = 
       (NewSchedule)asset.getRoleSchedule().getAvailableSchedule();
 
+    if (assetAvailSchedule == null) {
+      if (logger.isDebugEnabled()) {
+	logger.debug("Asset for rescinded asset transfer " +
+		     asset.getItemIdentificationPG().getItemIdentification() + 
+		     " did not have an availability schedule.");
+
+      }
+
+      assetAvailSchedule = ldmf.newAssignedAvailabilitySchedule();
+      ((NewRoleSchedule)asset.getRoleSchedule()).setAvailableSchedule(assetAvailSchedule);
+    } 
+
     if (!related(asset)) {
     
       // Remove Matching Availabilities
@@ -158,17 +171,18 @@ implements LogicProvider, MessageLogicProvider
       // We're done
       return;
     }
-    
+       
+
     //For Assets with relationships, need to recompute the avail schedule
     //based on the relationship schedule
 
     // Remove all current entries denoting asset avail to assignee
     synchronized (assetAvailSchedule) {
       Collection remove = assetAvailSchedule.filter(new UnaryPredicate() {
-        public boolean execute(Object o) {
-          return ((o instanceof AssignedAvailabilityElement) &&
-                  (((AssignedAvailabilityElement)o).getAssignee().equals(assignee)));
-        }  
+	public boolean execute(Object o) {
+	  return ((o instanceof AssignedAvailabilityElement) &&
+		  (((AssignedAvailabilityElement)o).getAssignee().equals(assignee)));
+	}  
       });
       assetAvailSchedule.removeAll(remove);
       

@@ -40,8 +40,10 @@ import org.cougaar.core.domain.RootPlan;
 import org.cougaar.core.logging.LoggingServiceWithPrefix;
 import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.planning.ldm.LogPlan;
+import org.cougaar.planning.ldm.PlanningFactory;
 import org.cougaar.planning.ldm.plan.Context;
 import org.cougaar.planning.ldm.plan.NewTask;
+import org.cougaar.planning.ldm.plan.PEforCollections;
 import org.cougaar.planning.ldm.plan.PlanElement;
 import org.cougaar.planning.ldm.plan.Preference;
 import org.cougaar.planning.ldm.plan.Task;
@@ -50,31 +52,34 @@ import org.cougaar.util.log.Logger;
 import org.cougaar.util.log.Logging;
 
 /**
- * Sample LogicProvider for use by ClusterDispatcher to
- * take an incoming Task (excepting Rescind task) and
+ * Take an incoming Task (excepting Rescind task) and
  * add to the LogPlan w/side-effect of also disseminating to
  * other subscribers.
  * Only adds tasks that haven't been seen before, allowing stability
  * in the face of wire retransmits.
  **/
-
 public class ReceiveTaskLP
-implements LogicProvider, MessageLogicProvider
+  implements LogicProvider, MessageLogicProvider
 {
   private Logger logger;
 
   private final RootPlan rootplan;
   private final LogPlan logplan;
+  private final PlanningFactory ldmf;
+  private final MessageAddress self;
   private Set existingPhrases = new HashSet();
   private Set newPhrases = new HashSet();
 
   public ReceiveTaskLP(
       RootPlan rootplan,
       LogPlan logplan,
-      MessageAddress self)
+      MessageAddress self,
+      PlanningFactory ldmf)
   {
     this.rootplan = rootplan;
     this.logplan = logplan;
+    this.self = self;
+    this.ldmf = ldmf;
     logger = new LoggingServiceWithPrefix(Logging.getLogger(ReceiveTaskLP.class),
                                           self.toString() + ": ");
   }
@@ -242,7 +247,21 @@ implements LogicProvider, MessageLogicProvider
           } else {
             PlanElement pe = existingTask.getPlanElement();
             if (pe != null) {
-              rootplan.change(pe, changes);	// Cause estimated result to be resent
+	      if (logger.isDebugEnabled()) {
+		logger.debug("Unchanged task with PE. Check shouldDoNotification");
+	      }
+	      // Cause a notification / estAR to be (re)sent (see bug 3338)
+	      if (((PEforCollections)pe).shouldDoNotification()) {
+		if (logger.isDebugEnabled()) {
+		  logger.debug("Got PE.shouldDoNotification. Invoke NotificationLP to send the notification.");
+		}
+		NotificationLP.checkValues(pe, changes, rootplan, logplan, ldmf, self);
+	      } else {
+		if (logger.isDebugEnabled()) {
+		  logger.debug("Unchanged task, PE doesnt DoNotification. Do nothing (old would have done a pubChange). PE " + pe.getUID());
+		}
+	      }
+              //rootplan.change(pe, changes);	// Cause estimated result to be resent
             }
           }
         }

@@ -54,13 +54,11 @@ import org.cougaar.util.log.Logger;
 import org.cougaar.util.log.Logging;
 
 /**
- * Sample LogicProvider for use by ClusterDispatcher to
- * take an incoming Notification Directive and
+ * Take an incoming Notification Directive and
  * perform Modification to the LOGPLAN
  **/
-
 public class ReceiveNotificationLP
-implements LogicProvider, MessageLogicProvider
+  implements LogicProvider, MessageLogicProvider
 {
   private static final Logger logger = Logging.getLogger(ReceiveNotificationLP.class);
 

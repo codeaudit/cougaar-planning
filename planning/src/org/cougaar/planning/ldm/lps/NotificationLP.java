@@ -52,10 +52,8 @@ import org.cougaar.util.log.Logging;
 
 /** RescindLogicProvider class provides the logic to capture 
  * rescinded PlanElements (removed from collection)
-  *
-  *
-  **/
-
+ *
+ **/
 public class NotificationLP
 implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
 {
@@ -93,6 +91,8 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
            ((PEforCollections) obj).shouldDoNotification())
          ) {
       PlanElement pe = (PlanElement) obj;
+      if (logger.isDebugEnabled())
+	logger.debug("Got a PE to do checkValues on: " + pe.getUID());
       checkValues(pe, changes);
     } 
   }
@@ -116,6 +116,10 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
   }
 
   private void checkValues(PlanElement pe, Collection changes) {
+    checkValues(pe, changes, rootplan, logplan, ldmf, self);
+  }
+
+  static final void checkValues(PlanElement pe, Collection changes, RootPlan rootplan, LogPlan logplan, PlanningFactory ldmf, MessageAddress self) {
     Task task = pe.getTask();
 
     if (logger.isDebugEnabled()) {
@@ -131,7 +135,7 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
 	  Task pt = (Task) etasks.nextElement();
 	  if (pt != null) {
 	    AllocationResult result = resultsbytask.getAllocationResult(pt);
-	    createNotification(pt.getUID(), task, result, changes);
+	    createNotification(pt.getUID(), task, result, changes, rootplan, logplan, ldmf, self);
 	  } // else no notification need be generated
 	}
       }
@@ -139,12 +143,16 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
       UID ptuid = task.getParentTaskUID();
       if (ptuid != null) {
 	AllocationResult ar = pe.getEstimatedResult();
-	createNotification(ptuid, task, ar, changes);
+	createNotification(ptuid, task, ar, changes, rootplan, logplan, ldmf, self);
       } // else no notification need be generated
     }
   }
   
-  private void createNotification(UID ptuid, Task t, AllocationResult ar, Collection changes) {
+  static final void createNotification(UID ptuid, Task t, AllocationResult ar, Collection changes, RootPlan rootplan, LogPlan logplan, PlanningFactory ldmf, MessageAddress self) {
+
+    if (logger.isDebugEnabled())
+      logger.debug("Doing checkNotification for PE: " + t.getPlanElement().getUID());
+
     MessageAddress dest = t.getSource();
     if (self == dest || self.equals(dest)) {
       // deliver intra-agent notifications directly

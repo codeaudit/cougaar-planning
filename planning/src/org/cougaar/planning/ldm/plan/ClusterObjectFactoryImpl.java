@@ -291,6 +291,10 @@ public class ClusterObjectFactoryImpl implements ClusterObjectFactory {
   public NewPrepositionalPhrase newPrepositionalPhrase() {
     return new PrepositionalPhraseImpl();
   }
+
+  public PrepositionalPhrase newPrepositionalPhrase(String s, Object io) {
+    return new PrepositionalPhraseImpl(s, io);
+  }
   
   public TaskRescind newTaskRescind(Task task, MessageAddress destination){
     return new TaskRescindImpl(cid, destination, getRealityPlan(), task);

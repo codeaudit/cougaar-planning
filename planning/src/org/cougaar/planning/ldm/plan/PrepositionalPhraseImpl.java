@@ -45,6 +45,11 @@ public class PrepositionalPhraseImpl
   // no-arg constructor
   public PrepositionalPhraseImpl() { }
 
+  PrepositionalPhraseImpl(String p, Object io) {
+    preposition = p;
+    indirectobject = io;
+  }
+
   /** @return Answer with a nicely formatted string representation. */
   public String toString()
   {

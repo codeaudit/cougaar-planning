@@ -87,7 +87,12 @@ public interface ClusterObjectFactory {
   NewAssetVerification newAssetVerification();
   NewAssetVerification newAssetVerification(Asset asset, Asset assignee, Schedule schedule);
   Policy newPolicy(String policyType);
+
+  /** construct a skeleton PrepositionalPhrase **/
   NewPrepositionalPhrase newPrepositionalPhrase();
+  /** construct a complete PrepositionalPhrase **/
+  PrepositionalPhrase newPrepositionalPhrase(String preposition, Object indirectObject);
+
   NewReport newReport();
   NewScheduleElement newScheduleElement(Date start, Date end); 
   NewTask newTask();

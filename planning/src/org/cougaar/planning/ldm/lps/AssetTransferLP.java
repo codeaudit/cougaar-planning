@@ -299,7 +299,7 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
     naa.setSchedule(s);
 
     // Ensure that local info reflects the transfer
-    if (!updateLocalAssets(at, kind, s)) {
+    if (!updateLocalAssets(at, naa)) {
       return null;
     }
 
@@ -360,7 +360,7 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
     return aaAssetSchedule;
   }
 
-  private boolean updateLocalAssets(AssetTransfer at, byte kind, Schedule aaSchedule) {
+  private boolean updateLocalAssets(AssetTransfer at, AssetAssignment aa) {
     Asset localTransferringAsset = logplan.findAsset(at.getAsset());
     if (localTransferringAsset == null) {
       logger.error("AssetTransferLP: unable to process AssetTransfer - " + 
@@ -371,6 +371,7 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
       logger.error("AssetTransferLP: Transferring Assets in AssetTransfer are == but should be " +
                    " copies. AssetTransfer is " + at.getUID() + 
                    " Asset is "+ localTransferringAsset);
+      return false;
     }
     
     Asset receivingAsset = at.getAssignee();
@@ -388,37 +389,54 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
         logger.error("AssetTransferLP: Assignee Assets in AssetTransfer are == but should be " +
                      " copies. AssetTransfer is " + at.getUID() + 
                      " Asset is "+localReceivingAsset);
+	return false;
       }
     }
 
-    if (related(localTransferringAsset) && related(receivingAsset)) {
-      fixRelationshipSchedule(at, kind, localTransferringAsset, receivingAsset);
-    } 
+    boolean changeRelationshipRequired = 
+	fixRelationshipSchedule(at, aa, localTransferringAsset, 
+				receivingAsset);
 
+    boolean changeAvailabilityRequired = 
+      fixAvailSchedule(aa,
+		       receivingAsset, 
+		       localTransferringAsset);
 
-    fixAvailSchedule(receivingAsset, localTransferringAsset, kind, aaSchedule);
-    
-    Collection changes = new ArrayList();
-    changes.add(new RelationshipSchedule.RelationshipScheduleChangeReport());
-    rootplan.change(localTransferringAsset, changes);
+    if (logger.isDebugEnabled()) {
+      logger.debug("AssetTransferLP: changeRelationshipRequired = " + 
+		   changeRelationshipRequired +
+		   " changeAvailabilityRequired = " +
+		   changeAvailabilityRequired + 
+		   " for AssetTransfer - " + at +
+		   " transfering asset - " + localTransferringAsset +
+		   " receiving asset - " + receivingAsset);
+    }
 
     if (localReceivingAsset == null) {
       rootplan.add(receivingAsset);
-    } else {
+    } else if (changeRelationshipRequired) {
+      Collection changes = new ArrayList();
+      changes.add(new RelationshipSchedule.RelationshipScheduleChangeReport());
+      rootplan.change(localTransferringAsset, changes);
+
       changes.clear();
       changes.add(new RelationshipSchedule.RelationshipScheduleChangeReport());
       rootplan.change(receivingAsset, changes);
+    } else if (changeAvailabilityRequired) {
+      rootplan.change(localTransferringAsset, null);
+      rootplan.change(receivingAsset, null);
     }
     
     return true;
   }
 
+
   // Update availability info for the receiving asset
   // AvailableSchedule reflects availablity within the current agent
-  private void fixAvailSchedule(final Asset receivingAsset, 
-                                final Asset transferringAsset,
-                                byte kind,
-                                Schedule aaSchedule) {
+  private boolean fixAvailSchedule(AssetAssignment aa, 
+				   final Asset receivingAsset, 
+				   final Asset transferringAsset) {
+
     NewSchedule availSchedule = 
       (NewSchedule)transferringAsset.getRoleSchedule().getAvailableSchedule();
 
@@ -427,60 +445,118 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
       ((NewRoleSchedule)transferringAsset.getRoleSchedule()).setAvailableSchedule(availSchedule);
     } 
 
+    boolean change = false;
+
     synchronized (availSchedule) {
-
-    if ((kind == AssetAssignment.UPDATE) ||
-        (kind == AssetAssignment.REPEAT) ||
-        (related(transferringAsset) && related(receivingAsset))) {
-        // Remove an existing entries which refer to the receiving asset
-        Collection remove = availSchedule.filter(new UnaryPredicate() {
-          public boolean execute(Object o) {
-            return ((o instanceof AssignedAvailabilityElement) &&
-                    (((AssignedAvailabilityElement)o).getAssignee().equals(receivingAsset)));
-          }
-        });
-        availSchedule.removeAll(remove);
-      } 
-
-      if (related(transferringAsset) && related(receivingAsset)) {
+      // Find all existing entries which refer to the receiving asset
+      Collection currentAvailability = 
+	availSchedule.filter(new UnaryPredicate() {
+	public boolean execute(Object o) {
+	  return ((o instanceof AssignedAvailabilityElement) &&
+		  (((AssignedAvailabilityElement)o).getAssignee().equals(receivingAsset)));
+	}
+      });
+      
+      if ((related(transferringAsset) && related(receivingAsset))) {
         //Construct aggregate avail info from the relationship schedule
         RelationshipSchedule relationshipSchedule = 
           ((HasRelationships)transferringAsset).getRelationshipSchedule();
-        Collection collection =  
+        Collection matchingRelationships =  
           relationshipSchedule.getMatchingRelationships((HasRelationships)receivingAsset,
                                                         ETERNITY);
         
-        // If any relationships, add a single avail element with the 
+        // If any relationships, construct a single avail element with the 
         // min start and max end
-        if (collection.size() > 0) {
-          Schedule schedule = ldmf.newSchedule(new Enumerator(collection));
-          availSchedule.add(ldmf.newAssignedAvailabilityElement(receivingAsset,
-                                                                schedule.getStartTime(),
-                                                                schedule.getEndTime()));
-        }
-      } else {
-        //Copy availability info directly from aa schedule
+        if (!matchingRelationships.isEmpty()) {
+          Schedule matchingRelationshipsSchedule = 
+	    ldmf.newSchedule(new Enumerator(matchingRelationships));
+	  AssignedAvailabilityElement aggregateAvailability = 
+	    ldmf.newAssignedAvailabilityElement(receivingAsset,
+						matchingRelationshipsSchedule.getStartTime(),
+						matchingRelationshipsSchedule.getEndTime());
 
-        //Don't iterate over schedule directly because Schedule doesn't support
-        //iterator().
-        Iterator iterator = new ArrayList(aaSchedule).iterator();
-        while (iterator.hasNext()) {
-          ScheduleElement avail = (ScheduleElement)iterator.next();
-          availSchedule.add(ldmf.newAssignedAvailabilityElement(receivingAsset, 
-                                                                avail.getStartTime(),
-                                                                avail.getEndTime()));
-        }
-      }
+	  // Compare to existing entries - only change if required.
+	  if (!currentAvailability.isEmpty()) {
+	    Schedule currentSchedule = 
+	      ldmf.newSchedule(new Enumerator(currentAvailability));
+	    if ((currentSchedule.getStartTime() != matchingRelationshipsSchedule.getStartTime()) ||
+		(currentSchedule.getEndTime() != matchingRelationshipsSchedule.getEndTime())) {
+	      availSchedule.removeAll(currentAvailability);
+	      availSchedule.add(aggregateAvailability);
+	    } else {
+	      // No change required
+	      return false;
+	    }
+	  } else {
+	    availSchedule.add(aggregateAvailability);
+	    change = true;
+	  }
+	}
+      } else {
+
+	if (((aa.isUpdate() || aa.isRepeat()) &&
+	    (!currentAvailability.isEmpty())) &&
+	    (currentAvailability.size() == aa.getSchedule().size())) {
+
+	  // Compare to existing entries - only change if required.
+	  Schedule currentSchedule = 
+	    ldmf.newSchedule(new Enumerator(currentAvailability));
+	  
+	  for (Iterator localIterator = 
+		 new ArrayList(currentSchedule).iterator(),
+	       aaIterator = 
+		 new ArrayList(aa.getSchedule()).iterator();
+	       localIterator.hasNext();) {
+	    ScheduleElement localElement = 
+	      (ScheduleElement) localIterator.next();
+	    ScheduleElement aaElement = (ScheduleElement) aaIterator.next();
+	    
+	    // compare timespan
+	    if ((localElement.getStartTime() != aaElement.getStartTime()) ||
+		(localElement.getEndTime() != aaElement.getEndTime())) {
+	      availSchedule.removeAll(currentAvailability);
+	      change = true;
+	      break;
+	    }
+	  }
+	} else {
+	  change = true;
+	}
+
+	if (change) {
+	  //Don't iterate over schedule directly because Schedule doesn't
+	  //support iterator().
+	  for (Iterator iterator = new ArrayList(aa.getSchedule()).iterator();
+	       iterator.hasNext();) {
+	    ScheduleElement avail = (ScheduleElement)iterator.next();
+	    availSchedule.add(ldmf.newAssignedAvailabilityElement(receivingAsset, 
+								  avail.getStartTime(),
+								  avail.getEndTime()));
+	  }
+	}
+      } 
     } // end sync block
+
+    return change;
   }
 
-
-  private void fixRelationshipSchedule(AssetTransfer at,
-                                       int kind,
-                                       Asset transferringAsset, 
-                                       Asset receivingAsset) {
-    if ((kind == AssetAssignment.UPDATE) ||
-        (kind == AssetAssignment.REPEAT)) {
+  private boolean fixRelationshipSchedule(AssetTransfer at,
+					  AssetAssignment aa, 
+					  Asset transferringAsset, 
+					  Asset receivingAsset) {
+    if (!(related(transferringAsset) && related(receivingAsset))) {
+      return false;
+    }
+    if ((aa.isUpdate() || aa.isRepeat())) {
+      // Check whether info already represented in the local assets
+      // No need to publish change if local assets are already current.
+      if (!localScheduleUpdateRequired((HasRelationships) at.getAsset(),
+				       (HasRelationships) transferringAsset) &&
+	  !localScheduleUpdateRequired((HasRelationships) at.getAssignee(),
+				       (HasRelationships) receivingAsset)) {
+	return false;
+      }
+	  
       //Remove existing relationships
       removeExistingRelationships(at, 
                                   (HasRelationships)transferringAsset,
@@ -500,6 +576,46 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
     RelationshipSchedule receivingSchedule =
       ((HasRelationships)receivingAsset).getRelationshipSchedule();
     receivingSchedule.addAll(localRelationships);
+    
+    return true;
+  }
+
+  private boolean localScheduleUpdateRequired(HasRelationships atAsset,
+					      HasRelationships localAsset) {
+
+    if (!atAsset.equals(localAsset)) {
+      throw new IllegalArgumentException("AssetTransferLP.localScheduleUpdateRequired()" +
+					 " attempt to compare different Assets - " +
+					 atAsset + " != " + localAsset);
+    }
+   
+
+
+    RelationshipSchedule localRelationshipSchedule = 
+      localAsset.getRelationshipSchedule();
+
+    // Can't iterate over a schedule so pull elements into an ArrayList and
+    // iterate over that
+    for (Iterator iterator = 
+	   new ArrayList(atAsset.getRelationshipSchedule()).iterator();
+         iterator.hasNext();) {
+      final Relationship relationship = (Relationship) iterator.next();
+      
+      Collection matching = 
+	localRelationshipSchedule.getMatchingRelationships(new UnaryPredicate() {
+	  public boolean execute(Object obj) {
+	    Relationship matchCandidate = (Relationship)obj;
+	    return (relationship.equals(matchCandidate));
+	  }
+	}
+							   );
+	  
+
+      if (matching.isEmpty()) {
+	return true;
+      }
+    }
+    return false;
   }
 
   private void removeExistingRelationships(AssetTransfer at,
@@ -513,9 +629,9 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
     
     RelationshipSchedule atRelationshipSchedule = 
       ((HasRelationships)at.getAsset()).getRelationshipSchedule();
-    Collection atRelationships = new ArrayList(atRelationshipSchedule);
     
-    for (Iterator atIterator = atRelationships.iterator();
+    for (Iterator atIterator = 
+	   new ArrayList(atRelationshipSchedule).iterator();
          atIterator.hasNext();) {
       Relationship relationship = (Relationship) atIterator.next();
       
@@ -543,7 +659,7 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
                                                    Asset receivingAsset) {
     RelationshipSchedule atRelationshipSchedule = 
       ((HasRelationships)at.getAsset()).getRelationshipSchedule();
-    Collection atRelationships = new ArrayList(atRelationshipSchedule);
+    ArrayList atRelationships = new ArrayList(atRelationshipSchedule);
 
     ArrayList localRelationships = new ArrayList(atRelationships.size());
 

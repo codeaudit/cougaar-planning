@@ -119,7 +119,7 @@ implements LogicProvider, MessageLogicProvider {
     Asset assigneeL = logplan.findAsset(assigneeT); // local assignee instance
     
     if (assigneeL == null) {
-      logger.error("ReceiveAssetLP: Unable to find receiving asset " + 
+      logger.error("Unable to find receiving asset " + 
                    assigneeT + " in "+self);
       return;
     }
@@ -132,155 +132,90 @@ implements LogicProvider, MessageLogicProvider {
     Asset asset = assetL;
 
     if (asset == null) {
-      // Clone to ensure that we don't end up with cross agent asset 
-      // references
-      asset = ldmf.cloneInstance(assetT);
-      if (related(asset)) {
-        ((HasRelationships) asset).setLocal(false);
-      }
-    } 
-
-    boolean updateRelationships =
-      aa.getSchedule() != null && related(assetT) && related(assignee);
-
-    //Only munge relationships pertinent to the transfer - requires that 
-    //both receiving and transferring assets have relationship schedules
-    if (updateRelationships) {
-      HasRelationships dob = ((HasRelationships)asset);
-      NewRelationshipSchedule rs_a;
-
-      if (assetL == null) {
-        // Serialized object does not include a relationship schedule
-        rs_a = ldmf.newRelationshipSchedule(dob);
-        dob.setRelationshipSchedule(rs_a);        
-      } else {
-        rs_a = (NewRelationshipSchedule)dob.getRelationshipSchedule();
-      }
-
-      HasRelationships iob = ((HasRelationships)assignee);
-      NewRelationshipSchedule rs_assignee = 
-        (NewRelationshipSchedule)iob.getRelationshipSchedule();
-
       if (aa.isUpdate() || aa.isRepeat()) {
-        removeExistingRelationships(aa.getSchedule(), rs_a, rs_assignee);
-      }
-
-      addRelationships(aa, rs_a, rs_assignee);
-      
-      Collection changeReports = new ArrayList();
-      changeReports.add(new RelationshipSchedule.RelationshipScheduleChangeReport());
-      rootplan.change(assignee, changeReports);
+        logger.error("Received Update Asset Transfer, but cannot find original "+ aa);
+      } 
+      asset = createLocalAsset(assetT);
     }
 
+    
+    boolean changeRelationshipRequired = updateRelationships(aa, asset,
+							     assigneeL);
+
+    boolean changeAvailabilityRequired = fixAvailSchedule(aa, asset, 
+							  assigneeL);
+
+    boolean changePGRequired = false;
 
     if (assetL != null) {
       // If we already had a matching asset - update with property groups
       // from the asset transfer.
-      Vector transferredPGs = assetT.fetchAllProperties();
-
-      for (Iterator pgIterator = transferredPGs.iterator();
-           pgIterator.hasNext();) {
-        Object next = pgIterator.next();
-
-        //Don't overwrite LocalPGs
-        if (!(next instanceof LocalPG)) {
-          if (next instanceof PropertyGroup) {
-            assetL.addOtherPropertyGroup((PropertyGroup) next);
-          } else if (next instanceof PropertyGroupSchedule) {
-            assetL.addOtherPropertyGroupSchedule((PropertyGroupSchedule) next);
-          } else {
-            logger.error("ReceiveAssetLP: unrecognized property type - " + 
-                         next + " - on transferred asset " + assetL);
-          }
-        }
-      }
-    } else {
-      if (aa.isUpdate() || aa.isRepeat()) {
-        logger.error("Received Update Asset Transfer, but cannot find original "+ aa);
-      } 
+      changePGRequired = updatePG(assetT, assetL);
     }
 
-    // fix up the available schedule for the transferring asset
-    if (aa.getSchedule() != null) {
-      fixAvailSchedule(aa, asset, assignee);
+    if (logger.isDebugEnabled()) {
+      logger.debug("ReceiveAssetLP: changeRelationshipRequired = " + 
+		   changeRelationshipRequired +
+		   " changeAvailabilityRequired = " +
+		   changeAvailabilityRequired +
+		   " changePGRequired = " +
+		   changePGRequired + 
+		   " for AssetAssignment - " + aa +
+		   " transfering asset - " + asset +
+		   " receiving asset - " + assigneeL);
     }
+
       
     // publish the add or change
     if (assetL == null) {            // add it if it wasn't already there
       rootplan.add(asset);
-    } else {
-      if (updateRelationships) {
-        Collection changeReports = new ArrayList();
-        changeReports.add(new RelationshipSchedule.RelationshipScheduleChangeReport());
-        rootplan.change(asset, changeReports);
-      } else {
-        rootplan.change(asset, null);
-      }
+    } else if (changeRelationshipRequired) {
+      Collection changeReports = new ArrayList();
+      changeReports.add(new RelationshipSchedule.RelationshipScheduleChangeReport());
+      rootplan.change(asset, changeReports);
+    } else if (changeAvailabilityRequired || changePGRequired) {
+      rootplan.change(asset, null);
     }
-
-
   }
+    
 
-  protected void addRelationships(AssetAssignment aa,
-                                  RelationshipSchedule transferringSchedule,
-                                  RelationshipSchedule receivingSchedule) {
-    Asset transferring = (Asset)transferringSchedule.getHasRelationships();
-    Asset receiving = (Asset)receivingSchedule.getHasRelationships();
-
-    Collection localRelationships = convertToRelationships(aa,
-                                                           transferring,
-                                                           receiving);
-    transferringSchedule.addAll(localRelationships);
-
-    receivingSchedule.addAll(localRelationships);
-  }
-
-  private void removeExistingRelationships(Schedule aaSchedule,
+  private void removeExistingRelationships(Collection aaRelationships,
                                            NewRelationshipSchedule transferringSchedule,
                                            NewRelationshipSchedule receivingSchedule) {
     HasRelationships transferringAsset = 
       transferringSchedule.getHasRelationships();
-    String transferringID = 
-      ((Asset) transferringAsset).getItemIdentificationPG().getItemIdentification();
 
     HasRelationships receivingAsset = 
       receivingSchedule.getHasRelationships();
-    String receivingID = 
-      ((Asset) receivingAsset).getItemIdentificationPG().getItemIdentification();
 
-    //Safe because aaSchedule should be an AssignedRelationshipSchedule - 
-    // supports iterator(). (Assumption is that AssignedRelationshipSchedule
-    // is only used by LPs.)
-    for (Iterator aaIterator = aaSchedule.iterator();
+    for (Iterator aaIterator = aaRelationships.iterator();
          aaIterator.hasNext();) {
-      AssignedRelationshipElement aaRelationship = 
-        (AssignedRelationshipElement) aaIterator.next();
+      Relationship relationship = (Relationship) aaIterator.next();
       
-      Role role = (aaRelationship.getItemIDA().equals(receivingID)) ?
-        aaRelationship.getRoleA() : aaRelationship.getRoleB();
+      Role role = (relationship.getA().equals(receivingAsset)) ?
+        relationship.getRoleA() : relationship.getRoleB();
       
       Collection remove = 
         transferringSchedule.getMatchingRelationships(role,
                                                       receivingAsset,
                                                       ETERNITY);
       
+      // The relationship between the receiving and transferring assets should
+      // be represented with identical Relationships in the two 
+      // RelationshipSchedules.
       transferringSchedule.removeAll(remove);
-      
-      role = (aaRelationship.getItemIDA().equals(transferringID)) ?
-        aaRelationship.getRoleA() : aaRelationship.getRoleB();
-      remove = 
-        receivingSchedule.getMatchingRelationships(role,
-                                                   transferringAsset,
-                                                   ETERNITY);
-      
       receivingSchedule.removeAll(remove);
     }
   }
 
   // Update availability info for the transferred asset
   // AvailableSchedule reflects availability within the current agent
-  private void fixAvailSchedule(AssetAssignment aa, Asset asset,
+  private boolean fixAvailSchedule(AssetAssignment aa, Asset asset,
                                 final Asset assignee) {
+    if (aa.getSchedule() == null) {
+      return false;
+    }
+
     NewSchedule availSchedule = 
       (NewSchedule)asset.getRoleSchedule().getAvailableSchedule();
 
@@ -288,56 +223,111 @@ implements LogicProvider, MessageLogicProvider {
       availSchedule = ldmf.newAssignedAvailabilitySchedule();
       ((NewRoleSchedule)asset.getRoleSchedule()).setAvailableSchedule(availSchedule);
     }
+    boolean change = false;
 
     synchronized (availSchedule) {
 
-      if ((aa.isUpdate() || aa.isRepeat()) || 
-          (related(asset) && related(assignee))) {
-        Collection remove = availSchedule.filter(new UnaryPredicate() {
-          public boolean execute(Object o) {
-            return ((o instanceof AssignedAvailabilityElement) &&
-                     (((AssignedAvailabilityElement)o).getAssignee().equals(assignee)));
-          }
-        });
-        availSchedule.removeAll(remove);
-      }
-      
-      //Add entries to the available schedule using the assignee
+      // Find all existing entries which refer to the receiving asset
+      Collection currentAvailability = 
+	availSchedule.filter(new UnaryPredicate() {
+	public boolean execute(Object o) {
+	  return ((o instanceof AssignedAvailabilityElement) &&
+		  (((AssignedAvailabilityElement)o).getAssignee().equals(assignee)));
+	}
+      });
+
       if (related(asset) && related(assignee)) {
+
         //Construct aggregate avail info from the relationship schedule
         RelationshipSchedule relationshipSchedule = 
           ((HasRelationships)asset).getRelationshipSchedule();
-        Collection collection = 
+        Collection matchingRelationships = 
           relationshipSchedule.getMatchingRelationships((HasRelationships)assignee,
                                                         ETERNITY);
         
-        // If any relationships, add a single avail element with the 
+        // If any relationships, construct a single avail element with the 
         // min start and max end
-        if (collection.size() > 0) {
-          Schedule schedule = ldmf.newSchedule(new Enumerator(collection));
-          availSchedule.add(ldmf.newAssignedAvailabilityElement(assignee,
-                                                                schedule.getStartTime(),
-                                                                schedule.getEndTime()));
-        }
+        if (!matchingRelationships.isEmpty()) {
+          Schedule matchingRelationshipsSchedule = 
+	    ldmf.newSchedule(new Enumerator(matchingRelationships));
+	  AssignedAvailabilityElement aggregateAvailability = 
+	    ldmf.newAssignedAvailabilityElement(assignee,
+						matchingRelationshipsSchedule.getStartTime(),
+						matchingRelationshipsSchedule.getEndTime());
+	  // Compare to existing entries - only change if required.
+	  if (!currentAvailability.isEmpty()) {
+	    Schedule currentSchedule = 
+	      ldmf.newSchedule(new Enumerator(currentAvailability));
+	    if ((currentSchedule.getStartTime() != matchingRelationshipsSchedule.getStartTime()) ||
+		(currentSchedule.getEndTime() != matchingRelationshipsSchedule.getEndTime())) {
+	      availSchedule.removeAll(currentAvailability);
+	      availSchedule.add(aggregateAvailability);
+	    } else {
+	      // No change required
+	      return false;
+	    }
+	  } else {
+	    availSchedule.add(aggregateAvailability);
+	    change = true;
+	  }
+	}
       } else {
-        //Copy availability info directly from aa schedule
+	if (((aa.isUpdate() || aa.isRepeat()) &&
+	    (!currentAvailability.isEmpty())) &&
+	    (currentAvailability.size() == aa.getSchedule().size())) {
 
-        //Don't iterate over schedule directly because Schedule doesn't support
-        //iterator().
-        Iterator iterator = new ArrayList(aa.getSchedule()).iterator();
-        while (iterator.hasNext()) {
+	  // Compare to existing entries - only change if required.
+	  Schedule currentSchedule = 
+	    ldmf.newSchedule(new Enumerator(currentAvailability));
+
+	  for (Iterator localIterator = 
+		 new ArrayList(currentSchedule).iterator(),
+	       aaIterator = 
+		 new ArrayList(aa.getSchedule()).iterator();
+	       localIterator.hasNext();) {
+	    ScheduleElement localElement = 
+	      (ScheduleElement) localIterator.next();
+	    ScheduleElement aaElement = (ScheduleElement) aaIterator.next();
+	    
+	    // compare timespan
+	    if ((localElement.getStartTime() != aaElement.getStartTime()) ||
+		(localElement.getEndTime() != aaElement.getEndTime())) {
+	      availSchedule.removeAll(currentAvailability);
+	      change = true;
+	      break;
+	    }
+	  }
+	} else {
+	  change = true;
+	}
+
+	if (change) {
+	  //Don't iterate over schedule directly because Schedule doesn't
+	  //support iterator().
+	  for (Iterator iterator = new ArrayList(aa.getSchedule()).iterator();
+	       iterator.hasNext();) {
           ScheduleElement avail = (ScheduleElement)iterator.next();
           availSchedule.add(ldmf.newAssignedAvailabilityElement(assignee, 
                                                                 avail.getStartTime(),
                                                                 avail.getEndTime()));
-        }
+	  }
+	}
       }
     } // end sync block
+
+
+    return change;
   }
 
   protected Collection convertToRelationships(AssetAssignment aa,
                                               Asset transferring,
                                               Asset receiving) {
+    if ((aa.getSchedule() == null) ||
+	(!related(transferring)) ||
+	(!related(receiving))) {
+      return new ArrayList();
+    }
+
     ArrayList relationships = new ArrayList(aa.getSchedule().size());
 
     //Safe because aaSchedule should be an AssignedRelationshipSchedule - 
@@ -356,8 +346,191 @@ implements LogicProvider, MessageLogicProvider {
     
     return relationships;
   }
-}
 
+  protected Asset createLocalAsset(Asset aaAsset) {
+    // Clone to ensure that we don't end up with cross agent asset 
+    // references
+    Asset asset = ldmf.cloneInstance(aaAsset);
+
+    if (related(asset)) {
+      HasRelationships hasRelationships = (HasRelationships) asset;
+      hasRelationships.setLocal(false);
+      hasRelationships.setRelationshipSchedule(ldmf.newRelationshipSchedule(hasRelationships));
+    }
+
+    return asset;
+  } 
+
+  protected boolean  localScheduleUpdateRequired(AssetAssignment aa,
+						 Collection aaRelationships,
+						 Asset assetL, 
+						 Asset assigneeL) {
+    if ((aa.getSchedule() == null) ||
+	(!related(assetL)) ||
+	(!related(assigneeL))) {
+      return false;
+    }
+
+    if (!aa.isUpdate() && !aa.isRepeat()) {
+      return true;
+    }
+
+    if (!aa.getAsset().equals(assetL)) {
+      throw new IllegalArgumentException("ReceiveAssetLP.localScheduleUpdateRequired()" +
+					 " attempt to compare different Assets - " +
+					 aa.getAsset() + " != " + assetL);
+    }
+
+    if (!aa.getAssignee().equals(assigneeL)) {
+      throw new IllegalArgumentException("ReceiveAssetLP.localScheduleUpdateRequired()" +
+					 " attempt to compare different Assets - " +
+					 aa.getAssignee() + " != " + assigneeL);
+    }
+
+    RelationshipSchedule assetLRelationshipSchedule = 
+      ((HasRelationships) assetL).getRelationshipSchedule();
+
+    RelationshipSchedule assigneeLRelationshipSchedule = 
+      ((HasRelationships) assigneeL).getRelationshipSchedule();
+
+
+    for (Iterator iterator = aaRelationships.iterator();
+         iterator.hasNext();) {
+      final Relationship relationship = (Relationship) iterator.next();
+      
+      Collection matchingAssetL = 
+	assetLRelationshipSchedule.getMatchingRelationships(new UnaryPredicate() {
+	  public boolean execute(Object obj) {
+	    Relationship matchCandidate = (Relationship)obj;
+	    return (relationship.equals(matchCandidate));
+	  }
+	}
+	  );
+
+
+      Collection matchingAssigneeL = 
+	assigneeLRelationshipSchedule.getMatchingRelationships(new UnaryPredicate() {
+	  public boolean execute(Object obj) {
+	    Relationship matchCandidate = (Relationship)obj;
+	    return (relationship.equals(matchCandidate));
+	  }
+	}
+	  );
+	
+  
+
+      if (matchingAssetL.isEmpty() ||
+	  matchingAssigneeL.isEmpty()) {
+	return true;
+      }
+    }
+    
+    return false;
+  }
+
+  protected boolean updatePG(Asset aaAsset, Asset localAsset) {
+    Vector transferredPGs = aaAsset.fetchAllProperties();
+    boolean update = false;
+
+    for (Iterator pgIterator = transferredPGs.iterator();
+	 pgIterator.hasNext();) {
+      Object next = pgIterator.next();
+      
+      //Don't overwrite LocalPGs
+      if (!(next instanceof LocalPG)) {
+	if (next instanceof PropertyGroup) {
+	  PropertyGroup transferredPG = (PropertyGroup) next;
+	  PropertyGroup localPG = 
+	    localAsset.searchForPropertyGroup(transferredPG.getPrimaryClass());
+	  if ((localPG == null) ||
+	      (!localPG.equals(transferredPG))) {
+	    if (logger.isDebugEnabled()) {
+	      logger.debug("ReceiveAssetLP: pgs not equal " +
+			   " localPG = " + localPG +
+			   " transferredPG = " + transferredPG);
+	    }
+	    localAsset.addOtherPropertyGroup(transferredPG);
+	    update = true;
+	  }
+	} else if (next instanceof PropertyGroupSchedule) {
+	  PropertyGroupSchedule transferredPGSchedule = 
+	    (PropertyGroupSchedule) next;
+	  PropertyGroupSchedule localPGSchedule = 
+	    localAsset.searchForPropertyGroupSchedule(transferredPGSchedule.getClass());
+	  if ((localPGSchedule == null) ||
+	      (!localPGSchedule.equals(transferredPGSchedule))) {
+	    if (logger.isDebugEnabled()) {
+	      logger.debug("ReceiveAssetLP: pgschedules not equal " +
+			   " localPGSchedule = " + localPGSchedule +
+			   " transferredPG = " + transferredPGSchedule);
+	    }
+	    localAsset.addOtherPropertyGroupSchedule(transferredPGSchedule);
+	    update = true;
+	  }
+	} else {
+	  logger.error("ReceiveAssetLP: unrecognized property type - " + 
+		       next + " - on transferred asset " + localAsset);
+	}
+      }
+    }
+
+    return update;
+  }
+
+  protected boolean updateRelationships(AssetAssignment aa,
+					Asset localAsset,
+					Asset localAssignee) {
+    Collection aaRelationships = 
+      convertToRelationships(aa, localAsset, localAssignee);
+
+    boolean update = 
+      localScheduleUpdateRequired(aa, aaRelationships,localAsset, 
+				  localAssignee);
+    
+    //Only munge relationships pertinent to the transfer - requires that 
+    //both receiving and transferring assets have relationship schedules
+    if (update) {
+      HasRelationships dob = ((HasRelationships) localAsset);
+      NewRelationshipSchedule rs_a = 
+	(NewRelationshipSchedule)dob.getRelationshipSchedule();
+      
+      HasRelationships iob = ((HasRelationships) localAssignee);
+      NewRelationshipSchedule rs_assignee = 
+        (NewRelationshipSchedule)iob.getRelationshipSchedule();
+      
+      if (aa.isUpdate() || aa.isRepeat()) { 
+        removeExistingRelationships(aaRelationships, rs_a, rs_assignee);
+      } 
+      
+      // Add relationships from the AssetAssignment
+      rs_a.addAll(aaRelationships);
+      rs_assignee.addAll(aaRelationships);
+      
+      Collection changeReports = new ArrayList();
+      changeReports.add(new RelationshipSchedule.RelationshipScheduleChangeReport());
+      rootplan.change(localAssignee, changeReports);
+
+      if (logger.isDebugEnabled()) {
+	logger.debug("ReceiveAssetLP: updateRelationships for " + 
+		     localAssignee + 
+		     " with AssetAssignment - " + aa);
+      }
+    }
+
+    return update;
+  }
+
+  protected boolean updateSchedules(AssetAssignment aa, Asset localAsset,
+				    Asset localAssignee) {
+    boolean updateRelationships = updateRelationships(aa, localAsset, 
+						      localAssignee); 
+
+    boolean updateAvailSchedule = fixAvailSchedule(aa, localAsset, 
+						   localAssignee);
+
+    return updateAvailSchedule || updateRelationships;
+  }
+}
 
 
 

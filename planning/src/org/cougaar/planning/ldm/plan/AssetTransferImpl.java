@@ -34,8 +34,10 @@ import java.io.ObjectOutputStream;
 import java.util.Collection;
 
 import org.cougaar.core.blackboard.Subscriber;
+import org.cougaar.core.blackboard.Blackboard;
 import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.planning.ldm.asset.Asset;
+import org.cougaar.util.log.Logger;
 
 /** AssetTransferImpl.java
  * Implementation for assetTransfer
@@ -247,18 +249,23 @@ public class AssetTransferImpl extends PlanElementImpl
   }
 
   // ActiveSubscriptionObject
-  public void addingToBlackboard(Subscriber s) {
-    super.addingToBlackboard(s);
+  public void addingToBlackboard(Subscriber s, boolean commit) {
+    super.addingToBlackboard(s, commit);
+    Blackboard.getTracker().checkpoint(commit, asset,"getRoleSchedule");
+    if (!commit) return;
     // check for conflicts.
+
     addToRoleSchedule(asset);
   }
-  public void changingInBlackboard(Subscriber s) {
-    super.changingInBlackboard(s);
+  public void changingInBlackboard(Subscriber s, boolean commit) {
+    super.changingInBlackboard(s, commit);
     // check for conflicts
   }
-  public void removingFromBlackboard(Subscriber s) {
-    super.removingFromBlackboard(s);
-    // check for conflicts
+  public void removingFromBlackboard(Subscriber s, boolean commit) {
+    super.removingFromBlackboard(s, commit);
+    Blackboard.getTracker().checkpoint(commit, asset,"getRoleSchedule");
+    if (!commit) return;
+
     removeFromRoleSchedule(asset);
   }
 
@@ -279,6 +286,12 @@ public class AssetTransferImpl extends PlanElementImpl
     assigneeAsset = (Asset)stream.readObject();
   }
 
+  public void postRehydration(Logger logger) {
+    super.postRehydration(logger);
+    fixAsset(getAsset());
+    fixAsset(getAssignee());
+  }
+
   public String toString() {
     return "[Transfer of "+asset+" from "+assignerCluster+" to "+assigneeAsset+"]";
   }
@@ -292,5 +305,4 @@ public class AssetTransferImpl extends PlanElementImpl
     c.add(new PropertyDescriptor("assignor", AssetTransferImpl.class, "getAssignor",null));
     c.add(new PropertyDescriptor("schedule", AssetTransferImpl.class, "getSchedule", null));
   }
-
 }

@@ -53,6 +53,7 @@ public class WorkflowImpl
   implements Workflow, NewWorkflow, java.io.Serializable
 {
   private static final Logger logger = Logging.getLogger(WorkflowImpl.class);
+  static final long serialVersionUID = -8610461428992212L;
 
   private transient Task basetask;
   // protected access for MPWorkflowImpl
@@ -101,6 +102,7 @@ public class WorkflowImpl
    * @return Enumeration{Task} Enumerate over our subtasks.
    **/
   public Enumeration getTasks() {
+    assert Thread.holdsLock(this);
     return subtasks.elements();
   }
 
@@ -148,6 +150,7 @@ public class WorkflowImpl
   }
 
   private TaskScoreTable updateTST() {
+    assert Thread.holdsLock(this); // redundant - only called from aggregateAllocationResults
     if (_tst == null) {
       int n = subtasks.size();
       if (n == 0) return null;
@@ -200,6 +203,7 @@ public class WorkflowImpl
    * @return List of SubTaskResultObjects one for each subtask
    **/
   public synchronized SubtaskResults getSubtaskResults() {
+    // assert Thread.holdsLock(this);  // true by definition
     int n = subtasks.size();
     SubtaskResults result = new SubtaskResults(n, cachedar);
     for (int i = 0; i < n; i++) {
@@ -480,7 +484,7 @@ public class WorkflowImpl
 
   /** serialize workflows by proxying the tasks all the tasks referred to
    **/
-  private void writeObject(ObjectOutputStream stream) throws IOException {
+  private synchronized void writeObject(ObjectOutputStream stream) throws IOException {
     stream.defaultWriteObject();
 
     stream.writeObject(basetask);
@@ -545,7 +549,7 @@ public class WorkflowImpl
     return (Constraint []) constraints.toArray(new Constraint[constraints.size()]);
   }
 
-  public AllocationResult getAllocationResult() {
+  public synchronized AllocationResult getAllocationResult() {
     return cachedar;
   }
 
@@ -565,9 +569,7 @@ public class WorkflowImpl
   // used by ExpansionImpl for infrastructure propagating rescinds.
   public synchronized List clearSubTasks() {
     if (walkingSubtasks > 0) {
-      RuntimeException rt = 
-	new RuntimeException("Attempt to remove subtasks while enum is active");
-      rt.printStackTrace();
+      logger.error("Attempt to remove subtasks while enum is active", new Throwable());
     }
 
     ArrayList l = new ArrayList(subtasks);

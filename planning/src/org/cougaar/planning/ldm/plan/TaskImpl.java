@@ -42,6 +42,8 @@ import java.util.Set;
 import org.cougaar.core.blackboard.ActiveSubscriptionObject;
 import org.cougaar.core.blackboard.Subscriber;
 import org.cougaar.core.blackboard.Transaction;
+import org.cougaar.core.blackboard.Blackboard;
+import org.cougaar.core.blackboard.Transaction;
 import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.util.UID;
 import org.cougaar.planning.ldm.asset.Asset;
@@ -60,6 +62,7 @@ public class TaskImpl extends PlanningDirectiveImpl
   implements Task, NewTask, Cloneable, ActiveSubscriptionObject, java.io.Serializable
 {
   private static final Logger logger = Logging.getLogger(TaskImpl.class);
+  static final long serialVersionUID = 8223101091726379402L;
 
   private Verb verb;
   private transient Asset directObject;  // changed to transient : Persistence
@@ -143,7 +146,7 @@ public class TaskImpl extends PlanningDirectiveImpl
   }
 
   /**
-   * Note that any previous values will be dropped. 
+   * @note that any previous values will be dropped. 
    * @param enumOfPrepPhrase - set the prepositional phrases
    */
   public void setPrepositionalPhrases(Enumeration enumOfPrepPhrase) {
@@ -176,7 +179,7 @@ public class TaskImpl extends PlanningDirectiveImpl
   
   /**
    * Set the prepositional phrase (note singularity)
-   * Note that any previous values will be dropped 
+   * @note that any previous values will be dropped 
    * @param aPrepPhrase 
    * @deprecated Use setPrepositionalPhrases(PrepositionalPhrase) or addPrepositionalPhrase(PrepositionalPhrase) instead.
    */
@@ -186,7 +189,7 @@ public class TaskImpl extends PlanningDirectiveImpl
 
   /**
    * Set the prepositional phrase (note singularity)
-   * Note that any previous values will be dropped 
+   * @note that any previous values will be dropped 
    * @param aPrepPhrase 
    */
   public void setPrepositionalPhrases(PrepositionalPhrase aPrepPhrase) {
@@ -245,6 +248,7 @@ public class TaskImpl extends PlanningDirectiveImpl
   
   /** @return Task  - return parent task*/
   public UID getParentTaskUID() {
+    org.cougaar.core.blackboard.Blackboard.getTracker().checkAccess(this,"getParentTask");
     return parentUID;
   }
   /** @param pt  */
@@ -330,9 +334,8 @@ public class TaskImpl extends PlanningDirectiveImpl
   }
   
   /** Get a list of the requested AuxiliaryQueryTypes (int).
-    * Note:  if there are no types set, this will return an
-    * an array with one element equal to -1 
-    * @return int[]
+    * @note if there are no types set, this will return an
+    * an array with one element equal to -1 .
     * @see org.cougaar.planning.ldm.plan.AuxiliaryQueryType
     */
   public int[] getAuxiliaryQueryTypes() {
@@ -344,7 +347,7 @@ public class TaskImpl extends PlanningDirectiveImpl
   /** Set the collection of AuxiliaryQueryTypes that the task is
     * requesting information on.  This information will be returned in
     * the AllocationResult of this task's disposition.
-    * Note that this method clears all previous types.
+    * @note that this method clears all previous types.
     * @param thetypes  A collection of defined AuxiliaryQueryTypes
     * @see org.cougaar.planning.ldm.plan.AuxiliaryQueryType
     */
@@ -364,7 +367,7 @@ public class TaskImpl extends PlanningDirectiveImpl
   
   
   /** Get the priority of this task.
-    * Note that this should only be used when there are competing tasks
+    * @note that this should only be used when there are competing tasks
     * from the SAME customer.
     * @return byte  The priority of this task
     * @see org.cougaar.planning.ldm.plan.Priority
@@ -474,7 +477,7 @@ public class TaskImpl extends PlanningDirectiveImpl
   }
   
   /** Set the priority of this task.
-    * Note that this should only be used when there are competing tasks
+    * @note that this should only be used when there are competing tasks
     * from the SAME customer.
     * @param thepriority
     * @see org.cougaar.planning.ldm.plan.Priority
@@ -633,11 +636,12 @@ public class TaskImpl extends PlanningDirectiveImpl
     stream.writeObject(directObject);
     writeArrayList(stream, phrases);
     if (stream instanceof org.cougaar.core.persist.PersistenceOutputStream) {
-      stream.writeObject(workflow);
+      stream.writeObject(null); // workflow
       stream.writeObject(myAnnotation);
       stream.writeObject(observableAspects);
     } else {
-      stream.writeObject(myPE);    // this should be derived, not persisted!
+      // workflow is never transferred (should be null)
+      //annotation and observables aren't relevant in another agent
     }
 
     synchronized (this) {     //  make sure the prefs aren't changing while writing
@@ -650,11 +654,11 @@ public class TaskImpl extends PlanningDirectiveImpl
     directObject = (Asset) stream.readObject();
     phrases = readArrayList(stream);
     if (stream instanceof org.cougaar.core.persist.PersistenceInputStream) {
-      workflow = (Workflow) stream.readObject();
+      //workflow = (Workflow) stream.readObject();
+      stream.readObject(); // drop workflow on the floor
       myAnnotation = (Annotation) stream.readObject();
       observableAspects = (HashSet) stream.readObject();
     } else {
-      myPE = (PlanElement) stream.readObject();
     }
     preferences = (ArrayList) stream.readObject();
 
@@ -666,33 +670,68 @@ public class TaskImpl extends PlanningDirectiveImpl
    * Can be used to discern between expandable and non-expandable
    * Tasks.  If Task has no PlanElement associated with it, will 
    * return null.
+   * @note This method is for infrastructure use only - do not call from user code!
+   * @note When TaskImpl debug logging is enabled, will do additional
+   * checks to be sure it is being called in a reasonable context (transaction).
    */
-  public PlanElement getPlanElement() { return myPE; }
+  public synchronized PlanElement getPlanElement() { 
+    checkTransaction("privately_getPlanElement");
+
+    Blackboard.getTracker().checkAccess(this,"getPlanElement");
+    return myPE; 
+}
 
   /**
    * This method sets the PlanElement associated with this Task.
-   * **Note to Plugin developers: You do not need to call this method.
-   * It is done automatically when PlanElement.setTask() is called.
+   * @note This method is for infrastructure use only - do not call from user code!
+   * @note When TaskImpl debug logging is enabled, will do additional
+   * checks to be sure it is being called in a reasonable context (transaction).
    */
-  public void privately_setPlanElement( PlanElement pe ) { 
-    if (myPE != null) {
-      synchronized (System.err) {
-        System.err.println("Warning: re-disposing "+this+" from "+myPE+" to "+pe+".");
-        Thread.dumpStack();
+  public synchronized void privately_setPlanElement( PlanElement pe ) { 
+    checkTransaction("privately_setPlanElement");
+
+    if (logger.isWarnEnabled()) {
+      if (myPE != null) {
+        logger.warn("Re-disposing "+this+" from "+myPE+" to "+pe+".", new Throwable());
       }
-    }
-    if (pe == null) {
-      synchronized (System.err) {
-        System.err.println("Warning: setting "+this+".planElement to null.");
-        Thread.dumpStack();
+      if (pe == null) {
+        logger.warn("Setting "+this+".planElement to null - privately_resetPlanElement should be used instead", new Throwable());
       }
     } 
     myPE = pe;
   }
 
-  public void privately_resetPlanElement() {
-    //System.err.println("\n!!!!!!!!!!!!task.privately_resetPlanElement() called\n");
+  /**
+   * This method clears the PlanElement associated with this Task.  
+   * @note This method is for infrastructure use only - do not call from user code!
+   * @note When TaskImpl debug logging is enabled, will do additional
+   * checks to be sure it is being called in a reasonable context (transaction).
+   **/
+  public synchronized void privately_resetPlanElement() {
+    checkTransaction("privately_resetPlanElement");
+
     myPE = null;
+  }
+
+  private void checkTransaction(String acc) {
+    if (logger.isDebugEnabled()) {
+      if (Transaction.getCurrentTransaction() == null) {
+        Throwable t = new Throwable();
+        StackTraceElement[] st = t.getStackTrace();
+        if (st.length >= 3) {
+          //String cn = st[2].getClassName();
+          String mn = st[2].getMethodName();
+          if ("postRehydration".equals(mn) || //PlanElementImpl (really ok)
+              "getCompletionData".equals(mn) || // completionservlet (less interesting)
+              "getConfidence".equals(mn) || // CompletionCalculator (ditto)
+              "printTaskDetails".equals(mn) // PlanViewServlet
+              ) {
+            return;
+          }
+        }
+        logger.error("called task."+acc+"() outside of Transaction", t);
+      }
+    }
   }
 
   public boolean equals(Object ob) {
@@ -715,8 +754,7 @@ public class TaskImpl extends PlanningDirectiveImpl
     MessageAddress old = getSource();
     if (old != null) {
       if (! asource.equals(old)) {
-        System.err.println("Bad task.setSource("+asource+") was "+old+":");
-        Thread.dumpStack();
+        logger.error("Bad task.setSource("+asource+") was "+old, new Throwable());
       }
     } else {
       super.setSource(asource);
@@ -726,8 +764,7 @@ public class TaskImpl extends PlanningDirectiveImpl
   public void setDestination(MessageAddress dest) {
     super.setDestination(dest);
     if (! dest.equals(getSource())) {
-        System.err.println("Suspicious task.setDestination("+dest+") != "+getSource()+":");
-        Thread.dumpStack();
+      logger.error("Suspicious task.setDestination("+dest+") != "+getSource(), new Throwable());
     }
   }
   // Private setter without destination check
@@ -757,14 +794,16 @@ public class TaskImpl extends PlanningDirectiveImpl
     // parent of the clone is our parent.
     nt.setParentTaskUID(getParentTaskUID());
 
-    nt.setWorkflow(null);
-    nt.privately_resetPlanElement();
+    // no point to doing these
+    // nt.setWorkflow(null);
+    // nt.privately_resetPlanElement();
 
     return nt;
   }
 
   // new property reading methods returned by TaskImplBeanInfo
   public String getParentTaskID() {
+    org.cougaar.core.blackboard.Blackboard.getTracker().checkAccess(this,"getParentTask");
     return (parentUID == null) ? null : parentUID.toString();
   }
 
@@ -817,14 +856,16 @@ public class TaskImpl extends PlanningDirectiveImpl
   }
 
   public UID getPlanElementID() {
-    if (myPE != null)
-      return myPE.getUID();
-    return null;
+    PlanElement pe = getPlanElement();
+    return (pe != null)?pe.getUID():null;
   }
 
   // ActiveSubscriptionObject
-  public void addingToBlackboard(Subscriber s) { }
-  public void changingInBlackboard(Subscriber s) {
+  public void addingToBlackboard(Subscriber s, boolean commit) { }
+  public void changingInBlackboard(Subscriber s, boolean commit) {
+    if (!commit) {
+      return;
+    }
     // execution monitoring / commitment time checks
     if (commitmenttime > 0) {
       long curTime = s.getClient().currentTimeMillis();
@@ -837,7 +878,11 @@ public class TaskImpl extends PlanningDirectiveImpl
       }
     }
   }
-  public void removingFromBlackboard(Subscriber s) {
+  public void removingFromBlackboard(Subscriber s, boolean commit) {
+    if (!commit) {
+      return;
+    }
+
     NewWorkflow wf = (NewWorkflow) getWorkflow();
     if (wf != null) {
       for (Enumeration tasks = wf.getTasks(); tasks.hasMoreElements(); ) {

@@ -47,6 +47,7 @@ import org.cougaar.core.blackboard.BlackboardException;
 import org.cougaar.core.blackboard.Claimable;
 import org.cougaar.core.blackboard.PublishableAdapter;
 import org.cougaar.core.blackboard.Subscriber;
+import org.cougaar.core.blackboard.Blackboard;
 import org.cougaar.core.blackboard.Transaction;
 import org.cougaar.core.persist.ActivePersistenceObject;
 import org.cougaar.core.util.UID;
@@ -142,6 +143,9 @@ public abstract class PlanElementImpl
    **/
         
   public void setTask(Task t) {
+    if (task != null) {
+      logger.error("planelement.setTask from "+task+" to "+t, new Throwable());
+    }
     task = t;
   }
 
@@ -154,6 +158,7 @@ public abstract class PlanElementImpl
    **/
   public void resetTask(Task t) {
     Task oldTask = getTask();
+    logger.error("planelement.resetTask from "+oldTask+" to "+t, new Throwable());
     if (oldTask != null) {
       ((TaskImpl) oldTask).privately_resetPlanElement();
     }
@@ -367,7 +372,10 @@ public abstract class PlanElementImpl
   }
 
   // ActiveSubscriptionObject
-  public void addingToBlackboard(Subscriber s) {
+  public void addingToBlackboard(Subscriber s, boolean commit) {
+    Blackboard.getTracker().checkpoint(commit, getTask(), "getPlanElement");
+    if (!commit) return;
+
     Task t = getTask();
     Date comdate = t.getCommitmentDate();
     if (comdate != null) {
@@ -383,16 +391,24 @@ public abstract class PlanElementImpl
     }
 
     PlanElement existingPE = t.getPlanElement();
+    BlackboardException e = null;
     if (existingPE == null) {
       ((TaskImpl)t).privately_setPlanElement(this);
     } else if (existingPE == this) {
-      throw new BlackboardException("publishAdd of miswired PlanElement (task already wired to this PE): " + this);
+      e =  new BlackboardException("publishAdd of miswired PlanElement (task already wired to this PE): " + this);
     } else {
-      throw new BlackboardException("publishAdd of miswired PlanElement (task already has other PE): " + existingPE);
+      e =  new BlackboardException("publishAdd of miswired PlanElement (task already has other PE): " + existingPE);
+    }
+    if (e != null) {
+      logger.error("PlanElement.addingToBlackboard", e);
+      throw e;
     }
   }
-  public void changingInBlackboard(Subscriber s) {}
-  public void removingFromBlackboard(Subscriber s) {
+  public void changingInBlackboard(Subscriber s, boolean commit) {}
+  public void removingFromBlackboard(Subscriber s, boolean commit) {
+    Blackboard.getTracker().checkpoint(commit, getTask(), "getPlanElement");
+    if (!commit) return;
+
     Task t = getTask();
     ((TaskImpl)t).privately_resetPlanElement();
   }
@@ -403,6 +419,7 @@ public abstract class PlanElementImpl
     return true;
   }
   public void checkRehydration(Logger logger) {
+    /*  // currently a no-op
     if (this instanceof AssetTransfer) {
     } else {
       Task task = getTask();
@@ -415,54 +432,35 @@ public abstract class PlanElementImpl
         //          if (logger.isWarnEnabled()) logger.warn("Bad " + getClass().getName() + ": getTask()=null");
       }
     }
+    */
   }
+
   public void postRehydration(Logger logger) {
     if (logger.isDebugEnabled()) {
       logger.debug("Rehydrated plan element: " + this);
     }
+
     TaskImpl task = (TaskImpl) getTask();
     if (task != null) {
       PlanElement taskPE = task.getPlanElement();
       if (taskPE != this) {
         if (taskPE != null) {
-          if (logger.isDebugEnabled()) {
-            logger.debug("Bogus plan element for task: " + hc(task));
-          }
           task.privately_resetPlanElement();
+          logger.warn("resetPlanElement of "+task+" to "+this+" (was "+taskPE+")");
         }
+
         task.privately_setPlanElement(this); // These links can get severed during rehydration
-        if (logger.isDebugEnabled()) {
-          logger.debug("Fixing plan element : " + hc(task) + " to " + hc(this));
-        }
-      }
-    }
-    if (this instanceof Allocation) {
-      fixAsset(((Allocation)this).getAsset());
-    } else if (this instanceof AssetTransfer) {
-      fixAsset(((AssetTransfer)this).getAsset());
-      fixAsset(((AssetTransfer)this).getAssignee());
-    }
-    if (logger.isDebugEnabled()) {
-      if (this instanceof Expansion) {
-        Expansion exp = (Expansion) this;
-        Workflow wf = exp.getWorkflow();
-        for (Enumeration en = wf.getTasks(); en.hasMoreElements(); ) {
-          Task subtask = (Task) en.nextElement();
-          PlanElement subtaskPE = subtask.getPlanElement();
-          if (subtaskPE == null) {
-            logger.debug("Subtask " + subtask.getUID() + " not disposed");
-          } else {
-            logger.debug("Subtask " + subtask.getUID() + " disposed " + hc(subtaskPE));
-          }
-        }
       }
     }
   }
+
+  /** reset asset role-schedules post-rehydration **/
   protected void fixAsset(Asset asset) {
     // Compute role-schedules
     RoleScheduleImpl rsi = (RoleScheduleImpl) asset.getRoleSchedule();
     rsi.add(this);
   }
+
   // Should match BasePersistence.hc(o), without compile dependency
   protected static String hc(Object o) {
     return (Integer.toHexString(System.identityHashCode(o)) +

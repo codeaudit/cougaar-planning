@@ -264,6 +264,7 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
     * use asset.getRoleSchedule().getRoleSchedule for the enumeration of the roleschedule
     **/
   public RoleSchedule getRoleSchedule() {
+    org.cougaar.core.blackboard.Blackboard.getTracker().checkAccess(this,"getRoleSchedule");
     return roleschedule;
   }
 

@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.ListIterator;
 
 import org.cougaar.core.blackboard.Subscriber;
+import org.cougaar.core.blackboard.ActiveSubscriptionObject;
+import org.cougaar.core.blackboard.Blackboard;
 import org.cougaar.util.log.Logger;
  
 /** ExpansionImpl.java
@@ -48,6 +50,8 @@ public class ExpansionImpl extends PlanElementImpl
   implements Expansion, NewExpansion
 {
  
+  static final long serialVersionUID = 34303612634065165L;
+
   private transient Workflow workflow;  // changed to transient : Persistence
   
   public ExpansionImpl() {}
@@ -85,12 +89,23 @@ public class ExpansionImpl extends PlanElementImpl
     return workflow;
   }
 
-  public void removingFromBlackboard(Subscriber s) {
-    Task t = getTask();
-    ((TaskImpl)t).privately_resetPlanElement();
-    Workflow w = getWorkflow();
+  public void removingFromBlackboard(Subscriber s, boolean commit) {
+    super.removingFromBlackboard(s, commit);
 
+    // Task t = getTask();
+    Workflow w = getWorkflow();
     if (w == null) return; // if already disconnected...
+
+    if (ActiveSubscriptionObject.deferCommit) { /* this is an expensive test if we're going to waste it */
+      if (!w.isPropagatingToSubtasks() ) { // if we're not auto-propagating
+        for (Enumeration e = w.getTasks(); e.hasMoreElements(); ) {
+          NewTask wfstask = (NewTask) e.nextElement();
+          Blackboard.getTracker().checkpoint(commit, wfstask, "getParentTask");
+        }
+      }
+    }
+
+    if (!commit) return;
 
     if (w.isPropagatingToSubtasks() ) { // if we're auto-propagating
       WorkflowImpl wi = (WorkflowImpl) w;
@@ -181,15 +196,29 @@ public class ExpansionImpl extends PlanElementImpl
    * object requires special deserialization work.
    */
    public void postRehydration(Logger logger) {
-      Workflow wf = getWorkflow();
-      if(wf != null) {
-	for (Enumeration tasks = wf.getTasks(); tasks.hasMoreElements(); ) {
-	  NewTask subtask = (NewTask) tasks.nextElement();
-	  if(subtask.getWorkflow() != wf) {
-	    subtask.setWorkflow(wf);
-	  }
-	}
-      }
-      super.postRehydration(logger);
-    }
+     super.postRehydration(logger);
+
+     Workflow wf = getWorkflow();
+     if(wf != null) {
+       for (Enumeration tasks = wf.getTasks(); tasks.hasMoreElements(); ) {
+         NewTask subtask = (NewTask) tasks.nextElement();
+         Workflow owf = subtask.getWorkflow();
+         if (owf != wf) {
+           subtask.setWorkflow(wf);
+           if (owf != null) {
+             logger.warn("Reset task's "+subtask+" workflow from "+owf+" to "+wf);
+           }
+         }
+
+         if (logger.isDebugEnabled()) {
+           PlanElement subtaskPE = subtask.getPlanElement(); /*UCK*/
+           if (subtaskPE == null) {
+             logger.debug("Subtask " + subtask.getUID() + " not disposed");
+           } else {
+             logger.debug("Subtask " + subtask.getUID() + " disposed " + hc(subtaskPE));
+           }
+         }
+       }
+     }
+   }
 }

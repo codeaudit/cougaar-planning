@@ -34,8 +34,10 @@ import java.io.ObjectOutputStream;
 import java.util.Collection;
 
 import org.cougaar.core.blackboard.Subscriber;
+import org.cougaar.core.blackboard.Blackboard;
 import org.cougaar.core.util.UID;
 import org.cougaar.planning.ldm.asset.Asset;
+import org.cougaar.util.log.Logger;
 
 
 /** AllocationImpl.java
@@ -177,19 +179,27 @@ public class AllocationImpl extends PlanElementImpl
   
 
   // ActiveSubscriptionObject
-  public void addingToBlackboard(Subscriber s) {
-    super.addingToBlackboard(s);
+  public void addingToBlackboard(Subscriber s, boolean commit) {
+    super.addingToBlackboard(s, commit);
+    Blackboard.getTracker().checkpoint(commit,asset,"getRoleSchedule");
+    if (!commit) return;
+
     // check for conflicts
+
     addToRoleSchedule(asset);
   }
-  public void changingInBlackboard(Subscriber s) {
-    super.changingInBlackboard(s);
+  public void changingInBlackboard(Subscriber s, boolean commit) {
+    super.changingInBlackboard(s, commit);
     // check for conflicts
   }
-  public void removingFromBlackboard(Subscriber s) {
-    super.removingFromBlackboard(s);
-    removeFromRoleSchedule(asset);
+  public void removingFromBlackboard(Subscriber s, boolean commit) {
+    super.removingFromBlackboard(s, commit);
+    Blackboard.getTracker().checkpoint(commit,asset,"getRoleSchedule");
+    if (!commit) return;
+
     // check for conflicts
+
+    removeFromRoleSchedule(asset);
   }
 
   public UID getAllocationTaskUID() {
@@ -237,6 +247,12 @@ public class AllocationImpl extends PlanElementImpl
     allocTaskDeleted = stream.readBoolean();
   }
 
+
+  public void postRehydration(Logger logger) {
+    super.postRehydration(logger);
+    fixAsset(getAsset());
+  }
+
   public String toString() {
     return "[Allocation of " + getTask().getUID() + " to "+asset+"]";
   }
@@ -249,5 +265,4 @@ public class AllocationImpl extends PlanElementImpl
     c.add(new PropertyDescriptor("allocationTaskUID", AllocationImpl.class, "getAllocationTaskUID", null));
     c.add(new PropertyDescriptor("stale", AllocationImpl.class, "isStale", null));
   }
-
 }

@@ -97,8 +97,11 @@ public interface AspectType {
   /** The time at which a task should arrive at the POD **/
   int POD_DATE = 14;
 
+  /** defines quantity desired as a function of time */
+  int QUANTITY_VS_TIME = 15;
+
   /** The number of core-defined aspect types **/
-  int N_CORE_ASPECTS = 15;
+  int N_CORE_ASPECTS = 16;
 
   String[] ASPECT_STRINGS = {
     "START_TIME",
@@ -116,6 +119,7 @@ public interface AspectType {
     "READINESS",
     "POD",
     "POD_DATE",
+    "QUANTITY_VS_TIME"
   };
 
   interface Factory {
@@ -232,6 +236,13 @@ public interface AspectType {
       public String getName() { return "POD_DATE"; }
       public AspectValue newAspectValue(Object o) { return TimeAspectValue.create(POD_DATE,o); }
     };
+    
+  /** Mapping of quantity as a function of time **/
+  Factory QuantityVsTime = new Factory () { 
+      public int getKey() { return QUANTITY_VS_TIME; }
+      public String getName() { return "QUANTITY_VS_TIME"; }
+      public AspectValue newAspectValue(Object o) { return AspectFunction.create(QUANTITY_VS_TIME,o); }
+    };
   
   /** Array of the "standard" AspectValue Factories.  This should match the other
    * arrays in this class.
@@ -250,7 +261,8 @@ public interface AspectType {
                                TypedQuantity,
                                Readiness,
                                Pod,
-                               PodDate};
+                               PodDate,
+                               QuantityVsTime};
 
 
   /** Simple class for registering AspectValue Factories **/

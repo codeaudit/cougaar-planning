@@ -33,7 +33,7 @@ public class PredicateFactory {
 
   /** for use from scripts. Discouraged to use from plugins directly */
   public static NewExpandableTasksPredicate newExpandableTasksPredicate( String ve, PlanningFactory ldmf ) {
-    Verb newVerb = new Verb( ve );
+    Verb newVerb = Verb.get( ve );
     ExpandableTasksPredicate et = new ExpandableTasksPredicate( newVerb );
     return ( ( NewExpandableTasksPredicate ) et );
   }	
@@ -45,7 +45,7 @@ public class PredicateFactory {
 
   /** for use from scripts. Discouraged to use from plugins directly */
   public static NewAllocatableWFPredicate newAllocatableWFPredicate( String ve, PlanningFactory ldmf ) {
-    Verb newVerb = new Verb( ve );
+    Verb newVerb = Verb.get( ve );
     AllocatableWFPredicate et = new AllocatableWFPredicate( newVerb );
     return ( ( NewAllocatableWFPredicate ) et );
   }	
@@ -58,7 +58,7 @@ public class PredicateFactory {
     
   /** for use from scripts. Discouraged to use from plugins directly */
   public static NewAllocationsPredicate newAllocationsPredicate( String ve, PlanningFactory ldmf ) {
-    Verb newVerb = new Verb( ve );
+    Verb newVerb = Verb.get( ve );
     AllocationsPredicate ap = new AllocationsPredicate( newVerb );
     return ( ( NewAllocationsPredicate ) ap );
   }	

@@ -174,6 +174,8 @@ public final class MPTaskImpl
 
   // ActivePersistenceObject
   public void postRehydration(Logger logger) {
+    // If the composition points to any Aggregations that were not rehydrated,
+    // then collapse the list of aggregations
     NewComposition comp = (NewComposition) getComposition();
     List aggregations = comp.getAggregations();
     List newAggregations = null;

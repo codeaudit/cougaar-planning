@@ -44,10 +44,8 @@ import org.cougaar.planning.ldm.asset.Asset;
  * Blackboard transactions prior to the close of the transaction in which the 
  * Task is added.
  **/
-	
 public interface NewTask extends Task, NewPlanningDirective
-{
-		
+{		
 		
   void setParentTask(Task pt);
 
@@ -60,7 +58,6 @@ public interface NewTask extends Task, NewPlanningDirective
    * expanded task could be "fuel vehicles ...".
    * @param ptuid - Task that is the "parenttask"
    **/
-
   void setParentTaskUID(UID ptuid);
 		
   /** Set the Workflow that the task is a member of.
@@ -72,7 +69,6 @@ public interface NewTask extends Task, NewPlanningDirective
    * and constraints needed to complete the basetask.
    * @param aWorkflow - The Workflow of the Task.   
    **/
-			
   void setWorkflow(Workflow aWorkflow);
 		
   /** 
@@ -87,7 +83,6 @@ public interface NewTask extends Task, NewPlanningDirective
    * the PrepositionalPhrase is "from UnitC".
    * @param enumOfPrepPhrase - The Prep Phrases of the Task.
    **/
-			
   void setPrepositionalPhrases(Enumeration enumOfPrepPhrase);
 
 		
@@ -138,21 +133,19 @@ public interface NewTask extends Task, NewPlanningDirective
    * Verb is the object represented by "fuel".
    * @param aVerb - The verb of the Task. 
    **/
-			
   void setVerb(Verb aVerb);
   
- /**
- * Sets the Asset (or AssetGroup) that is being acted upon
- * by the Task.  For example, in the task "fuel
- * vehicle 14 ..." the direct object is "vehicle 14".
- * @param dobj - The DirectObject of the Task.
- **/
+  /**
+   * Sets the Asset (or AssetGroup) that is being acted upon
+   * by the Task.  For example, in the task "fuel
+   * vehicle 14 ..." the direct object is "vehicle 14".
+   * @param dobj - The DirectObject of the Task.
+   **/
   void setDirectObject(Asset dobj);
 		
-  /** 
-   * @param aPlan - The Plan for which this task is a part of.
+  /**
+   * The Plan slot is unused and will be removed.
    **/
-			
   void setPlan(Plan aPlan);
   
   /** set the preferences on this task.
@@ -174,18 +167,18 @@ public interface NewTask extends Task, NewPlanningDirective
   void addPreference(Preference aPreference);
   
   /** Set the priority of this task.
-    * Note that this should only be used when there are competing tasks
-    * from the SAME customer.
-    * @param thepriority
-    * @see org.cougaar.planning.ldm.plan.Priority
-    */
+   * Note that this should only be used when there are competing tasks
+   * from the SAME customer.
+   * @param thepriority
+   * @see org.cougaar.planning.ldm.plan.Priority
+   */
   void setPriority(byte thepriority);
   
   /** Set the Commitment date of this task.
-    * After this date, the task is not allowed to be rescinded
-    * or re-planned (change in preferences).
-    * @param commitDate
-    */
+   * After this date, the task is not allowed to be rescinded
+   * or re-planned (change in preferences).
+   * @param commitDate
+   */
   void setCommitmentDate(Date commitDate);
 
   /**
@@ -199,12 +192,12 @@ public interface NewTask extends Task, NewPlanningDirective
   void addObservableAspect(int aspectType);
 
   /** Set the collection of AuxiliaryQueryTypes that the task is
-    * requesting information on.  This information will be returned in
-    * the AllocationResult of this task's disposition.
-    * Note that this method clears all previous types.
-    * @param thetypes  A collection of defined AuxiliaryQueryTypes
-    * @see org.cougaar.planning.ldm.plan.AuxiliaryQueryType
-    */
+   * requesting information on.  This information will be returned in
+   * the AllocationResult of this task's disposition.
+   * Note that this method clears all previous types.
+   * @param thetypes  A collection of defined AuxiliaryQueryTypes
+   * @see org.cougaar.planning.ldm.plan.AuxiliaryQueryType
+   */
   void setAuxiliaryQueryTypes(int[] thetypes);
 
   /**

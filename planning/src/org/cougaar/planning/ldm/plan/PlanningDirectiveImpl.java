@@ -41,8 +41,6 @@ extends DirectiveImpl
 implements PlanningDirective, NewPlanningDirective, Serializable
 {
 
-  /** 
-   */
   protected PlanningDirectiveImpl() {
     super();
   }
@@ -52,7 +50,7 @@ implements PlanningDirective, NewPlanningDirective, Serializable
   }
 
   public void setPlan(Plan p) {
-    //plan = p;
+    // This slot is unused, as is this method
   }
 
   //

@@ -32,7 +32,6 @@ package org.cougaar.planning.ldm.plan;
  * complete by some measure: e.g. "Do your transport tasks" is 
  * successfully complete if you have no transport tasks.
  **/
-
 public interface Disposition extends PlanElement {
   /** @return true IFF disposition represents a success **/
   boolean isSuccess();

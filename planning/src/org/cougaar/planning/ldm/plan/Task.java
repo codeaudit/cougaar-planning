@@ -41,8 +41,7 @@ import org.cougaar.planning.ldm.asset.Asset;
   * to plan and eventually accomplish a task.
   * A the general form of a task is:
   * Verb <DirectObject> {PrepositionalPhrase} per <Schedule> per <Constraints>
-  **/
-	
+  **/	
 public interface Task
   extends PlanningDirective, UniqueObject, Priority, Annotatable, Publishable
 {
@@ -57,7 +56,6 @@ public interface Task
    * </PRE> UID basetask = fueltask.getParentTaskUID(); </PRE>
    * @return UID of the Task that is the "parenttask"
    **/
-		
   UID getParentTaskUID();
 		
   /** 
@@ -70,7 +68,6 @@ public interface Task
    * <PRE> Workflow myworkflow = fueltask.getWorkflow(); </PRE>
    * @return Workflow  Returns the Workflow that the task is a member of. 
    **/
-			
   Workflow getWorkflow();
 		
   /** 
@@ -85,7 +82,6 @@ public interface Task
    * @return An enumeration of PrepositionalPhrases
    * @see Preposition
    **/
-			
   Enumeration getPrepositionalPhrases();
 
 		
@@ -97,7 +93,6 @@ public interface Task
    **/
   PrepositionalPhrase getPrepositionalPhrase(String preposition);
 
-
   /**
    * The getVerb method returns the verb of the Task.
    * For example, in the Task "fuel vehicles...", the
@@ -105,21 +100,19 @@ public interface Task
    * <PRE> Verb mytaskverb = fueltask.getVerb(); </PRE>
    * @return the Verb of the Task.
    **/
-			
   Verb getVerb();
   
   /**
-  * Returns the Asset (or AssetGroup) that is being acted upon
-  * by the Task.  For example, in the task "fuel
-  * vehicle 14 ..." the direct object is "vehicle 14".
-  * @return the Direct Object of the task.
-  **/
+   * Returns the Asset (or AssetGroup) that is being acted upon
+   * by the Task.  For example, in the task "fuel
+   * vehicle 14 ..." the direct object is "vehicle 14".
+   * @return the Direct Object of the task.
+   **/
   Asset getDirectObject();
 		
   /** 
-   * @return Plan The Plan for which this task is a part of.
+   * @return Plan.RealityPlan -- this slot is unused / deprecated
    **/
-			
   Plan getPlan();
 		
   /**
@@ -131,30 +124,30 @@ public interface Task
   PlanElement getPlanElement();
   
   /** get the preferences on this task.
-    * @return Enumeration{Preference}
-    */
+   * @return Enumeration{Preference}
+   */
   Enumeration getPreferences();
   
   /** return the preference for the given aspect type
-    * will return null if there is not a preference defined for this aspect type
-    * @param aspect_type The Aspect referenced by the preference
-    */
+   * will return null if there is not a preference defined for this aspect type
+   * @param aspect_type The Aspect referenced by the preference
+   */
   Preference getPreference(int aspect_type);
   
   /** return the preferred value for a given aspect type
-    * from the defined preference (and scoring function)
-    * will return Double.NaN if there is not a preference defined for this aspect type
-    * @param aspect_type The Aspect referenced by the preference
-    * @note Reminder that you must use Double.isNaN to test for NaN, since NaN == NaN is always false.
-    */
+   * from the defined preference (and scoring function)
+   * will return Double.NaN if there is not a preference defined for this aspect type
+   * @param aspect_type The Aspect referenced by the preference
+   * @note Reminder that you must use Double.isNaN to test for NaN, since NaN == NaN is always false.
+   */
   double getPreferredValue(int aspect_type);
   
   /** Get the priority of this task.
-    * Note that this should only be used when there are competing tasks
-    * from the SAME customer.
-    * @return  The priority of this task
-    * @see org.cougaar.planning.ldm.plan.Priority
-    */
+   * Note that this should only be used when there are competing tasks
+   * from the SAME customer.
+   * @return  The priority of this task
+   * @see org.cougaar.planning.ldm.plan.Priority
+   */
   byte getPriority();
   
   /** WARNING: This method may return null if the commitment date is undefined.
@@ -177,19 +170,19 @@ public interface Task
   Enumeration getObservableAspects();
 
   /** 
-    * Check to see if the current time is before the Commitment date.
-    * Will return true if we have not reached the commitment date.
-    * Will return true if the commitment date is undefined.
-    * Will return false if we have passed the commitment date.
-    * @param currentdate  The current date.
-    */
+   * Check to see if the current time is before the Commitment date.
+   * Will return true if we have not reached the commitment date.
+   * Will return true if the commitment date is undefined.
+   * Will return false if we have passed the commitment date.
+   * @param currentdate  The current date.
+   */
   boolean beforeCommitment(Date currentdate);
   
   /** Get a collection of the requested AuxiliaryQueryTypes (int).
-    * Note:  if there are no types set, this will return an
-    * array with one element = -1
-    * @see org.cougaar.planning.ldm.plan.AuxiliaryQueryType
-    */
+   * Note:  if there are no types set, this will return an
+   * array with one element = -1
+   * @see org.cougaar.planning.ldm.plan.AuxiliaryQueryType
+   */
   int[] getAuxiliaryQueryTypes();
     
   /**

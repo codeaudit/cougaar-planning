@@ -31,7 +31,6 @@ package org.cougaar.planning.ldm.plan;
 /** 
  * Implementation for Disposition
  */
- 
 public class DispositionImpl extends PlanElementImpl 
   implements Disposition {
 

@@ -39,5 +39,8 @@ import org.cougaar.core.blackboard.Directive;
 public interface PlanningDirective
 extends Directive, Serializable
 {
+  /**
+   * This slot is unused and will be removed
+   **/
   Plan getPlan();
 }

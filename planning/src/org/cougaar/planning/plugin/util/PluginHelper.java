@@ -52,11 +52,13 @@ import org.cougaar.planning.ldm.plan.PlanElementImpl;
 import org.cougaar.planning.ldm.plan.Preference;
 import org.cougaar.planning.ldm.plan.Task;
 import org.cougaar.util.Enumerator;
+import org.cougaar.util.log.Logger;
+import org.cougaar.util.log.Logging;
 
 public class PluginHelper {
 
     /**
-     * Retuns an AllocationResult based on the preferences of Task <t>
+     * Returns an AllocationResult based on the preferences of Task <t>
      * and specified confidence rating <confrating> and success <success>.
      * Results are estimated to be the "best" possible based on the
      * preference scoring function. AllocationResult is null if
@@ -284,7 +286,25 @@ public class PluginHelper {
       AllocationResult newRcvAR = wf.aggregateAllocationResults();
 
       // From this task's workflow, get the parent task's PlanElement - the Expansion
-      PlanElement pe = wf.getParentTask().getPlanElement();
+      // See ubug 13542. Maybe this could happen if GLS was
+      // being rescinded, for example?
+      Task pTask = wf.getParentTask();
+      if (pTask == null) {
+	// This is bizarre. Log and bail
+	Logger logger = Logging.getLogger(PluginHelper.class);
+	logger.error("PluginHelper.removeSubTask: Null parent task from workflow " + wf + " for task " + task, new Throwable());
+	return;
+      }
+
+      PlanElement pe = pTask.getPlanElement();
+      if (pe == null) {
+	// This is bizarre. Log and bail
+	Logger logger = Logging.getLogger(PluginHelper.class);
+	logger.error("PluginHelper.removeSubTask: Null PlanElement from parent task " + pTask + " found from workflow " + wf + " for task " + task, new Throwable());
+	return;
+      }
+
+      // Sanity check that pe.getTask == pTask?
       AllocationResult currRcvAR = pe.getReceivedResult();
 
       // If the newly aggregated AR is different, then change it and publishChange the expansion
@@ -293,7 +313,7 @@ public class PluginHelper {
 	sub.publishChange(pe); // PEImpl puts a ReportedResultChangeReport on this transaction
       }
       // Caller should publishRemove the task or re-parent it as desired.
-    }
+    } // check if wf exists
     // else if Task had no workflow, nothing to do
   }
 

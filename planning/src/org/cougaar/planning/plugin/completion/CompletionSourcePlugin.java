@@ -56,17 +56,20 @@ public abstract class CompletionSourcePlugin extends CompletionPlugin {
   private static final long NORMAL_LONG_CHECK_TARGETS_INTERVAL = 120000L;
   private static final long NORMAL_SHORT_CHECK_TARGETS_INTERVAL = 15000L;
   private static final long DEFAULT_DEAD_NODE_TIMEOUT = 120000L;
+  private static final long DEFAULT_TIMER_SLACK = 10000;
   private static final String UPDATE_INTERVAL_KEY = "UPDATE_INTERVAL=";
   private static final String LONG_CHECK_TARGETS_INTERVAL_KEY = "LONG_CHECK_TARGETS_INTERVAL=";
   private static final String SHORT_CHECK_TARGETS_INTERVAL_KEY = "SHORT_CHECK_TARGETS_INTERVAL=";
   private static final String TASK_COMPLETION_THRESHOLD_KEY = "TASK_COMPLETION_THRESHOLD=";
-  private static final String DEAD_NODE_TIMEOUT_KEY = "DEAD_NODE_TIMEOUT";
+  private static final String DEAD_NODE_TIMEOUT_KEY = "DEAD_NODE_TIMEOUT=";
+  private static final String TIMER_SLACK_KEY = "TIMER_SLACK=";
   private static final int SHORT_CHECK_TARGETS_MAX = 5;
   private double TASK_COMPLETION_THRESHOLD = NORMAL_TASK_COMPLETION_THRESHOLD;
   private long UPDATE_INTERVAL = NORMAL_UPDATE_INTERVAL;
   private long LONG_CHECK_TARGETS_INTERVAL = NORMAL_LONG_CHECK_TARGETS_INTERVAL;
   private long SHORT_CHECK_TARGETS_INTERVAL = NORMAL_SHORT_CHECK_TARGETS_INTERVAL;
   private long DEAD_NODE_TIMEOUT = DEFAULT_DEAD_NODE_TIMEOUT;
+  private long TIMER_SLACK = DEFAULT_TIMER_SLACK;
   private static final Class[] requiredServices = {
     UIDService.class,
     DemoControlService.class,
@@ -173,6 +176,14 @@ public abstract class CompletionSourcePlugin extends CompletionPlugin {
         continue;
       }
     }
+      if (param.startsWith(TIMER_SLACK_KEY)) {
+        TIMER_SLACK = Long.parseLong(param.substring(TIMER_SLACK_KEY.length()));
+        if (logger.isInfoEnabled()) logger.info("Set "
+                                                + TIMER_SLACK_KEY
+                                                + TIMER_SLACK);
+        continue;
+      }
+    }
     responseSubscription = blackboard.subscribe(myRelayPredicate);
     if (haveServices()) {
       checkTargets();
@@ -212,7 +223,7 @@ public abstract class CompletionSourcePlugin extends CompletionPlugin {
           checkLaggards();
         }
         startTimer(UPDATE_INTERVAL);
-        timerTimeout = System.currentTimeMillis() + UPDATE_INTERVAL;
+        timerTimeout = System.currentTimeMillis() + UPDATE_INTERVAL + TIMER_SLACK;
       }
     }
   }

@@ -1,3 +1,12 @@
+2003-03-14  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* CompletionSourcePlugin.java:
+	bug #2460 -- Timers sometimes fail to wake plugins with no subscriptions
+	Added TIMER_SLACK variable/parameter to specify time to allow for
+	plugin wakeup. Defaults to 10 seconds.
+	bug #2516 -- DEAD_NODE_TIMEOUT_KEY is missing an equal sign
+	Added equal sign.
+
 2003-02-11  Todd Wright  <twright@bbn.com>
 
 	* CompletionNodePlugin.java:

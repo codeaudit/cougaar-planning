@@ -179,10 +179,10 @@ implements LogicProvider, EnvelopeLogicProvider {
     if (cpg != null) {
       MessageAddress cid = cpg.getMessageAddress();
       if (cid != null) {
-        UID remoteUID = ((AllocationforCollections) all).getAllocationTaskUID();
-        if (remoteUID != null) {
-          TaskRescind trm = ldmf.newTaskRescind(remoteUID, cid);
-          ((AllocationforCollections) all).setAllocationTaskUID(null);
+        Task rt = ((AllocationforCollections) all).getAllocationTask();
+        if (rt != null) {
+          TaskRescind trm = ldmf.newTaskRescind(rt, cid);
+          ((AllocationforCollections) all).setAllocationTask(null);
           rootplan.sendDirective((Directive) trm);
         }
       }

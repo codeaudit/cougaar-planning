@@ -101,10 +101,11 @@ implements LogicProvider, MessageLogicProvider
 
     // verify that the pe matches the task
     if (!needToRescind &&  (pe instanceof AllocationforCollections)) {
-      UID remoteTUID = ((AllocationforCollections)pe).getAllocationTaskUID();
-      if (remoteTUID == null) {
+      Task remoteT = ((AllocationforCollections)pe).getAllocationTask();
+      if (remoteT == null) {
         needToRescind = true;
       } else {
+        UID remoteTUID = remoteT.getUID();
         if (!(remoteTUID.equals(childuid))) {
           // this was likely due to a race condition...
           logger.error("Got a Notification for the wrong allocation:"+

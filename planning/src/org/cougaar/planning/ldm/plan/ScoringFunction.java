@@ -522,6 +522,7 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
 
     /** return a vector of DPair instances, each one is a
      * range of valid x values.  Some may be points (x = x);
+     * Will return an empty vector if no points are lower than then threshold.
      **/
     protected Vector getAllValidValues(double thresh) {
       AspectScorePoint c0 = curve[0];
@@ -537,7 +538,7 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
       int l = curve.length;
 
       if (l == 1) {
-        v.addElement(new DPair(x0, x0));
+        if (v0) { v.addElement(new DPair(x0, x0)); }
         return v;
       }
 

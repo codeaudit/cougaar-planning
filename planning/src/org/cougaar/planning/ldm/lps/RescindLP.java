@@ -132,9 +132,13 @@ implements LogicProvider, EnvelopeLogicProvider {
     UID rtuid = deferredRescind.tr.getTaskUID();
     Task t = logplan.findTask(rtuid);
     if (t != null) {
+      if (logger.isDebugEnabled())
+	logger.debug("Found task for DeferredRescind. Removing " + t);
       removeTask(t);
       rootplan.remove(deferredRescind);
     } else {
+      if (logger.isDebugEnabled())
+	logger.debug("Never found task for DeferredRescind. Giving up on " + rtuid);
       rootplan.remove(deferredRescind);
     }
   }
@@ -182,6 +186,8 @@ implements LogicProvider, EnvelopeLogicProvider {
       if (cid != null) {
         UID remoteUID = ((AllocationforCollections) all).getAllocationTaskUID();
         if (remoteUID != null) {
+	  if (logger.isDebugEnabled())
+	    logger.debug("Removed Allocation, so will propagate and rescind alloc task. Alloc: " + all + ", alloc task: " + remoteUID);
           TaskRescind trm = ldmf.newTaskRescind(remoteUID, cid);
           ((AllocationforCollections) all).setAllocationTaskUID(null);
           rootplan.sendDirective((Directive) trm);

@@ -87,6 +87,8 @@ implements LogicProvider, MessageLogicProvider
     //
     Task t = logplan.findTask(tuid);
     if (t != null) {
+      if (logger.isDebugEnabled())
+	logger.debug("Rescinding task " + t);
       rootplan.remove(t);
     } else {
       if (logger.isDebugEnabled()) {

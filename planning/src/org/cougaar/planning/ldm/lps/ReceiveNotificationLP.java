@@ -94,6 +94,9 @@ public class ReceiveNotificationLP
     PlanElement pe = logplan.findPlanElement(tuid);
     boolean needToRescind = (pe == null);
 
+    if (logger.isDebugEnabled() && needToRescind)
+      logger.debug("Got notification for task with no published PlanElement - will rescind the task: " + tuid);
+
     // verify that the pe matches the task
     if (!needToRescind &&  (pe instanceof AllocationforCollections)) {
       UID remoteTUID = ((AllocationforCollections)pe).getAllocationTaskUID();
@@ -119,6 +122,8 @@ public class ReceiveNotificationLP
 
     if (needToRescind) {
       TaskRescind trm = ldmf.newTaskRescind(childuid, not.getSource());
+      if (logger.isDebugEnabled())
+	logger.debug("Sending new TaskRescind for " + childuid);
       rootplan.sendDirective(trm, changes);
     } else {
       AllocationResult ar = not.getAllocationResult();

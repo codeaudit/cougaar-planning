@@ -568,7 +568,7 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
           break;                // seg is past range: stop
 
         if (x1 <= minx)         // seg is before range: skip ahead
-          next;
+          continue;
 
         // cut by range start?
         if (x0 < minx) {

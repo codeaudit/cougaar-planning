@@ -2370,30 +2370,24 @@ extends HttpServlet
           "</li>"+
           "</font>\n");
       // for all (type, result) pairs
-      int[] arTypes = ar.getAspectTypes();
-      double[] arResults = ar.getResult();
-      for (int i = 0; i < arTypes.length; i++) {
+      AspectValue[] ava = ar.getAspectValueResults();
+      for (int i = 0; i < ava.length; i++) {
+        AspectValue avi = ava[i];
         out.print(
             "<font size=small color=mediumblue>"+
             "<li>");
         // show type
-        int arti = arTypes[i];
-        out.print(AspectValue.aspectTypeToString(arti));
+        out.print(
+            AspectValue.aspectTypeToString(
+              avi.getType()));
         out.print("= ");
         // show value
-        double arri = arResults[i];
-        switch (arti) {
-          case AspectType.START_TIME:
-          case AspectType.END_TIME:
-          case AspectType.POD_DATE:
-            // date
-            out.print(
-                getTimeString((long)arri));
-            break;
-          default:
-            // other
-            out.print(arri);
-            break;
+        if (avi instanceof TimeAspectValue) {
+          // print the date in our format
+          long time = ((TimeAspectValue) avi).timeValue();
+          out.print(getTimeString(time));
+        } else {
+          out.print(avi);
         }
         out.print(
             "</li>"+

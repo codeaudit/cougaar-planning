@@ -1,3 +1,23 @@
+2003-04-25  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/planning/plugin/asset/AssetDataPlugin.java:
+	Fix deprecation warning by using CSVUtility.parse() instead of
+	StringUtility.parseCSV.
+
+2003-04-17  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/planning/ldm/lps/ReceiveNotificationLP.java:
+	Bug #2798 -- ReceiveNotification reports notification for inappropriate PE
+	Change to INFO level log message. This situation arises normally due
+	to changing the disposition of Task from an Allocation or
+	Expansion to a Disposition. This is a legal action and should not
+	evoke an ERROR.
+
+	* org/cougaar/planning/ldm/lps/ReceiveNotificationLP.java:
+	Bug #2798 -- ReceiveNotification reports notification for inappropriate PE
+	Print the task instead of the UID to aid in debugging.
+	
+
 2003-04-07  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* org/cougaar/planning/plugin/legacy/DeletionPlugin.java: 

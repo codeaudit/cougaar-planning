@@ -183,7 +183,7 @@ extends HttpServlet
 
     // sort results by UID
     public static final String SORT_BY_UID = "sortByUID";
-    private boolean sortByUID; 
+    private boolean sortByUID;
 
     // writer from the request
     private PrintWriter out;
@@ -243,7 +243,7 @@ extends HttpServlet
 		((value != null) ?  
                  value.equalsIgnoreCase("true") : 
                  true);
-	    }
+            }
           }
         };
 
@@ -1481,6 +1481,21 @@ extends HttpServlet
       out.flush();
     }
 
+    private static Comparator typeUniqueObjectComparator =
+      new Comparator() {
+        public int compare(Object o1, Object o2) {
+          String s1 = getItemTypeString(o1);
+          String s2 = getItemTypeString(o2);
+          int diff = s1.compareTo(s2);
+          if (diff == 0) {
+            Comparable c1 = ((UniqueObject) o1).getUID();
+            Comparable c2 = ((UniqueObject) o2).getUID();
+            diff = c1.compareTo(c2);
+          }
+          return diff;
+        }
+      };
+      
     /**
      * displayAllUniqueObjects.
      */
@@ -1489,7 +1504,8 @@ extends HttpServlet
       if (DEBUG) {
         System.out.println("\nDisplay All UniqueObjects");
       }
-      Collection col = findAllUniqueObjects();
+      List col = new ArrayList(findAllUniqueObjects());
+      Collections.sort(col, typeUniqueObjectComparator);
       int numUniqueObjects = col.size();
       Iterator uoIter = col.iterator();
       if (DEBUG) {
@@ -1539,8 +1555,8 @@ extends HttpServlet
           "</td>\n"+
           "</tr>\n"+
           "<tr>\n"+
-          "<td><font color=mediumblue><b>UID</font></b></td>\n"+
-          "<td><font color=mediumblue><b>Type</font></b></td>\n"+
+          "<td><font color=mediumblue><b>UID</b></font></td>\n"+
+          "<td><font color=mediumblue><b>Type</b></font></td>\n"+
           "</tr>\n");
       if (numUniqueObjects > 0) {
         // print table rows
@@ -4030,6 +4046,12 @@ extends HttpServlet
       ITEM_TYPE_NAMES[ITEM_TYPE_ASSET          ] = "Asset";
       ITEM_TYPE_NAMES[ITEM_TYPE_WORKFLOW       ] = "Workflow";
       ITEM_TYPE_NAMES[ITEM_TYPE_OTHER          ] = null;
+    }
+
+    private static String getItemTypeString(Object item) {
+      int itemType = getItemType(item);
+      if (itemType == ITEM_TYPE_OTHER) return item.getClass().getName();
+      return ITEM_TYPE_NAMES[itemType];
     }
 
     /**

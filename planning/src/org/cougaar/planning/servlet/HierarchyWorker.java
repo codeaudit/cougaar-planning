@@ -290,9 +290,7 @@ public class HierarchyWorker
     }
 
     Set recurseSubOrgSet = null;
-    List validAgents = new ArrayList();
     if (recurse) {
-      validAgents = support.getAllEncodedAgentNames();
       recurseSubOrgSet = new HashSet();
     }
 
@@ -328,7 +326,6 @@ public class HierarchyWorker
       }
       if (recurse &&
 	  (!(selfOrgName.equals(subOrgName))) && // don't recurse on yourself
-	  validAgents.contains(subOrgName) &&    // only on agents that were actually created
 	  validRole (role) &&                    // only on customers, subordinates, etc. 
 	  !visitedOrgs.contains(subOrgName)) {   // only ones we haven't visited before
 	if (VERBOSE)                             // so we don't have circular paths

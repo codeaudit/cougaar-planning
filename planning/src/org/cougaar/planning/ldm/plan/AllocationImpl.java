@@ -30,6 +30,7 @@ import org.cougaar.planning.ldm.plan.Role;
 
 import org.cougaar.core.blackboard.Subscriber;
 import org.cougaar.core.blackboard.ActiveSubscriptionObject;
+import org.cougaar.core.util.UID;
 
 import java.util.*;
 import java.beans.*;
@@ -45,11 +46,12 @@ import java.io.IOException;
  
 public class AllocationImpl extends PlanElementImpl 
   implements Allocation, RoleScheduleConflicts, AllocationforCollections
- {
+{
 
   private transient Asset asset;   // changed to transient : Persistence
 
-  private transient Task allocTask = null; // changed to transient : Persistence
+  private transient UID allocTaskUID = null; // changed to transient : Persistence
+  private transient boolean allocTaskDeleted = false;
   private transient boolean potentialconflict = false;
   private transient boolean stale = false;
   private transient boolean assetavailconflict = false;
@@ -192,14 +194,32 @@ public class AllocationImpl extends PlanElementImpl
     // check for conflicts
   }
 
-  public Task getAllocationTask() { return allocTask; }
-  public void setAllocationTask(Task t) { allocTask = t; }
+  public UID getAllocationTaskUID() {
+    return allocTaskUID;
+  }
 
+  public void setAllocationTask(Task t) {
+    setAllocationTaskUID(t.getUID());
+  }
+
+  public void setAllocationTaskUID(UID uid) {
+    allocTaskUID = uid;
+    allocTaskDeleted = false;
+  }
+
+  public boolean isAllocationTaskDeleted() {
+    return allocTaskDeleted;
+  }
+
+  public void setAllocationTaskDeleted(boolean newDeleted) {
+    allocTaskDeleted = newDeleted;
+  }
 	
   private void writeObject(ObjectOutputStream stream) throws IOException {
     stream.defaultWriteObject();
     stream.writeObject(asset);
-    stream.writeObject(allocTask);
+    stream.writeObject(allocTaskUID);
+    stream.writeBoolean(allocTaskDeleted);
  }
 
 
@@ -215,7 +235,8 @@ public class AllocationImpl extends PlanElementImpl
       * ---------- **/
     stream.defaultReadObject();
     asset = (Asset)stream.readObject();
-    allocTask = (Task)stream.readObject();
+    allocTaskUID = (UID)stream.readObject();
+    allocTaskDeleted = stream.readBoolean();
   }
 
   public String toString() {

@@ -199,7 +199,11 @@ public class ClusterObjectFactoryImpl implements ClusterObjectFactory {
  }
 
   public NewTask newTask() {
-    NewTask nt = new TaskImpl( getNextUID() );
+    return newTask(null);
+  }
+  public NewTask newTask(UID uid) {
+    if (uid == null) uid = getNextUID();
+    NewTask nt = new TaskImpl(uid);
     //set default source and destination to this cluster
     nt.setSource(cid);
     nt.setDestination(cid);

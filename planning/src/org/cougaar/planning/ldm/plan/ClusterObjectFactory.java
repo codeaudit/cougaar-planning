@@ -88,6 +88,7 @@ public interface ClusterObjectFactory {
   NewReport newReport();
   NewScheduleElement newScheduleElement(Date start, Date end); 
   NewTask newTask();
+  NewTask newTask(UID uid);
   NewTransferableAssignment newTransferableAssignment();
   NewTransferableTransfer newTransferableTransfer();
   NewTransferableRescind newTransferableRescind();

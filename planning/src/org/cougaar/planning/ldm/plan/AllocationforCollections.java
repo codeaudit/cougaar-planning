@@ -23,6 +23,7 @@
 package org.cougaar.planning.ldm.plan;
 
 import org.cougaar.planning.ldm.plan.Task;
+import org.cougaar.core.util.UID;
 
 /** AllocationforCollections Interface -- represents
   * setter methods for the RemoteClusterAllocationLP and the Rescind
@@ -31,9 +32,10 @@ import org.cougaar.planning.ldm.plan.Task;
   *
   **/
 
-public interface AllocationforCollections extends PEforCollections {
-  
-  Task getAllocationTask();
+public interface AllocationforCollections extends PEforCollections, Allocation {
+  UID getAllocationTaskUID();
   void setAllocationTask(Task t);
-
+  void setAllocationTaskUID(UID uid);
+  boolean isAllocationTaskDeleted();
+  void setAllocationTaskDeleted(boolean newDeleted);
 }

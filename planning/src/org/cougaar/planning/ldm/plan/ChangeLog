@@ -1,3 +1,17 @@
+2003-04-07  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* PlanElementImpl.java:
+	Better message when publishAdd miswired PlanElement.
+
+	* ClusterObjectFactoryImpl.java: 
+	* ClusterObjectFactory.java: 
+	* AllocationImpl.java:
+	Changes to support revised AllocationforCollections API
+
+	* AllocationforCollections.java:
+	Change AllocationforCollections API to remember remote task UID
+	and deleted flag instead of the whole task.
+
 2003-04-01  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* AspectScorePoint.java: 

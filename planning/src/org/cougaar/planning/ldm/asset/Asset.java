@@ -374,7 +374,6 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
 
     ClusterContextTable.ContextState cs = ClusterContextTable.getContextState();
     if (cs instanceof ClusterContextTable.MessageContext) {
-      ClusterContextTable.MessageContext c = (ClusterContextTable.MessageContext)cs;
       ClusterContext cc = cs.getClusterContext();
       MessageAddress ma = cc.getMessageAddress();
       LDMServesPlugin ldm = LDMContextTable.getLDM(ma);

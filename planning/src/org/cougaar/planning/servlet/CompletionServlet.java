@@ -844,10 +844,10 @@ extends BaseServletComponent
          0.0);
       int nUnestimatedTasks = result.getNumberOfUnestimatedTasks();
       int nEstimatedTasks = (nPlannedTasks - nUnestimatedTasks);
-      double percentEstimatedTasks =
-        ((nPlannedTasks > 0) ? 
-         (1.0 * nEstimatedTasks) / nPlannedTasks :
-         0.0);
+//      double percentEstimatedTasks =
+//        ((nPlannedTasks > 0) ? 
+//         (1.0 * nEstimatedTasks) / nPlannedTasks :
+//         0.0);
       int nFailedTasks = result.getNumberOfFailedTasks();
       int nSuccessfulTasks = (nEstimatedTasks - nFailedTasks);
       double percentSuccessfulTasks =

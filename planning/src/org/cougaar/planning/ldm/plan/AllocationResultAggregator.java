@@ -120,7 +120,6 @@ public interface AllocationResultAggregator
 
       int hash = 0;
       for (int i = 0; i < tstSize; i++) {
-        Task t = tst.getTask(i);
         AllocationResult ar = tst.getAllocationResult(i);
         if (ar == null) return null; // bail if undefined
 
@@ -329,7 +328,6 @@ public interface AllocationResultAggregator
 
         AllocationResult artoreturn = new AllocationResult(rating, suc, keys, acc);
 
-        int aqll = auxqsummary.length;
         for (int aqt = 0; aqt < aql; aqt++) {
           String aqdata = auxqsummary[aqt];
           if ( (aqdata !=null) && (aqdata != UNDEFINED) ) {

@@ -99,7 +99,7 @@ class PlanningFactoryImpl
       for (int i = 0; i<l; i++) {
         String fullname = properties[i][0];
         //Class pc = Class.forName(fullname);
-        Class pc = loadClass(fullname);
+        loadClass(fullname);
         String name = trimPackage(fullname);
 
         /*

@@ -278,7 +278,6 @@ public class AssetDataFileReader implements AssetDataReader {
     }
 
     // parse single Location
-    org.cougaar.planning.ldm.plan.Location loc;
     if ((!(secondStr.startsWith("("))) ||
         (!(secondStr.endsWith(")"))))  {
       logger.error(

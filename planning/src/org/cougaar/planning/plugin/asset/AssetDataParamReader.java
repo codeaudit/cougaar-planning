@@ -87,8 +87,6 @@ public class AssetDataParamReader implements AssetDataReader {
   public void readAsset(String cId, AssetDataCallback cb) {
     this.cb = cb;
     clusterId = cId;
-    String dataItem = "";
-    int newVal;
 
     for (Iterator iterator = myParams.iterator();
 	 iterator.hasNext();) {
@@ -246,7 +244,6 @@ public class AssetDataParamReader implements AssetDataReader {
       nextToken = tokenizer.nextToken();
 
       // parse single Location
-      org.cougaar.planning.ldm.plan.Location location;
       if ((!(nextToken.startsWith("("))) ||
 	  (!(nextToken.endsWith(")"))))  {
 	  logger.error("Expecting: " + FIXEDLOCATION + 

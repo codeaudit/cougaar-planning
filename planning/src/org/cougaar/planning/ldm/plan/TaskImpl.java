@@ -373,17 +373,11 @@ public class TaskImpl extends PlanningDirectiveImpl
     * @param thepreferences
     */
   public synchronized void setPreferences(Enumeration thepreferences) {
-    boolean hadold = false;
-
     // clear prefs
     if (preferences == null) {
       if (thepreferences.hasMoreElements()) // do we actually need storage?
         preferences = new ArrayList(2);
     } else {
-      if (preferences.size()>0) {
-        hadold = true;
-      }
-
       preferences.clear();
     }
 

@@ -4291,7 +4291,7 @@ extends HttpServlet
     private static String encodeUID(String s) {
       int n = s.length();
       for (int i = 0; i < n; i++) {
-        int c = (int)s.charAt(i);
+//        int c = (int)s.charAt(i);
         if (!(DONT_NEED_ENCODING[i])) {
           try {
             return URLEncoder.encode(s, "UTF-8");

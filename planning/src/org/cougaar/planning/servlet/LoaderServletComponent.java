@@ -364,7 +364,7 @@ extends BaseServletComponent
 
       private void writeFailure(Exception e) throws IOException {
         // select response message
-        String msg = action+" failed";
+//        String msg = action+" failed";
 
         // generate an HTML error response, with a 404 error code.
         //

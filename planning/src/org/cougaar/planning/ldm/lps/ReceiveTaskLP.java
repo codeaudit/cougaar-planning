@@ -203,7 +203,6 @@ implements LogicProvider, MessageLogicProvider
           newPhrases.clear();
           Context existingContext = existingTask.getContext();
           Context tskContext = tsk.getContext();
-          boolean contextsDiffer = false;
           if (logger.isWarnEnabled()) {
             if (existingContext == null) {
               logger.warn("existingTask has null context: " + existingTask);

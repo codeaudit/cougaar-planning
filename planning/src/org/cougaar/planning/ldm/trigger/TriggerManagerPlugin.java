@@ -129,12 +129,10 @@ public class TriggerManagerPlugin extends SimplifiedFatPlugin
 
     for (Enumeration rlit = triggers(); rlit.hasMoreElements();) {
       Trigger trig = (Trigger)rlit.nextElement();
-      boolean execp = false;    // did we execute it?
 
       if (trig.ReadyToRun(delegate)) {
         if (verbosity>1) System.err.println("TriggerManager Running "+trig);
         trig.Execute(delegate);
-        execp=true;
       }
 
       // check times - we do this in the loop to prevent consuming all

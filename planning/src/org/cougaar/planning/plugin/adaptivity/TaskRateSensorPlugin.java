@@ -50,7 +50,6 @@ public class TaskRateSensorPlugin extends ServiceUserPlugin {
   private UnaryPredicate tasksPredicate = new UnaryPredicate() {
     public boolean execute(Object o) {
       if (o instanceof Task) {
-        Task task = (Task) o;
         return true;
       }
       return false;

@@ -21,26 +21,15 @@
 
 package org.cougaar.planning.plugin.deletion;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
-import java.util.SortedSet;
-import java.util.TimeZone;
-import java.util.TreeSet;
 
-import org.cougaar.core.agent.service.alarm.Alarm;
-import org.cougaar.core.blackboard.CollectionSubscription;
-import org.cougaar.core.blackboard.Subscription;
-import org.cougaar.core.logging.LoggingServiceWithPrefix;
 import org.cougaar.core.mts.MessageAddress;
-import org.cougaar.core.persist.PersistenceNotEnabledException;
-import org.cougaar.core.plugin.deletion.*;
-import org.cougaar.core.service.LoggingService;
+import org.cougaar.core.plugin.deletion.DeletionPlugin;
+import org.cougaar.core.plugin.deletion.DeletionPolicy;
 import org.cougaar.core.util.UID;
 import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.planning.ldm.asset.ClusterPG;
@@ -55,12 +44,6 @@ import org.cougaar.planning.ldm.plan.NewWorkflow;
 import org.cougaar.planning.ldm.plan.PlanElement;
 import org.cougaar.planning.ldm.plan.PlanElementSet;
 import org.cougaar.planning.ldm.plan.Task;
-import org.cougaar.planning.ldm.policy.IntegerRuleParameter;
-import org.cougaar.planning.ldm.policy.LongRuleParameter;
-import org.cougaar.planning.ldm.policy.Policy;
-import org.cougaar.planning.ldm.policy.PredicateRuleParameter;
-import org.cougaar.planning.ldm.policy.RuleParameter;
-import org.cougaar.planning.ldm.policy.RuleParameterIllegalValueException;
 import org.cougaar.planning.plugin.util.PluginHelper;
 import org.cougaar.util.UnaryPredicate;
 

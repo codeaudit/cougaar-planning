@@ -30,7 +30,6 @@ import java.util.SortedSet;
 
 import org.cougaar.core.blackboard.Subscription;
 import org.cougaar.core.component.ServiceBroker;
-import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.relay.RelayChangeReport;
 import org.cougaar.core.service.AlarmService;
 import org.cougaar.core.service.DemoControlService;
@@ -255,7 +254,6 @@ public abstract class CompletionSourcePlugin extends CompletionPlugin {
    * @return true if a new relay was published (suppresses laggard checking)
    **/
   private boolean checkTargets() {
-    MessageAddress me = getAgentIdentifier();
     Set targets = getTargets();
     if (relay == null) {
       relay = new CompletionRelay(null, targets, TASK_COMPLETION_THRESHOLD, CPU_CONSUMPTION_THRESHOLD);

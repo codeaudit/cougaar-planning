@@ -467,7 +467,9 @@ public class RescindLP
 	} else {
 	  if (logger.isWarnEnabled()) {
 	    logger.warn(self + ": Removed task lists a different PE than LogPlan has. Task: " + task + ", Task's PE: " + taskpe.getUID() + ":" + taskpe + ", LogPlan's PE: " + bpe.getUID() + ":" + bpe);
-	    logger.info(self + "..... Task's PE's Task: " + taskpetask + ", LogPlan's PE's Task: " + bpetask);
+            if (logger.isInfoEnabled()) {
+	      logger.info(self + "..... Task's PE's Task: " + taskpetask + ", LogPlan's PE's Task: " + bpetask);
+            }
 	  }
 	}
       } else {

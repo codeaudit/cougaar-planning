@@ -26,6 +26,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
 import javax.servlet.Servlet;
@@ -38,7 +39,8 @@ import org.cougaar.core.service.AlarmService;
 import org.cougaar.core.service.DemoControlService;
 import org.cougaar.core.service.LoggingService;
 import org.cougaar.core.service.ServletService;
-import org.cougaar.core.service.TopologyReaderService;
+import org.cougaar.core.service.wp.WhitePagesService;
+import org.cougaar.core.wp.ListAllNodes;
 import org.cougaar.util.CougaarEvent;
 import org.cougaar.util.CougaarEventType;
 
@@ -78,7 +80,8 @@ public abstract class CompletionSocietyPlugin extends CompletionSourcePlugin {
   private int refreshInterval = 0;
   private boolean persistenceNeeded = false;
   private static final Class[] requiredServices = {
-    ServletService.class
+    ServletService.class,
+    WhitePagesService.class
   };
 
   /**
@@ -105,6 +108,7 @@ public abstract class CompletionSocietyPlugin extends CompletionSourcePlugin {
 
   private LaggardFilter filter = new LaggardFilter();
 
+  private WhitePagesService wps = null;
   private ServletService servletService = null;
 
   public CompletionSocietyPlugin() {
@@ -153,8 +157,10 @@ public abstract class CompletionSocietyPlugin extends CompletionSourcePlugin {
   }
 
   protected boolean haveServices() {
-    if (servletService != null) return true;
+    if (servletService != null && wps != null) return true;
     if (super.haveServices()) {
+      wps = (WhitePagesService)
+        getServiceBroker().getService(this, WhitePagesService.class, null);
       servletService = (ServletService)
         getServiceBroker().getService(this, ServletService.class, null);
       try {
@@ -170,7 +176,16 @@ public abstract class CompletionSocietyPlugin extends CompletionSourcePlugin {
   protected abstract CompletionAction[] getCompletionActions();
 
   protected Set getTargetNames() {
-    return topologyReaderService.getAll(TopologyReaderService.NODE);
+    Set names;
+    try {
+      names = ListAllNodes.listAllNodes(wps); // not scalable!
+    } catch (Exception e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("Unable to list all node names", e);
+      }
+      names = Collections.EMPTY_SET;
+    }
+    return names;
   }
 
   private void insureCompletionActions() {

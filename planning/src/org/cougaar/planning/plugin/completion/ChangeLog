@@ -1,3 +1,16 @@
+2003-02-11  Todd Wright  <twright@bbn.com>
+
+	* CompletionNodePlugin.java:
+	Replaced use of topology with NodeControlService list of
+	agents on the local node.
+
+	* CompletionSocietyPlugin.java: 
+	Replaced use of topology with WhitePagesService utility to
+	list all nodes.  This should be fixed to a scalable solution.
+
+	* CompletionSourcePlugin.java:
+        Removed use of TopologyReaderService
+
 2002-12-05  Todd Wright  <twright@bbn.com>
 
         * *

@@ -32,7 +32,6 @@ import org.cougaar.core.component.ServiceBroker;
 import org.cougaar.core.relay.RelayChangeReport;
 import org.cougaar.core.service.AlarmService;
 import org.cougaar.core.service.DemoControlService;
-import org.cougaar.core.service.TopologyReaderService;
 import org.cougaar.core.service.UIDService;
 import org.cougaar.util.UnaryPredicate;
 import org.cougaar.core.blackboard.Subscription;
@@ -70,11 +69,9 @@ public abstract class CompletionSourcePlugin extends CompletionPlugin {
   private long DEAD_NODE_TIMEOUT = DEFAULT_DEAD_NODE_TIMEOUT;
   private static final Class[] requiredServices = {
     UIDService.class,
-    TopologyReaderService.class,
     DemoControlService.class,
     AlarmService.class,
   };
-  protected TopologyReaderService topologyReaderService;
   protected UIDService uidService;
   protected DemoControlService demoControlService;
   protected AlarmService alarmService;
@@ -113,7 +110,6 @@ public abstract class CompletionSourcePlugin extends CompletionPlugin {
     if (haveServices()) {
       ServiceBroker sb = getServiceBroker();
       sb.releaseService(this, UIDService.class, uidService);
-      sb.releaseService(this, TopologyReaderService.class, topologyReaderService);
       sb.releaseService(this, DemoControlService.class, demoControlService);
       sb.releaseService(this, AlarmService.class, alarmService);
       uidService = null;
@@ -127,8 +123,6 @@ public abstract class CompletionSourcePlugin extends CompletionPlugin {
       ServiceBroker sb = getServiceBroker();
       uidService = (UIDService)
         sb.getService(this, UIDService.class, null);
-      topologyReaderService = (TopologyReaderService)
-        sb.getService(this, TopologyReaderService.class, null);
       demoControlService = (DemoControlService)
         sb.getService(this, DemoControlService.class, null);
       alarmService = (AlarmService)
@@ -231,8 +225,8 @@ public abstract class CompletionSourcePlugin extends CompletionPlugin {
 
   /**
    * Check if a new relay needs to be published due to a change in
-   * targets. We check the topology service for the current set of
-   * registered agents and compare to the set of agents that are
+   * targets. We get the set of targets by calling "getTargetNames()"
+   * and compare to the set of agents that are
    * targes of the current relay. If a difference is detected, the old
    * relay is removed and a new one with the new agent set is
    * published.

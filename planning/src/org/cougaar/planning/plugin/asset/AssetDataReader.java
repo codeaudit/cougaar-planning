@@ -28,5 +28,5 @@ package org.cougaar.planning.plugin.asset;
 
 
 public interface AssetDataReader {
-    void readAsset(String clusterId, AssetDataCallback cb);
+    void readAsset(String agentId, AssetDataCallback cb);
 }

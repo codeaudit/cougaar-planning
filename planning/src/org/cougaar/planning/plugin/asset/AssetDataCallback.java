@@ -47,6 +47,6 @@ public interface AssetDataCallback {
     long getDefaultEndTime();
     void addPropertyToAsset(PropertyGroup propertyGroup);
     void addRelationship(String typeId, String itemId,
-                         String otherClusterId, String roleName,
+                         String otherAgentId, String roleName,
                          long start, long end);
 }

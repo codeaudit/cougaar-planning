@@ -57,7 +57,7 @@ import org.cougaar.util.log.Logging;
  * # <role> specifies Role played by this asset for another asset. 
  * # If start/end be specified as "", they default to 
  * # TimeSpan.MIN_VALUE/TimeSpan.MAX_VALUE
- * <role> <other asset item id> <other asset type id> <other asset cluster id> <relationship start time> <relationship end time>
+ * <role> <other asset item id> <other asset type id> <other asset agent id> <relationship start time> <relationship end time>
  *
  * [<PG name>]
  * # <slot type> - one of Collection<data type>, List<data type>, String, Integer, Double, Boolean,
@@ -92,19 +92,19 @@ import org.cougaar.util.log.Logging;
  **/
 public class AssetDataFileReader implements AssetDataReader {
   private AssetDataCallback cb;
-  private String clusterId;
+  private String agentId;
   private static Logger logger = Logging.getLogger(AssetDataFileReader.class);
   
   public String getFileName() {
-    return clusterId + "-prototype-ini.dat";
+    return agentId + "-prototype-ini.dat";
   }
 
   /**
    * 
    */
-  public void readAsset(String cId, AssetDataCallback cb) {
+  public void readAsset(String aId, AssetDataCallback cb) {
     this.cb = cb;
-    clusterId = cId;
+    agentId = aId;
     String dataItem = "";
     int newVal;
 
@@ -305,7 +305,7 @@ public class AssetDataFileReader implements AssetDataReader {
   }
 
   /**
-   * Fills in myRelationships with arrays of relationship, clusterName and capableroles triples.
+   * Fills in myRelationships with arrays of relationship, agentName and capableroles triples.
    */
   protected int fillRelationships(int newVal, StreamTokenizer tokens) throws IOException {
     newVal = tokens.nextToken();
@@ -315,7 +315,7 @@ public class AssetDataFileReader implements AssetDataReader {
       String roleName = "";
       String itemId = "";
       String typeId = "";
-      String otherClusterId = "";
+      String otherAgentId = "";
       long start = cb.getDefaultStartTime();
       long end = cb.getDefaultEndTime();
           
@@ -340,7 +340,7 @@ public class AssetDataFileReader implements AssetDataReader {
           break;
           
         case 3:
-          otherClusterId = tokens.sval.trim();
+          otherAgentId = tokens.sval.trim();
           break;
 
         case 4:
@@ -369,7 +369,7 @@ public class AssetDataFileReader implements AssetDataReader {
         }
         newVal = tokens.nextToken();
       }
-      cb.addRelationship(typeId, itemId, otherClusterId, roleName, start, end);
+      cb.addRelationship(typeId, itemId, otherAgentId, roleName, start, end);
     } //while
     return newVal;
   }

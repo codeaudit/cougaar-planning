@@ -73,7 +73,7 @@ import org.cougaar.util.log.Logging;
  **/
 public class AssetDataParamReader implements AssetDataReader {
   private AssetDataCallback cb;
-  private String clusterId;
+  private String agentId;
   private static Logger logger = Logging.getLogger(AssetDataParamReader.class);
   private Collection myParams;
   private HashMap myPropertyGroups = new HashMap();
@@ -91,9 +91,9 @@ public class AssetDataParamReader implements AssetDataReader {
   /**
    * 
    */
-  public void readAsset(String cId, AssetDataCallback cb) {
+  public void readAsset(String aId, AssetDataCallback cb) {
     this.cb = cb;
-    clusterId = cId;
+    agentId = aId;
 
     for (Iterator iterator = myParams.iterator();
 	 iterator.hasNext();) {
@@ -198,7 +198,7 @@ public class AssetDataParamReader implements AssetDataReader {
 	      dataType = (String) r[0];
 	  val = (String)r[1];
 	} catch (Exception sqe) {
-	  logger.error(clusterId + ": Unable to query init service for item of type " + dataType + ", with input value " + val, sqe);
+	  logger.error(agentId + ": Unable to query init service for item of type " + dataType + ", with input value " + val, sqe);
 	}
       }
 

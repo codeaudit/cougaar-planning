@@ -40,7 +40,7 @@ public class AssetDataDBReader implements AssetDataReader {
   private static Logger logger = Logging.getLogger(AssetDataDBReader.class);
 
   private AssetDataCallback cb;
-  private String clusterId;
+  private String agentId;
   AssetInitializerService assetInitService;
 
   public AssetDataDBReader(AssetInitializerService ais) {
@@ -50,23 +50,23 @@ public class AssetDataDBReader implements AssetDataReader {
   /**
    * 
    */
-  public void readAsset(String cId, AssetDataCallback cb) {
+  public void readAsset(String aId, AssetDataCallback cb) {
     this.cb = cb;
 
     if (assetInitService == null) {
       logger.fatal("AssetInitializerService is null." +
-		   " Unable to create local asset for " + cId);
+		   " Unable to create local asset for " + aId);
       return;
     }
     try {
-      clusterId = cId;
-      cb.createMyLocalAsset(assetInitService.getAgentPrototype(cId));
-      String[] pgNames = assetInitService.getAgentPropertyGroupNames(cId);
+      agentId = aId;
+      cb.createMyLocalAsset(assetInitService.getAgentPrototype(aId));
+      String[] pgNames = assetInitService.getAgentPropertyGroupNames(aId);
       for (int i = 0; i < pgNames.length; i++) {
         String pgName = pgNames[i];
         NewPropertyGroup pg = cb.createPropertyGroup(pgName);
         cb.addPropertyToAsset(pg);
-        Object[][] props = assetInitService.getAgentProperties(cId, pgName);
+        Object[][] props = assetInitService.getAgentProperties(aId, pgName);
         for (int j = 0; j < props.length; j++) {
           Object[] prop = props[j];
           String attributeName = (String) prop[0];
@@ -102,7 +102,7 @@ public class AssetDataDBReader implements AssetDataReader {
           }
         }
       }
-      String[][] relationships = assetInitService.getAgentRelationships(cId);
+      String[][] relationships = assetInitService.getAgentRelationships(aId);
       for (int i = 0; i < relationships.length; i++) {
         String[] r = relationships[i];
         long start = cb.getDefaultStartTime();
@@ -124,7 +124,7 @@ public class AssetDataDBReader implements AssetDataReader {
         }
         cb.addRelationship(r[2],     // Type id
                            r[1],     // Item id
-                           r[3],     // Other cluster
+                           r[3],     // Other agent
                            r[0],     // Role
                            start,    // Start time
                            end);     // End time

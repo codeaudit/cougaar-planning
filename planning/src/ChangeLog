@@ -1,0 +1,6 @@
+2002-12-05  Todd Wright  <twright@bbn.com>
+
+	* *
+        Cougaar 10.0
+        Split planning from core.  See the core module's
+        "src/ChangeLog" for earlier notes.

@@ -50,7 +50,6 @@ import org.cougaar.util.TimeSpan;
 public class ClusterObjectFactoryImpl implements ClusterObjectFactory {
   protected final LDMServesPlugin ldm;
   private final MessageAddress cid;
-  private long count = 0;
   private HashMap IDHashMap;
   private ClassLoader ldmcl;
   private UIDServer myUIDServer;

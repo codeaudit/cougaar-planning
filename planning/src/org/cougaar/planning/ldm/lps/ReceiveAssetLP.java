@@ -123,7 +123,6 @@ implements LogicProvider, MessageLogicProvider {
                    assigneeT + " in "+self);
       return;
     }
-    Asset assignee = assigneeL;
 
     // figure out the asset being transferred
     Asset assetT = aa.getAsset();   // asset from message
@@ -182,9 +181,6 @@ implements LogicProvider, MessageLogicProvider {
   private void removeExistingRelationships(Collection aaRelationships,
                                            NewRelationshipSchedule transferringSchedule,
                                            NewRelationshipSchedule receivingSchedule) {
-    HasRelationships transferringAsset = 
-      transferringSchedule.getHasRelationships();
-
     HasRelationships receivingAsset = 
       receivingSchedule.getHasRelationships();
 

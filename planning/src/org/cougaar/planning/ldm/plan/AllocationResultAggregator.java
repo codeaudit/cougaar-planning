@@ -57,7 +57,6 @@ public interface AllocationResultAggregator
   
   // implementation of a default/generic AllocationResultAggregator
   class Sum implements AllocationResultAggregator {
-    private static final double UNDEF = -1;
     public Sum() {}
     public AllocationResult calculate(Workflow wf, TaskScoreTable tst, AllocationResult currentar) {
       // write new implementation - stub for now.

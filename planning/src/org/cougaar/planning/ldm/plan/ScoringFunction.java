@@ -625,8 +625,6 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
 
       Vector clipped = new Vector();
 
-      boolean filling = false;
-
       int sz = all.size();
       for (int i = 0; i < sz; i++) {
         DPair dp = (DPair) all.elementAt(i);

@@ -45,7 +45,6 @@ public class AssetAssignmentImpl extends PlanningDirectiveImpl
   private transient Asset assignedAsset;  // changed to transient : Persistence
   private transient Asset assigneeAsset;
   private Schedule assignSchedule;
-  private boolean _isUpdate = false;
   private byte _kind = NEW;
 
   //no-arg constructor

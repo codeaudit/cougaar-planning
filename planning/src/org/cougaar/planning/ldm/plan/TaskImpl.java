@@ -52,11 +52,10 @@ import org.cougaar.util.Filters;
 import org.cougaar.util.log.Logger;
 import org.cougaar.util.log.Logging;
  
-/** Implementation of Task.  Instances of Tasks
- * are created by the Expander Plug-ins.  All Tasks
- * are attached to a workflow.
+/** Implementation of Task.   
+ * Tasks that were created by Expanders are part of a Workflow.
+ * Tasks are the basic unit of Planning Domain work.
  */
-
 public class TaskImpl extends PlanningDirectiveImpl
   implements Task, NewTask, Cloneable, ActiveSubscriptionObject, java.io.Serializable
 {
@@ -849,6 +848,7 @@ public class TaskImpl extends PlanningDirectiveImpl
             logger.warn("Illegal publishRemove subtask still in a workflow: " + this);
           }
           wf.removeTask(this);
+	  break;
         }
       }
     }

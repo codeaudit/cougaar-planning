@@ -185,8 +185,8 @@ implements Component
     if (messageStatsService != null) {
       MessageStatistics.Statistics stats = messageStatsService.getMessageStatistics(false);
       logger.info("Message Queue: " + stats.averageMessageQueueLength);
-      logger.info("Message Bytes: " + stats.totalMessageBytes);
-      logger.info("Message Count: " + stats.totalMessageCount);
+      logger.info("Message Bytes: " + stats.totalSentMessageBytes);
+      logger.info("Message Count: " + stats.totalSentMessageCount);
       long[] h = stats.histogram;
       int n = (h != null ? h.length : 0);
       n = Math.min(n, MessageStatistics.NBINS);
@@ -280,8 +280,8 @@ implements Component
       MessageStatistics.Statistics stats = 
         messageStatsService.getMessageStatistics(false);
       buf.append(", ").append(stats.averageMessageQueueLength);
-      buf.append(", ").append(stats.totalMessageBytes);
-      buf.append(", ").append(stats.totalMessageCount);
+      buf.append(", ").append(stats.totalSentMessageBytes);
+      buf.append(", ").append(stats.totalSentMessageCount);
       long[] h = stats.histogram;
       for (int i = 0; i < MessageStatistics.NBINS; i++) {
         long hi = (i < h.length ? h[i] : 0l);

@@ -192,8 +192,8 @@ public class MetricsComponentPlugin
           //get all MessageStatistics metrics
           if (messageStatsService != null) {
               System.out.println("Message Queue: " + messageStatsService.getMessageStatistics(false).averageMessageQueueLength);
-              System.out.println("Message Bytes: " + messageStatsService.getMessageStatistics(false).totalMessageBytes);
-              System.out.println("Message Count: " + messageStatsService.getMessageStatistics(false).totalMessageCount);
+              System.out.println("Message Bytes: " + messageStatsService.getMessageStatistics(false).totalSentMessageBytes);
+              System.out.println("Message Count: " + messageStatsService.getMessageStatistics(false).totalSentMessageCount);
               System.out.println("Histogram:     " + messageStatsService.getMessageStatistics(false).histogram); 
           }
           else

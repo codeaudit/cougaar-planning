@@ -1,5 +1,9 @@
 2003-04-01  Ray Tomlinson  <RTomlinson@bbn.com>
 
+	* AspectScorePoint.java: 
+	Bug #2722 -- ScoringFunction implementations have missing/incorrect equals methods
+	AspectScorePoint also had no equals method. Sigh...
+
 	* ScoringFunction.java:
 	Bug #2722 -- ScoringFunction implementations have missing/incorrect equals methods
 	Added equals methods to PiecewiseLinearScoringFunction,

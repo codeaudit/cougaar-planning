@@ -48,8 +48,14 @@ public class SimpleCompletionData extends CompletionData{
     "NumUnestimatedTasks";
   public static final String NUMBER_OF_UNCONFIDENT_TASKS_ATTR = 
     "NumUnconfidentTasks";
-  public static final String NUMBER_OF_FAILED_TASKS_ATTR = 
+  public static final String NUMBER_OF_FAILED_TASKS_ATTR =
     "NumFailedTasks";
+  public static final String NUMBER_OF_ROOT_PS_TASKS_ATTR =
+    "NumRootProjectSupplyTasks";
+  public static final String NUMBER_OF_ROOT_SUPPLY_TASKS_ATTR =
+    "NumRootSupplyTasks";
+  public static final String NUMBER_OF_ROOT_TRANSPORT_TASKS_ATTR =
+    "NumRootTransportTasks";
 
   protected int numUnplannedTasks;
   protected int numUnestimatedTasks;
@@ -132,6 +138,9 @@ public class SimpleCompletionData extends CompletionData{
     w.tagln(NUMBER_OF_UNESTIMATED_TASKS_ATTR, getNumberOfUnestimatedTasks());
     w.tagln(NUMBER_OF_UNCONFIDENT_TASKS_ATTR, getNumberOfUnconfidentTasks());
     w.tagln(NUMBER_OF_FAILED_TASKS_ATTR, getNumberOfFailedTasks());
+    w.tagln(NUMBER_OF_ROOT_PS_TASKS_ATTR, getNumberOfRootProjectSupplyTasks());
+    w.tagln(NUMBER_OF_ROOT_SUPPLY_TASKS_ATTR, getNumberOfRootSupplyTasks());
+    w.tagln(NUMBER_OF_ROOT_TRANSPORT_TASKS_ATTR, getNumberOfRootTransportTasks());
     w.cltagln(NAME_TAG);
   }
 
@@ -150,28 +159,34 @@ public class SimpleCompletionData extends CompletionData{
   public void openTag(String name, Attributes attr, String data)
     throws UnexpectedXMLException {
    try {
-      if (name.equals(NAME_TAG)) {
-      } else if (name.equals(TIME_MILLIS_ATTR)) {
-	timeMillis = Long.parseLong(data);
-      } else if (name.equals(RATIO_ATTR)) {
-	ratio = Double.parseDouble(data);
-      } else if (name.equals(NUMBER_OF_TASKS_ATTR)) {
-	numTasks = Integer.parseInt(data);
-      } else if (name.equals(NUMBER_OF_UNPLANNED_TASKS_ATTR)) {
-	numUnplannedTasks = Integer.parseInt(data);
-      } else if (name.equals(NUMBER_OF_UNESTIMATED_TASKS_ATTR)) {
-	numUnestimatedTasks = Integer.parseInt(data);
-      } else if (name.equals(NUMBER_OF_UNCONFIDENT_TASKS_ATTR)) {
-	numUnconfidentTasks = Integer.parseInt(data);
-      } else if (name.equals(NUMBER_OF_FAILED_TASKS_ATTR)) {
-	numFailedTasks = Integer.parseInt(data);
-      } else {
-        throw new UnexpectedXMLException("Unexpected tag: "+name);
-      }
-    } catch (NumberFormatException e) {
-      throw new UnexpectedXMLException("Malformed Number: " + 
-				       name + " : " + data);
-    }
+     if (name.equals(NAME_TAG)) {
+     } else if (name.equals(TIME_MILLIS_ATTR)) {
+       timeMillis = Long.parseLong(data);
+     } else if (name.equals(RATIO_ATTR)) {
+       ratio = Double.parseDouble(data);
+     } else if (name.equals(NUMBER_OF_TASKS_ATTR)) {
+       numTasks = Integer.parseInt(data);
+     } else if (name.equals(NUMBER_OF_UNPLANNED_TASKS_ATTR)) {
+       numUnplannedTasks = Integer.parseInt(data);
+     } else if (name.equals(NUMBER_OF_UNESTIMATED_TASKS_ATTR)) {
+       numUnestimatedTasks = Integer.parseInt(data);
+     } else if (name.equals(NUMBER_OF_UNCONFIDENT_TASKS_ATTR)) {
+       numUnconfidentTasks = Integer.parseInt(data);
+     } else if (name.equals(NUMBER_OF_FAILED_TASKS_ATTR)) {
+       numFailedTasks = Integer.parseInt(data);
+     } else if (name.equals(NUMBER_OF_ROOT_PS_TASKS_ATTR)) {
+       numRootProjectSupplyTasks = Integer.parseInt(data);
+     } else if (name.equals(NUMBER_OF_ROOT_SUPPLY_TASKS_ATTR)) {
+       numRootSupplyTasks = Integer.parseInt(data);
+     } else if (name.equals(NUMBER_OF_ROOT_TRANSPORT_TASKS_ATTR)) {
+       numRootTransportTasks = Integer.parseInt(data);
+     } else {
+       throw new UnexpectedXMLException("Unexpected tag: "+name);
+     }
+   } catch (NumberFormatException e) {
+     throw new UnexpectedXMLException("Malformed Number: " +
+                                      name + " : " + data);
+   }
   }
 
   /**

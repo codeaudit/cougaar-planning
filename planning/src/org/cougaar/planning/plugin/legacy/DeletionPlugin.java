@@ -336,14 +336,17 @@ public class DeletionPlugin extends SimplePlugin {
                 PlanElement pe = (PlanElement) o;
                 if (isTimeToDelete(pe)) {
                     if (pe instanceof Allocation) {
-                        Allocation alloc = (Allocation) pe;
+                        AllocationforCollections alloc = (AllocationforCollections) pe;
                         Asset asset = alloc.getAsset();
                         ClusterPG cpg = asset.getClusterPG();
                         if (cpg == null) return true; // Can't be remote w/o ClusterPG
                         MessageAddress destination = cpg.getMessageAddress();
-                        if (destination == null) return true; // Can't be remote w null destination
-                        Task remoteTask = ((AllocationforCollections) alloc).getAllocationTask();
-                        return remoteTask == null || remoteTask.isDeleted(); // Can delete if remote task is deleted or non-existent
+                        if (destination == null) {
+                            return true; // Can't be remote w null destination
+                        }
+                        UID remoteUID = alloc.getAllocationTaskUID();
+                        boolean remoteIsDeleted = alloc.isAllocationTaskDeleted();
+                        return remoteUID == null || remoteIsDeleted; // Can delete if remote task is deleted or non-existent
                     }
                     if (pe instanceof Expansion) {
                         Expansion exp = (Expansion) pe;
@@ -613,15 +616,18 @@ public class DeletionPlugin extends SimplePlugin {
     private String canDelete(PlanElement pe) {
         if (!isTimeToDelete(pe)) return "Not time to delete";
         if (pe instanceof Allocation) {
-            Allocation alloc = (Allocation) pe;
+            AllocationforCollections alloc = (AllocationforCollections) pe;
             Asset asset = alloc.getAsset();
             ClusterPG cpg = asset.getClusterPG();
             if (cpg != null) {
                 MessageAddress destination = cpg.getMessageAddress();
                 if (destination != null) {
-                    Task remoteTask = ((AllocationforCollections) alloc).getAllocationTask();
-                    if (remoteTask == null) return "Awaiting remote task creation";
-                    if (!remoteTask.isDeleted()) return "Remote task not deleted";
+                    if (alloc.getAllocationTaskUID() == null) {
+                        return "Awaiting remote task creation";
+                    }
+                    if (!alloc.isAllocationTaskDeleted()) {
+                        return "Remote task not deleted";
+                    }
                 }
             }
         }

@@ -48,6 +48,9 @@ public final class AssetInitializerServiceComponent
 extends GenericStateModelAdapter
 implements Component 
 {
+  private static final String INITIALIZER_PROP = 
+    "org.cougaar.core.node.InitializationComponent";
+
   private ServiceBroker sb;
 
   private DBInitializerService dbInit;
@@ -123,7 +126,7 @@ implements Component
   private ServiceProvider chooseSP() {
     try {
       ServiceProvider sp;
-      String prop = System.getProperty(Node.INITIALIZER_PROP);
+      String prop = System.getProperty(INITIALIZER_PROP);
       // If user specified to load from the database
       if (prop != null && prop.indexOf("DB") != -1 && dbInit != null) {
 	// Init from CSMART DB

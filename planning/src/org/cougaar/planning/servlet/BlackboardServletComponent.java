@@ -68,7 +68,7 @@ implements BlackboardClient
 
   /** just like the core, except I can create a servlet support subclass */
   protected SimpleServletSupport createSimpleServletSupport(Servlet servlet) {
-//    SimpleServletSupport support = super.createSimpleServletSupport(servlet);
+    super.createSimpleServletSupport(servlet);
     
     // throw original support object away
     // create a new "SimpleServletSupport" instance

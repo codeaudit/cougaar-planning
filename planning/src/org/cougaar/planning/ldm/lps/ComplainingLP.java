@@ -62,7 +62,7 @@ implements LogicProvider, EnvelopeLogicProvider
 
   private final static String levelPROP = "org.cougaar.planning.ldm.lps.ComplainingLP.level";
 
-  private static int level = 2;
+  private static int level = 1;
 
   private final static int levelQUIET = 0;
   private final static int levelERROR = 1;

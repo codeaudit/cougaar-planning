@@ -1,3 +1,27 @@
+2003-03-17  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/planning/ldm/lps/ReceiveAssetLP.java:
+	Add agent name to log entries.
+
+	* org/cougaar/planning/ldm/asset/Asset.java: 
+	Bug #1848 -- Need persistence of component hierarchy for mobile
+	agents
+	Use the real LDM if available rather than the delegator.
+
+	* org/cougaar/planning/ldm/LDMServesPlugin.java: 
+	Bug #1848 -- Need persistence of component hierarchy for mobile agents
+	Define the delegator class.
+
+	* org/cougaar/planning/ldm/LDMContextTable.java: 
+	Bug #1848 -- Need persistence of component hierarchy for mobile agents
+	Rehydration must be possible before there are any LDM components.
+	If an LDMContext is needed before any have been registered, return
+	a delegator instance that delegates all operations to a real
+	instance when it becomes known. The real instance is initially
+	null. When a real LDM is registered, the null reference is
+	replaced with the real LDM. Rehydrated Assets continue using the
+	delegator.
+
 2003-03-12  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* org/cougaar/planning/servlet/PlanViewServlet.java:

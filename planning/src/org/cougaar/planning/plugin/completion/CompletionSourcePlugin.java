@@ -175,7 +175,6 @@ public abstract class CompletionSourcePlugin extends CompletionPlugin {
                                                 + DEAD_NODE_TIMEOUT);
         continue;
       }
-    }
       if (param.startsWith(TIMER_SLACK_KEY)) {
         TIMER_SLACK = Long.parseLong(param.substring(TIMER_SLACK_KEY.length()));
         if (logger.isInfoEnabled()) logger.info("Set "

@@ -344,16 +344,22 @@ extends HttpServlet
           "</title>\n"+
           "</head>\n"+
           "<frameset cols=\"25%,75%\">\n"+
-          "<frameset rows=\"32%,68%\">\n"+
-          "<frame src=\"/$");
-      out.print(support.getEncodedAgentName());
-      out.print(support.getPath());     
-      out.print(
+          "<frameset rows=\"40%,60%\">\n"+
+          "<frameset rows=\"25%,75%\">\n"+
+          "<frame"+
+          " src=\""+
+          "/agents?format=select&suffix="+
+          support.getEncodedAgentName()+
+          "\" name=\"agentFrame\">\n"+
+          "<frame src=\"/$"+
+          support.getEncodedAgentName()+
+          support.getPath()+
           "?"+
           MODE+
           "="+
           MODE_SEARCH+
-          "\" name=\"searchFrame\">\n");
+          "\" name=\"searchFrame\">\n"+
+          "</frameset>\n");
       //
       // Show blank WelcomeDetails page in itemFrame, since user
       // probably didn't specify $encodedAgentName in URL.
@@ -1209,11 +1215,18 @@ extends HttpServlet
       }
       out.print(
           "<html>\n"+
+          "<head>"+
+          "<title>Logplan Search</title>\n"+
           "<script language=\"JavaScript\">\n"+
           "<!--\n"+
           "function mySubmit() {\n"+
-          "  var tidx = document.myForm.formAgent.selectedIndex\n"+
-          "  var encAgent = document.myForm.formAgent.options[tidx].value\n"+
+          "  var obj = top.agentFrame.document.agent.name;\n"+
+          "  var encAgent = obj.value;\n"+
+          "  if (encAgent.charAt(0) == '.') {\n"+
+          "    alert(\"Please select an agent name\")\n"+
+          "    return false;\n"+
+          "  }\n"+
+          "  document.myForm.name.value = encAgent;\n"+
           "  var type = document.myForm.formType.selectedIndex\n"+
           "  var uid = trim(document.myForm."+
           ITEM_UID+
@@ -1312,14 +1325,11 @@ extends HttpServlet
         "}\n"+
         "// -->\n"+
         "</script>\n"+
-        "<head>\n"+
-        "<title>Logplan Search</title>\n"+
         "</head>\n"+
         "<body bgcolor=\"#F0F0F0\">\n"+
         "<noscript>\n"+
         "<b>This page needs Javascript!</b><br>\n"+
         "Consult your browser's help pages..\n"+
-        "<p><p><p>\n"+
         "</noscript>\n"+
         "<form name=\"myForm\" method=\"get\" onSubmit=\"return mySubmit()\">\n"+
         "<input type=\"hidden\" name=\""+
@@ -1328,39 +1338,21 @@ extends HttpServlet
         "<input type=\"hidden\" name=\""+
         LIMIT+
         "\" value=\"true\">\n"+
-        "<select name=\"formAgent\">\n");
-      // lookup all known cluster names
-      List names = support.getAllEncodedAgentNames();
-      int sz = names.size();
-      for (int i = 0; i < sz; i++) {
-        String n = (String) names.get(i);
-        out.print("  <option ");
-        if (n.equals(support.getEncodedAgentName())) {
-          out.print("selected ");
-        }
-        out.print("value=\"");
-        out.print(n);
-        out.print("\">");
-        out.print(n);
-        out.print("</option>\n");
-      }
-      out.print(
-          "</select><br>\n"+
-          "<select name=\"formType\">\n"+
-          "  <option selected value=\"0\">Tasks</option>\n"+
-          "  <option value=\"1\">PlanElements</option>\n"+
-          "  <option value=\"2\">Assets</option>\n"+
-          "  <option value=\"3\">UniqueObjects</option>\n"+
-          "</select><br>\n"+
-          "UID:<input type=\"text\" name=\""+
-          // user should enter an encoded UID
-          ITEM_UID+
-          "\" size=12><br>\n"+
-	  "Sort results by UID<input type=\"checkbox\" name=\"sortByUID\" value=\"true\"><br>\n"+
-          "<input type=\"submit\" name=\"formSubmit\" value=\"Search\"><br>\n"+
-          "<p>\n"+
-          // link to advanced search
-          "<a href=\"/$");
+        "<select name=\"formType\">\n"+
+        "  <option selected value=\"0\">Tasks</option>\n"+
+        "  <option value=\"1\">PlanElements</option>\n"+
+        "  <option value=\"2\">Assets</option>\n"+
+        "  <option value=\"3\">UniqueObjects</option>\n"+
+        "</select><br>\n"+
+        "UID:<input type=\"text\" name=\""+
+        // user should enter an encoded UID
+        ITEM_UID+
+        "\" size=12><br>\n"+
+        "Sort results by UID<input type=\"checkbox\" name=\"sortByUID\" value=\"true\"><br>\n"+
+        "<input type=\"submit\" name=\"formSubmit\" value=\"Search\"><br>\n"+
+        "<p>\n"+
+        // link to advanced search
+        "<a href=\"/$");
       out.print(support.getEncodedAgentName());
       out.print(support.getPath());
       out.print(
@@ -1716,23 +1708,9 @@ extends HttpServlet
           "</noscript>\n"+
           "<form name=\"myForm\" method=\"get\" "+
           "target=\"predResults\" onSubmit=\"return mySubmit()\">\n"+
-          "Search cluster <select name=\"formAgent\">\n");
-      // lookup all known cluster names
-      List names = support.getAllEncodedAgentNames();
-      int sz = names.size();
-      for (int i = 0; i < sz; i++) {
-        String n = (String) names.get(i);
-        out.print("  <option ");
-        if (n.equals(support.getEncodedAgentName())) {
-          out.print("selected ");
-        }
-        out.print("value=\"");
-        out.print(n);
-        out.print("\">");
-        out.print(n);
-        out.print("</option>\n");
-      }
-      out.print("</select><br>\n");
+          "Search cluster <input type=\"text\" name=\"formAgent\" value=\"");
+      out.print(support.getEncodedAgentName());
+      out.print("\"><br>\n");
       if (nTemplatePreds > 0) {
         out.print(
             "<b>Find all </b>"+

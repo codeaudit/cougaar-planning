@@ -30,7 +30,7 @@ package org.cougaar.planning.ldm.plan;
  */
  
 public class FloatAspectValue extends TypedAspectValue {
-  private float value;
+  private final float value;
 
   // zeros cache 
   private static final int ZEROS = 20;

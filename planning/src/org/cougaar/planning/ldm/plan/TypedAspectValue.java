@@ -30,7 +30,7 @@ package org.cougaar.planning.ldm.plan;
  */
 
 public abstract class TypedAspectValue extends AspectValue {
-  private int type;
+  private final int type;
 
   protected TypedAspectValue(int type) {
     this.type = type;

@@ -30,7 +30,7 @@ import org.cougaar.planning.ldm.asset.Asset;
 
 public class AssetAspectValue extends FloatAspectValue
 {
-    private Asset theAsset;
+    private final Asset theAsset;
     
     public AssetAspectValue(Asset anAsset, int type, double value)
     {

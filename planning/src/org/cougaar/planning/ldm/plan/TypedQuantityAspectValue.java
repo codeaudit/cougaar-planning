@@ -34,7 +34,7 @@ import org.cougaar.planning.ldm.asset.Asset;
  */
  
 public class TypedQuantityAspectValue extends FloatAspectValue {
-  private Asset theasset;
+  private final Asset theasset;
   
   /** Simple Constructor that takes the asset and the quantity.
    * @param anAsset  The Asset - probably a prototype

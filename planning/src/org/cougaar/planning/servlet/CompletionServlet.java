@@ -66,7 +66,7 @@ import org.cougaar.planning.servlet.data.completion.UnplannedTask;
 import org.cougaar.planning.servlet.data.xml.XMLWriter;
 import org.cougaar.util.UnaryPredicate;
 import org.cougaar.util.Filters;
-import org.cougaar.glm.ldm.Constants;
+//import org.cougaar.glm.ldm.Constants;
 
 /**
  * A <code>Servlet</code>, loaded by the 
@@ -135,11 +135,18 @@ extends BaseServletComponent
   protected LoggingService logger;
 
   protected static UnaryPredicate projectSupplyRootTaskPred =
-      new RootTaskPredicate(Constants.Verb.ProjectSupply, Constants.Verb.GenerateProjections);
+      new RootTaskPredicate(org.cougaar.planning.ldm.plan.Verb.get("ProjectSupply"), org.cougaar.planning.ldm.plan.Verb.get("GenerateProjections"));
   protected static UnaryPredicate supplyRootTaskPred =
-      new RootTaskPredicate(Constants.Verb.Supply, Constants.Verb.GenerateProjections);
+      new RootTaskPredicate(org.cougaar.planning.ldm.plan.Verb.get("Supply"), org.cougaar.planning.ldm.plan.Verb.get("GenerateProjections"));
   protected static UnaryPredicate transportRootTaskPred =
-      new RootTaskPredicate(Constants.Verb.Transport, Constants.Verb.DetermineRequirements);
+      new RootTaskPredicate(org.cougaar.planning.ldm.plan.Verb.get("Transport"), org.cougaar.planning.ldm.plan.Verb.get("DetermineRequirements"));
+
+//    protected static UnaryPredicate projectSupplyRootTaskPred =
+//        new RootTaskPredicate(Constants.Verb.ProjectSupply, Constants.Verb.GenerateProjections);
+//    protected static UnaryPredicate supplyRootTaskPred =
+//        new RootTaskPredicate(Constants.Verb.Supply, Constants.Verb.GenerateProjections);
+//    protected static UnaryPredicate transportRootTaskPred =
+//        new RootTaskPredicate(Constants.Verb.Transport, Constants.Verb.DetermineRequirements);
 
   public CompletionServlet() {
     super();

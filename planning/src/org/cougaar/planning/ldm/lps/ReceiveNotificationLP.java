@@ -109,7 +109,7 @@ implements LogicProvider, MessageLogicProvider
           // this was likely due to a race condition...
           logger.error("Got a Notification for the wrong allocation:"+
                            "\n\tTask="+tuid+
-                           "  ("+pe.getTask().getUID()+")"+
+                           "  ("+pe.getTask()+")"+
                            "\n\tFrom="+childuid+
                            "  ("+remoteTUID+")"+
                            "\n\tResult="+not.getAllocationResult()+"\n"+

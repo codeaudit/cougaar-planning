@@ -186,12 +186,7 @@ extends BaseServletComponent
       // do full WP list (deprecated!)
       Set s = ListAllAgents.listAllAgents(whitePagesService);
       // URLEncode the names and sort
-      ArrayList l = new ArrayList(s.size());
-      for (Iterator iter = s.iterator(); iter.hasNext(); ) {
-        String tmp = (String) iter.next();
-        l.add(encodeAgentName(tmp));
-      }
-      Collections.sort(l);
+      List l = ListAllAgents.encodeAndSort(s);
       return l;
     } catch (Exception e) {
       throw new RuntimeException(

@@ -30,7 +30,6 @@ import org.cougaar.planning.service.LDMService;
 import org.cougaar.core.service.BlackboardQueryService;
 import org.cougaar.core.service.BlackboardService;
 import org.cougaar.core.service.LoggingService;
-import org.cougaar.core.service.NamingService;
 import org.cougaar.core.service.SchedulerService;
 import org.cougaar.core.servlet.*;
 import org.cougaar.planning.ldm.PlanningFactory;
@@ -95,7 +94,6 @@ implements BlackboardClient
         path,
         agentId,
         blackboardQuery,
-        ns,
 	log,
         blackboard,
 	getConfigFinder(),

@@ -27,7 +27,6 @@ import org.cougaar.planning.ldm.PlanningFactory;
 import org.cougaar.core.service.BlackboardQueryService;
 import org.cougaar.core.service.BlackboardService;
 import org.cougaar.core.service.LoggingService;
-import org.cougaar.core.service.NamingService;
 import org.cougaar.core.service.SchedulerService;
 import org.cougaar.core.servlet.*;
 import org.cougaar.util.ConfigFinder;
@@ -44,14 +43,13 @@ public class BlackboardServletSupport extends SimpleServletSupportImpl {
       String path,
       MessageAddress agentId,
       BlackboardQueryService blackboardQuery,
-      NamingService ns,
       LoggingService logger,
       BlackboardService blackboard,
       ConfigFinder configFinder,
       PlanningFactory ldmf,
       LDMServesPlugin ldm,
       SchedulerService scheduler) {
-    super (path, agentId, blackboardQuery, ns, logger);
+    super (path, agentId, blackboardQuery, logger);
     this.blackboard = blackboard;
     this.configFinder = configFinder;
     this.ldmf = ldmf;

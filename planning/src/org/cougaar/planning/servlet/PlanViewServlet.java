@@ -1661,8 +1661,7 @@ extends HttpServlet
           "<script language=\"JavaScript\">\n"+
           "<!--\n"+
           "function mySubmit() {\n"+
-          "  var tidx = document.myForm.formAgent.selectedIndex\n"+
-          "  var encAgent = document.myForm.formAgent.options[tidx].value\n"+
+          "  var encAgent = document.myForm.formAgent.value\n"+
           "  document.myForm.action=\"/$\"+encAgent+\"");
       out.print(support.getPath());
       out.print(

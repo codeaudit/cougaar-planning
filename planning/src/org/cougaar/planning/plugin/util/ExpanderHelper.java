@@ -52,16 +52,19 @@ public class ExpanderHelper {
    * Checks if the Task is of specified OFTYPE.
    */
   public static boolean isOfType( Task t, String p, String typeid ) {
+    return typeid.equals(getOfType(t, p));
+  }
+
+  public static String getOfType(Task t, String p) {
     PrepositionalPhrase pPhrase = t.getPrepositionalPhrase(p);
     if (pPhrase != null) {
       Object indirectobj = pPhrase.getIndirectObject();
       if (indirectobj instanceof AbstractAsset) {
 	AbstractAsset aa = (AbstractAsset) indirectobj;
-	String mytypeid = aa.getTypeIdentificationPG().getTypeIdentification();
-	return (mytypeid.equals(typeid));
+	return aa.getTypeIdentificationPG().getTypeIdentification();
       }
     }
-    return false;
+    return null;
   }
 
   /**

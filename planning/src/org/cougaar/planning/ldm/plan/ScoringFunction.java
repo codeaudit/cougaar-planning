@@ -23,6 +23,7 @@ package org.cougaar.planning.ldm.plan;
 
 import java.util.Enumeration;
 import java.util.Vector;
+import java.util.Arrays;
 import org.cougaar.util.Empty;
 import org.cougaar.util.SingleElementEnumeration;
 import java.io.Serializable;
@@ -335,6 +336,14 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
       }
       curve = (AspectScorePoint[]) v.toArray(new AspectScorePoint[v.size()]);
       aspectType = curve[0].getAspectType();
+    }
+
+    public boolean equals(Object o) {
+      if (o instanceof PiecewiseLinearScoringFunction) {
+        PiecewiseLinearScoringFunction that = (PiecewiseLinearScoringFunction) o;
+        return Arrays.equals(this.curve, that.curve);
+      }
+      return false;
     }
 
     public Object clone() {
@@ -984,6 +993,16 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
       this.best = best;
     }
 
+    public boolean equals(Object o) {
+      if (o instanceof StrictBetweenWithBest) {
+        StrictBetweenWithBest that = (StrictBetweenWithBest) o;
+        if (this.best.equals(that.best)) {
+          return super.equals(o);
+        }
+      }
+      return false;
+    }
+
     public Object clone() {
       return new StrictBetweenWithBest(point1,
                                        best,
@@ -1444,6 +1463,14 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
       my_points = points;
     }
 
+    public boolean equals(Object o) {
+      if (o instanceof EnumeratedScoringFunction) {
+        EnumeratedScoringFunction that = (EnumeratedScoringFunction) o;
+        return Arrays.equals(this.my_points, that.my_points);
+      }
+      return false;
+    }
+
     public Object clone() {
       AspectScorePoint[] newPoints = new AspectScorePoint[my_points.length];
       for (int i = 0; i < newPoints.length; i++) {
@@ -1525,6 +1552,16 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
 
     public ConstantScoringFunction(int aspectType) {
       super(aspectType);
+    }
+
+    public boolean equals(Object o) {
+      if (o instanceof ConstantScoringFunction) {
+        ConstantScoringFunction that = (ConstantScoringFunction) o;
+        if (this.aspectType == that.aspectType) {
+          return this.score == that.score;
+        }
+      }
+      return false;
     }
 
     public Object clone() {

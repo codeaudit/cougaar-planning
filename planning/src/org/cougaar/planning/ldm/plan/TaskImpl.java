@@ -870,6 +870,7 @@ public class TaskImpl extends PlanningDirectiveImpl
 	  break;
         }
       }
+      setWorkflow(null);
     }
   }
 

@@ -110,20 +110,28 @@ public class ExpansionImpl extends PlanElementImpl
     if (w.isPropagatingToSubtasks() ) { // if we're auto-propagating
       WorkflowImpl wi = (WorkflowImpl) w;
       
-
+      
       // rescind all subtasks of the workflow
       List sts = wi.clearSubTasks();    // atomic get and clear the list
       ListIterator it = sts.listIterator();
-        while (it.hasNext()) {
-        Task asub = (Task) it.next();
+      while (it.hasNext()) {
+        NewTask asub = (NewTask) it.next();
+	asub.setParentTask(null);
+	asub.setWorkflow(null);
         s.publishRemove(asub);
       }
+      wi.setParentTask(null);      
     } else {      // we're not auto-propagating
       // disconnect the WF from the parent task
       ((NewWorkflow)w).setParentTask(null);
       for (Enumeration e = w.getTasks(); e.hasMoreElements(); ) {
         NewTask wfstask = (NewTask) e.nextElement();
         wfstask.setParentTask(null);
+	// Let the remover clear this pointer,
+	// but use it in the meantime if necessary.
+	// Note that removing the subtask will then clear
+	// this pointer, if not already done (via ASO method)
+	//	wfstask.setWorkflow(null);
       }
       // the plugin should reattach this workflow to a parent task. 
     }

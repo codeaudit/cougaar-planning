@@ -1,3 +1,14 @@
+2003-12-11  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/planning/plugin/deletion/TaskDeletionPlugin.java:
+	Refactored version of the old DeletionPlugin. Non-planning
+	specific code has been moved to DeletionPlugin in core. This
+	plugin extends the core DeletionPlugin to provide for the deletion
+	of Tasks (and PlanElements). This code is untested at this time.
+
+	* org/cougaar/planning/plugin/deletion/DeletionPolicyBase.java:
+	An implementation of DeletionPolicy based on the Policy class.
+
 2003-08-22  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* org/cougaar/planning/ldm/lps/RemoteAllocationLP.java:

@@ -1,3 +1,35 @@
+2003-04-07  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/planning/plugin/legacy/DeletionPlugin.java: 
+	Re-instate changes for new AllocationforCollections API.
+
+	* org/cougaar/planning/servlet/PlanViewServlet.java: 
+	Re-instate changes for new AllocationforCollections API.
+
+	* org/cougaar/planning/ldm/lps/RescindLP.java: 
+	* org/cougaar/planning/ldm/lps/RemoteAllocationLP.java: 
+	* org/cougaar/planning/ldm/lps/ReceiveTaskLP.java: 
+	* org/cougaar/planning/ldm/lps/ReceiveRescindLP.java: 
+	* org/cougaar/planning/ldm/lps/ReceiveNotificationLP.java: 
+	* org/cougaar/planning/ldm/lps/ReceiveDeletionLP.java: 
+	* org/cougaar/planning/ldm/lps/DeletionLP.java: 
+	* org/cougaar/planning/ldm/lps/PreferenceChangeLP.java:
+	Re-instate changes for new AllocationforCollections API.
+
+	* org/cougaar/planning/ldm/PlanningDomain.java:
+	Re-instate changes for new AllocationforCollections API.
+
+2003-04-03  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/planning/ldm/lps/RemoteAllocationLP.java:
+	Renamed from RemoteClusterAllocationLP
+
+	* org/cougaar/planning/ldm/lps/RescindLP.java: 
+	* org/cougaar/planning/ldm/lps/ReceiveTaskLP.java: 
+	* org/cougaar/planning/ldm/lps/ReceiveNotificationLP.java: 
+	* org/cougaar/planning/ldm/lps/ReceiveDeletionLP.java:
+	Changes for new AllocationforCollections API.
+
 2003-04-01  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* org/cougaar/planning/ldm/lps/ReceiveTaskLP.java:

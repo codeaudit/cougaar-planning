@@ -27,7 +27,7 @@ import org.cougaar.planning.plugin.asset.AssetDataFileReader;
 import org.cougaar.planning.plugin.asset.AssetDataReader;
 import org.cougaar.planning.service.AssetInitializerService;
 
-class FileAssetInitializerServiceProvider implements ServiceProvider {
+public class FileAssetInitializerServiceProvider implements ServiceProvider {
 
   public Object getService(ServiceBroker sb, Object requestor, Class serviceClass) {
     if (serviceClass != AssetInitializerService.class) {

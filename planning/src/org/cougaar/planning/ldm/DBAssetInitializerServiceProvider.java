@@ -42,7 +42,7 @@ import org.cougaar.util.log.Logging;
  * Implementation of AssetInitializerServiceProvider that reads
  * initialization information from a database.
  **/
-class DBAssetInitializerServiceProvider implements ServiceProvider {
+public class DBAssetInitializerServiceProvider implements ServiceProvider {
 
   private final DBInitializerService dbInit;
   private final Logger logger;

@@ -29,7 +29,7 @@ import java.util.Iterator;
 
 /** ContextOfOplanIds is an implementation of Context. It is simply a Set of Oplan IDs. 
  * It can be used when the current oplan under which to operate needs to be referenced.
- * @see Oplan
+ * @see "org.cougaar.glm.ldm.oplan.Oplan"
  * @see Context
  */
 public class ContextOfOplanIds 

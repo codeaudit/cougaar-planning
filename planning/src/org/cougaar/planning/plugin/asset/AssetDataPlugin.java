@@ -189,7 +189,8 @@ public class AssetDataPlugin extends SimplePlugin {
 	if (!queryCollection.isEmpty()) {
 	  final Object key = 
 	    ((LocalAssetInfo) queryCollection.iterator().next()).getKey();
-	  
+	  String className = 
+	    ((LocalAssetInfo) queryCollection.iterator().next()).getClassName();
 	  if (queryCollection.size() > 1) {
 	    myLogger.warn(getAgentIdentifier() + 
 			  " found " + queryCollection.size() + 
@@ -206,8 +207,7 @@ public class AssetDataPlugin extends SimplePlugin {
 	  
 	  if (!assetCollection.isEmpty()) {
 	    myLocalAsset = (Asset) assetCollection.iterator().next();
-	    myAssetClassName = 
-	      myAssetInitializerService.getAgentPrototype(getMessageAddress().getAddress());
+	    myAssetClassName = className;
 	  } else {
 	    myLogger.warn(getAgentIdentifier() + 
 			  " Did not find local asset for key " + key);
@@ -275,7 +275,8 @@ public class AssetDataPlugin extends SimplePlugin {
       }
 
       publishAdd(myLocalAsset);
-      LocalAssetInfo localAssetInfo = new LocalAssetInfo(myLocalAsset);
+      LocalAssetInfo localAssetInfo = new LocalAssetInfo(myLocalAsset, 
+							 myAssetClassName);
       publishAdd(localAssetInfo);
 
       // Put the assets for this cluster into array
@@ -1034,9 +1035,11 @@ public class AssetDataPlugin extends SimplePlugin {
 
   private static class LocalAssetInfo implements java.io.Serializable {
     private Object myKey = null;
+    private String myClassName = "";
 
-    public LocalAssetInfo(Asset localAsset) {
+    public LocalAssetInfo(Asset localAsset, String className) {
       myKey = localAsset.getKey();
+      myClassName = className;
     }
 
     public LocalAssetInfo() {
@@ -1048,6 +1051,14 @@ public class AssetDataPlugin extends SimplePlugin {
 
     public void setKey(Object key) {
       myKey = key;
+    }
+
+    public String getClassName() {
+      return myClassName;
+    }
+
+    public void setClassName(String className) {
+      myClassName = className;
     }
   }   
 }

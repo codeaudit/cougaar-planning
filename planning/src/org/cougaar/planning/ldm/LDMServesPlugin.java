@@ -21,9 +21,11 @@
 
 package org.cougaar.planning.ldm;
 
-import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.domain.Factory;
+import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.service.UIDServer;
+import org.cougaar.planning.ldm.asset.Asset;
+import org.cougaar.planning.ldm.asset.PropertyGroup;
 import org.cougaar.planning.service.PrototypeRegistryService;
 
 /**
@@ -31,8 +33,7 @@ import org.cougaar.planning.service.PrototypeRegistryService;
  *
  * @see org.cougaar.planning.ldm.LDMPluginServesLDM
  **/
-public interface LDMServesPlugin 
-extends PrototypeRegistryService {
+public interface LDMServesPlugin extends PrototypeRegistryService {
 
   /**
    * Equivalent to <code>((PlanningFactory) getFactory("planning"))</code>.
@@ -59,7 +60,77 @@ extends PrototypeRegistryService {
   
   UIDServer getUIDServer();
 
-  /** this? */
+  /**
+   * If the Delegator is used, this gets the real thing
+   **/
   LDMServesPlugin getLDM();
 
+  class Delegator implements LDMServesPlugin {
+    private LDMServesPlugin ldm;
+    Delegator() {
+    }
+
+    void setLDM(LDMServesPlugin ldm) {
+      this.ldm = ldm;
+    }
+
+    public LDMServesPlugin getLDM() {
+      return ldm != null ? ldm : this;
+    }
+    public void addPrototypeProvider(PrototypeProvider prov) {
+      ldm.addPrototypeProvider(prov);
+    }
+    public void addPropertyProvider(PropertyProvider prov) {
+      ldm.addPropertyProvider(prov);
+    }
+    public void addLatePropertyProvider(LatePropertyProvider lpp) {
+      ldm.addLatePropertyProvider(lpp);
+    }
+    public void cachePrototype(String aTypeName, Asset aPrototype) {
+      ldm.cachePrototype(aTypeName, aPrototype);
+    }
+    public boolean isPrototypeCached(String aTypeName) {
+      return ldm.isPrototypeCached(aTypeName);
+    }
+    public Asset getPrototype(String aTypeName, Class anAssetClass) {
+      return ldm.getPrototype(aTypeName, anAssetClass);
+    }
+    public Asset getPrototype(String aTypeName) {
+      return ldm.getPrototype(aTypeName);
+    }
+    public void fillProperties(Asset anAsset) {
+      ldm.fillProperties(anAsset);
+    }
+    public PropertyGroup lateFillPropertyGroup(Asset anAsset, Class pg, long time) {
+      return ldm.lateFillPropertyGroup(anAsset, pg, time);
+    }
+    public int getPrototypeProviderCount() {
+      return ldm.getPrototypeProviderCount();
+    }
+    public int getPropertyProviderCount() {
+      return ldm.getPropertyProviderCount();
+    }
+    public int getCachedPrototypeCount() {
+      return ldm.getCachedPrototypeCount();
+    }
+
+    public PlanningFactory getFactory() {
+      return ldm.getFactory();
+    }
+    public Factory getFactory(String domainName) {
+      return ldm.getFactory(domainName);
+    }
+    public Factory getFactory(Class domainClass) {
+      return ldm.getFactory(domainClass);
+    }
+    public ClassLoader getLDMClassLoader() {
+      return ldm.getLDMClassLoader();
+    }
+    public MessageAddress getMessageAddress() {
+      return ldm.getMessageAddress();
+    }
+    public UIDServer getUIDServer() {
+      return ldm.getUIDServer();
+    }
+  }
 }

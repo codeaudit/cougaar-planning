@@ -21,7 +21,6 @@
 
 package org.cougaar.planning;
 
-import org.cougaar.planning.ldm.plan.AspectType;
 
 public interface Constants {
 

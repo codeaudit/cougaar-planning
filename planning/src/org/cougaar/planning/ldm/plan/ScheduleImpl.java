@@ -325,7 +325,7 @@ public class ScheduleImpl
       if (o instanceof ScheduleElement) {
         add((ScheduleElement)o);
       } else {
-        throw new IllegalArgumentException("Schedule.setScheduleElements(enum e) expects that the objects contained in the enumeration are of type ScheduleElement");
+        throw new IllegalArgumentException("Schedule elements must be instanceof ScheduleElement");
       }
     }
   }

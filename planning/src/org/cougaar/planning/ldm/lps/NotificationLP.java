@@ -108,9 +108,9 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
         return false;
       }
     };
-    Enumeration enum = rootplan.searchBlackboard(pred);
-    while (enum.hasMoreElements()) {
-      PlanElement pe = (PlanElement) enum.nextElement();
+    Enumeration en = rootplan.searchBlackboard(pred);
+    while (en.hasMoreElements()) {
+      PlanElement pe = (PlanElement) en.nextElement();
       checkValues(pe, null);
     }
   }

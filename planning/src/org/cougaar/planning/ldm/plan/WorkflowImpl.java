@@ -94,10 +94,10 @@ public class WorkflowImpl
    * returned Enumeration should be protected by synchronizing on the
    * workflow. E.g.:<pre>
    * synchronized (wf) {
-   *   Enumeration enum = wf.getTasks();
-   *   // Use the enum
+   *   Enumeration en = wf.getTasks();
+   *   // Use the en
    * }</pre>
-   * The code using the enum should be brief to avoid locking the
+   * The code using the enumeration should be brief to avoid locking the
    * workflow for an extended period of time.
    * @return Enumeration{Task} Enumerate over our subtasks.
    **/

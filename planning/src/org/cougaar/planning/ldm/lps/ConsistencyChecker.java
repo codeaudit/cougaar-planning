@@ -197,9 +197,9 @@ public class ConsistencyChecker {
 	  // Look at the workflow: Does it contain me?
 	  boolean hasSub = false;
 	  synchronized (w) {
-	    Enumeration enum = w.getTasks();
-	    while (enum.hasMoreElements()) {
-	      Task subT = (Task)enum.nextElement();
+	    Enumeration en = w.getTasks();
+	    while (en.hasMoreElements()) {
+	      Task subT = (Task)en.nextElement();
 	      if (subT == t) {
 		hasSub = true;
 		break;
@@ -269,9 +269,9 @@ public class ConsistencyChecker {
 	  // Look at the workflow: Does it contain me?
 	  boolean hasSub = false;
 	  synchronized (w) {
-	    Enumeration enum = w.getTasks();
-	    while (enum.hasMoreElements()) {
-	      Task subT = (Task)enum.nextElement();
+	    Enumeration en = w.getTasks();
+	    while (en.hasMoreElements()) {
+	      Task subT = (Task)en.nextElement();
 	      if (subT == t) {
 		hasSub = true;
 		break;
@@ -401,9 +401,9 @@ public class ConsistencyChecker {
 	  // 5: Confirm that workflow has this subtask
 	  boolean hasSub = false;
 	  synchronized (w) {
-	    Enumeration enum = w.getTasks();
-	    while (enum.hasMoreElements()) {
-	      Task subT = (Task)enum.nextElement();
+	    Enumeration en = w.getTasks();
+	    while (en.hasMoreElements()) {
+	      Task subT = (Task)en.nextElement();
 	      if (subT == t) {
 		hasSub = true;
 		break;
@@ -491,9 +491,9 @@ public class ConsistencyChecker {
       // Look at the workflow: Does it contain me?
       boolean hasSub = false;
       synchronized (w) {
-	Enumeration enum = w.getTasks();
-	while (enum.hasMoreElements()) {
-	  Task subT = (Task)enum.nextElement();
+	Enumeration en = w.getTasks();
+	while (en.hasMoreElements()) {
+	  Task subT = (Task)en.nextElement();
 	  if (subT == t) {
 	    hasSub = true;
 	    break;

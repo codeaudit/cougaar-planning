@@ -169,9 +169,9 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
         return false;
       }
     };
-    Enumeration enum = rootplan.searchBlackboard(pred);
-    while (enum.hasMoreElements()) {
-      AssetTransfer at = (AssetTransfer) enum.nextElement();
+    Enumeration e = rootplan.searchBlackboard(pred);
+    while (e.hasMoreElements()) {
+      AssetTransfer at = (AssetTransfer) e.nextElement();
       rootplan.sendDirective(createAssetAssignment(at, AssetAssignment.REPEAT, true));
     }
     pred = new UnaryPredicate() {
@@ -189,8 +189,8 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
         return false;
       }
     };
-    for (enum = rootplan.searchBlackboard(pred); enum.hasMoreElements(); ) {
-      Asset asset = (Asset) enum.nextElement();
+    for (e = rootplan.searchBlackboard(pred); e.hasMoreElements(); ) {
+      Asset asset = (Asset) e.nextElement();
       
       if (related(asset)) {
 

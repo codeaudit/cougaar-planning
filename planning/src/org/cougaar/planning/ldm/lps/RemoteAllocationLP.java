@@ -211,9 +211,9 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
         return false;
       }
     };
-    Enumeration enum = rootplan.searchBlackboard(pred);
-    while (enum.hasMoreElements()) {
-      AllocationforCollections alloc = (AllocationforCollections) enum.nextElement();
+    Enumeration en = rootplan.searchBlackboard(pred);
+    while (en.hasMoreElements()) {
+      AllocationforCollections alloc = (AllocationforCollections) en.nextElement();
       UID remoteTaskUID = alloc.getAllocationTaskUID();
       Task localTask = alloc.getTask();
       if (remoteTaskUID != null && taskShouldBeSent(localTask)) {

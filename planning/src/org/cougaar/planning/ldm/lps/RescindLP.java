@@ -221,9 +221,9 @@ public class RescindLP
 
     boolean hasSub = false;
     synchronized (w) {
-      Enumeration enum = w.getTasks();
-      while (enum.hasMoreElements()) {
-	Task subT = (Task)enum.nextElement();
+      Enumeration en = w.getTasks();
+      while (en.hasMoreElements()) {
+	Task subT = (Task)en.nextElement();
 	if (subT == t) {
 	  hasSub = true;
 	  break;

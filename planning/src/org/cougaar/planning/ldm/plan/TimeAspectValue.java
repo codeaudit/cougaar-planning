@@ -28,6 +28,15 @@ import java.util.Date;
  */
  
 public class TimeAspectValue extends LongAspectValue {
+  static final AspectValue zero[] = new AspectValue[AspectType.N_CORE_ASPECTS];
+  static {
+    zero[AspectType.START_TIME] = new TimeAspectValue(AspectType.START_TIME, 0);
+    zero[AspectType.END_TIME] = new TimeAspectValue(AspectType.END_TIME, 0);
+    zero[AspectType.DURATION] = new TimeAspectValue(AspectType.DURATION, 0);
+    zero[AspectType.INTERVAL] = new TimeAspectValue(AspectType.INTERVAL, 0);
+    zero[AspectType.POD_DATE] = new TimeAspectValue(AspectType.POD_DATE, 0);
+  }
+
   protected TimeAspectValue(int type, long value) {
     super(type,value);
   }
@@ -41,6 +50,13 @@ public class TimeAspectValue extends LongAspectValue {
     } else {
       throw new IllegalArgumentException("Cannot create a TimeAspectValue from "+o);
     }
+
+    // check for static zeros
+    if (l==0 && type>=0 && type < zero.length) {
+      AspectValue av = zero[type];
+      if (av != null) return av;
+    }
+
     return new TimeAspectValue(type,l);
   }
    

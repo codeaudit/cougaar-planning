@@ -27,8 +27,15 @@ package org.cougaar.planning.ldm.plan;
 public class FloatAspectValue extends TypedAspectValue {
   private float value;
 
-  /** zeros cache **/
-  private static FloatAspectValue[] zeros = new FloatAspectValue[20]; // a bit bigger than we now use.
+  // zeros cache 
+  private static final int ZEROS = 20;
+  private static final AspectValue zero[] = new AspectValue[ZEROS];
+  static {
+    // dumb, but we'll not worry about it (minimal excess AV creation)
+    for (int i=0;i<ZEROS;i++) {
+      zero[i] = new FloatAspectValue(i,0.0f);
+    }
+  }
 
   protected FloatAspectValue(int type, float value) {
     super(type);
@@ -50,18 +57,9 @@ public class FloatAspectValue extends TypedAspectValue {
   }
 
   public static AspectValue create(int type, float value) {
-    // cache zeros
-    if (value == 0.0) {
-      synchronized (zeros) {
-        if (type < zeros.length) {
-         FloatAspectValue v = zeros[type];
-          if (v == null) {
-            v = new FloatAspectValue(type,value);
-            zeros[type] = v;
-          }
-          return v;
-        }
-      }
+    if (value == 0.0 &&
+        type>=0 && type<ZEROS ) {
+      return zero[type];
     }
     return new FloatAspectValue(type,value);
   }

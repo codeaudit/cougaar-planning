@@ -1,3 +1,43 @@
+2003-03-31  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/planning/ldm/lps/ReceiveTaskLP.java: 
+
+2003-03-28  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/planning/ldm/lps/ReceiveTaskLP.java: 
+	Bug #2718 -- Subscriptions show unchanged tasks as "changed" after restart
+	When cloning, serialize in sender's context and deserialize in
+	receiver's context.
+
+	* org/cougaar/planning/ldm/lps/SpecialWorkflow.java: 
+	Bug #2718 -- Subscriptions show unchanged tasks as "changed" after restart
+	A special implementation of the Workflow interface to mark tasks
+	being sent to other agents. All methods throw an
+	UnsupportedOperationException since this is not a real Workflow.
+
+	* org/cougaar/planning/ldm/lps/ReceiveTaskLP.java: 
+	Bug #2718 -- Subscriptions show unchanged tasks as "changed" after restart
+	Check if received tasks have been marked with a Workflow. If so,
+	the task is cloned to avoid aliasing errors. Cloning is done using
+	serialization so the resultant task is indistinguishable from one
+	that was sent over the network. None of the existing task copying
+	methods achieves this.
+
+	* org/cougaar/planning/ldm/lps/RemoteClusterAllocationLP.java: 
+	* org/cougaar/planning/ldm/lps/PreferenceChangeLP.java:
+	Bug #2718 -- Subscriptions show unchanged tasks as "changed" after restart
+	Mark sent tasks with a SpecialWorkflow so that aliasing errors can
+	be corrected by the receiving agent.
+
+	* org/cougaar/planning/servlet/CompletionServlet.java:
+	Do a better job of determining completion by comparing to a
+	(domain-defined) threshhold instead of a fixed threshhold.
+
+	* org/cougaar/planning/plugin/util/ExpanderHelper.java:
+	Separate the extraction of the "OfType" string from a task from
+	the isOfType method into a getOfType method. The
+	DetermineRequirmentsAbsorberPlugin needs this.
+
 2003-03-21  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* org/cougaar/planning/plugin/legacy/DeletionPlugin.java: 

@@ -60,7 +60,7 @@ import org.cougaar.util.GenericStateModelAdapter;
  * </pre>  See below for more parameter options.
  * <p>
  * MTS message byte and count requires this aspect:<pre>
- *   -Dorg.cougaar.message.transport.aspects=org.cougaar.core.mts.StatisticsAspect
+ *   -Dorg.cougaar.message.transport.aspects=org.cougaar.mts.std.StatisticsAspect
  * </pre><p>
  * CPULoad detection requires this node-agent plugin:<pre>
  *   plugin = org.cougaar.core.thread.AgentSensorPlugin

@@ -479,8 +479,8 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
   private transient ToStringMemo toStringMemo = null;
   public synchronized String toString() {
     if (toStringMemo == null) {
-      toStringMemo = new ToStringMemo() {
-          protected String generate() {
+      toStringMemo = ToStringMemo.getInstance(new Object() {
+          public String toString() {
             String cn = Asset.this.getClass().getName();
             int p = cn.lastIndexOf('.');
             if (p>=0) cn = cn.substring(p+1);
@@ -490,7 +490,7 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
             if (ii == null) { ii = "#"+hashCode(); }
             return "<"+cn+" "+ti+" "+ii+">";
           }
-        };
+        });
     }
     return toStringMemo.toString();
   }

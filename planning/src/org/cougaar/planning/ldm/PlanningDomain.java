@@ -19,10 +19,13 @@
  * </copyright>
  */
 
+
 package org.cougaar.planning.ldm;
+
 
 import java.util.ArrayList;
 import java.util.Collection;
+
 
 import org.cougaar.core.component.ServiceBroker;
 import org.cougaar.core.domain.DomainAdapter;
@@ -46,6 +49,7 @@ import org.cougaar.planning.ldm.lps.RemoteAllocationLP;
 import org.cougaar.planning.ldm.lps.RescindLP;
 import org.cougaar.planning.service.LDMService;
 
+
 /**
  * This is the "planning" domain, which defines planning
  * data types (Task, PlanElement, etc) and related LPs.
@@ -53,15 +57,18 @@ import org.cougaar.planning.service.LDMService;
 public class PlanningDomain extends DomainAdapter {
   public static final String PLANNING_NAME = "planning";
 
+
   private RootPlan rootplan;
   private AgentIdentificationService agentIdService;
   private MessageAddress self;
   private LDMService ldmService;
   private AlarmService alarmService;
 
+
   public String getDomainName() {
     return PLANNING_NAME;
   }
+
 
   public void setAgentIdentificationService(AgentIdentificationService ais) {
     this.agentIdService = ais;
@@ -72,13 +79,16 @@ public class PlanningDomain extends DomainAdapter {
     }
   }
 
+
   public void setLDMService(LDMService ldmService) {
     this.ldmService = ldmService;
   }
 
+
   public void setAlarmService(AlarmService alarmService) {
     this.alarmService = alarmService;
   }
+
 
   public void load() {
     super.load();
@@ -87,6 +97,7 @@ public class PlanningDomain extends DomainAdapter {
       LDMContextTable.setLDM(self, ldm);
     }
   }
+
 
   public void unload() {
     ServiceBroker sb = getBindingSite().getServiceBroker();
@@ -102,6 +113,7 @@ public class PlanningDomain extends DomainAdapter {
     super.unload();
   }
 
+
   public Collection getAliases() {
     ArrayList l = new ArrayList(2);
     l.add("planning");
@@ -109,16 +121,19 @@ public class PlanningDomain extends DomainAdapter {
     return l;
   }
 
+
   protected void loadFactory() {
     LDMServesPlugin ldm = ldmService.getLDM();
     Factory f = new PlanningFactoryImpl(ldm);
     setFactory(f);
   }
 
+
   protected void loadXPlan() {
     LogPlan logplan = new LogPlanImpl();
     setXPlan(logplan);
   }
+
 
   protected void loadLPs() {
     RootPlan rootplan = (RootPlan) getXPlanForDomain("root");
@@ -126,8 +141,10 @@ public class PlanningDomain extends DomainAdapter {
       throw new RuntimeException("Missing \"root\" plan!");
     }
 
+
     LogPlan logplan = (LogPlan) getXPlan();
     PlanningFactory ldmf = (PlanningFactory) getFactory();
+
 
     // input LPs
     addLogicProvider(new ReceiveAssetLP(rootplan, logplan, ldmf, self));

@@ -177,7 +177,7 @@ implements LogicProvider, MessageLogicProvider {
            pgIterator.hasNext();) {
         Object next = pgIterator.next();
 
-        //Don't propagate LocalPGs
+        //Don't overwrite LocalPGs
         if (!(next instanceof LocalPG)) {
           if (next instanceof PropertyGroup) {
             assetL.addOtherPropertyGroup((PropertyGroup) next);

@@ -19,11 +19,14 @@
  * </copyright>
  */
 
+
 package org.cougaar.planning.plugin.asset;
+
 
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Iterator;
+
 
 import org.cougaar.core.blackboard.AnonymousChangeReport;
 import org.cougaar.core.blackboard.ChangeReport;
@@ -33,6 +36,7 @@ import org.cougaar.core.service.LoggingService;
 import org.cougaar.planning.Constants;
 import org.cougaar.planning.ldm.PlanningFactory;
 import org.cougaar.planning.ldm.asset.Asset;
+import org.cougaar.planning.ldm.asset.LocalPG;
 import org.cougaar.planning.ldm.plan.Allocation;
 import org.cougaar.planning.ldm.plan.AllocationResult;
 import org.cougaar.planning.ldm.plan.AspectType;
@@ -49,6 +53,7 @@ import org.cougaar.planning.plugin.legacy.SimplePlugin;
 import org.cougaar.planning.plugin.util.PluginHelper;
 import org.cougaar.util.UnaryPredicate;
 
+
 /**
  * AssetReportPlugin manages REPORTFORDUTY and REPORTFORSERVICE relationships
  * Handles both expansion and allocation of these tasks.
@@ -56,15 +61,19 @@ import org.cougaar.util.UnaryPredicate;
  * @see org.cougaar.planning.plugin.legacy.SimplifiedPluginTest
  */
 
+
 public class AssetReportPlugin extends SimplePlugin
 {
   protected PlanningFactory myPlanningFactory;
   private IncrementalSubscription myTasks;
   private IncrementalSubscription myAssetTransfers;
 
+
   private IncrementalSubscription myLocalAssets;
 
+
   protected LoggingService myLogger;
+
 
   //Override the setupSubscriptions() in the SimplifiedPlugin.
   protected void setupSubscriptions() {
@@ -73,18 +82,22 @@ public class AssetReportPlugin extends SimplePlugin
       throw new RuntimeException("Missing \"planning\" factory");
     }
 
+
     myLogger = (LoggingService)
       getBindingSite().getServiceBroker().getService(this, LoggingService.class, null);
     if (myLogger == null) {
       myLogger = LoggingService.NULL;
     }
 
+
     // subscribe for incoming Report Tasks 
     myTasks = 
       (IncrementalSubscription) subscribe(getTaskPredicate());
 
+
     // subscribe to my allocations in order to propagate allocationresults
     myAssetTransfers = (IncrementalSubscription)subscribe(getAssetTransferPred());
+
 
     // subscribe to my local assets so I can propagate modifications
     myLocalAssets = (IncrementalSubscription)subscribe(getLocalAssetPred());
@@ -94,12 +107,12 @@ public class AssetReportPlugin extends SimplePlugin
     // Handle REPORT tasks, expanding and allocating all at once
     if (myTasks.hasChanged()) {
       if (myLogger.isInfoEnabled())
-	myLogger.info(getAgentIdentifier() + " had RFD or RFS task subscription fire");
+        myLogger.info(getAgentIdentifier() + " had RFD or RFS task subscription fire");
       Enumeration newtasks = myTasks.getAddedList();
       while (newtasks.hasMoreElements()) {
         Task currentTask = (Task)newtasks.nextElement();
-	if (myLogger.isInfoEnabled())
-	  myLogger.info("       with added Task to now allocate: " + currentTask);
+        if (myLogger.isInfoEnabled())
+          myLogger.info("       with added Task to now allocate: " + currentTask);
         allocate(currentTask);
       }
     }  
@@ -107,7 +120,7 @@ public class AssetReportPlugin extends SimplePlugin
     // If get back a reported result, automatically send it up.
     if (myAssetTransfers.hasChanged()) {
       if (myLogger.isInfoEnabled())
-	myLogger.info(getAgentIdentifier() + " had AssetTransfer with RFD or RFS task subscription fire");
+        myLogger.info(getAgentIdentifier() + " had AssetTransfer with RFD or RFS task subscription fire");
       Enumeration changedallocs = myAssetTransfers.getChangedList();
       boolean didLog = false;
       int notSent = 0;
@@ -115,25 +128,26 @@ public class AssetReportPlugin extends SimplePlugin
       while (changedallocs.hasMoreElements()) {
         cpe = (PlanElement)changedallocs.nextElement();
         if (PluginHelper.updatePlanElement(cpe)) {
-	  if (myLogger.isInfoEnabled()) {
-	    myLogger.info("        with a changed PE to propagate up: " + cpe);
-	    didLog = true;
-	  }
+          if (myLogger.isInfoEnabled()) {
+            myLogger.info("        with a changed PE to propagate up: " + cpe);
+            didLog = true;
+          }
           publishChange(cpe);
         } else if (myLogger.isInfoEnabled()) {
-	  notSent++;
-	}
+          notSent++;
+        }
       }
       if (!didLog && myLogger.isInfoEnabled())
-	myLogger.info("      with " + notSent + " changed ATs but no PE changes to propagate. Last PE was: " + cpe);
+        myLogger.info("      with " + notSent + " changed ATs but no PE changes to propagate. Last PE was: " + cpe);
     }
   
     if (myLocalAssets.hasChanged()) {
       if (myLogger.isInfoEnabled())
-	myLogger.info(getAgentIdentifier() + " had Local HasRelationship asset subscription fire -- will resend AssetTransfers if the ChangeReport is not a RelationshipSchedule change");
+        myLogger.info(getAgentIdentifier() + " had Local HasRelationship asset subscription fire -- will resend AssetTransfers if the ChangeReport is not a RelationshipSchedule change");
       resendAssetTransfers();
     }
   }
+
 
   /**
    * getTaskPredicate - returns task predicate for task subscription
@@ -146,24 +160,29 @@ public class AssetReportPlugin extends SimplePlugin
     return allReportTaskPred();
   }
 
+
   protected UnaryPredicate getAssetTransferPred() {
     return allReportAssetTransferPred();
   }
+
 
   protected UnaryPredicate getLocalAssetPred() {
     return new allLocalAssetPred(getMessageAddress());
   }
 
+
   private void allocate(Task task) {
     if (task.getPlanElement() != null) {
       myLogger.error(getMessageAddress().toString()+
-		     "/AssetReportPlugin: unable to process " + task.getUID() + 
-		     " - task already has a PlanElement - " + 
-		     task.getPlanElement() + ".\n");
+                     "/AssetReportPlugin: unable to process " + task.getUID() + 
+                     " - task already has a PlanElement - " + 
+                     task.getPlanElement() + ".\n");
       return;
     }
 
+
     Asset reportingAsset = task.getDirectObject();
+
 
     if (!reportingAsset.getClusterPG().getMessageAddress().equals(getMessageAddress())) {
       allocateRemote(task);
@@ -172,26 +191,29 @@ public class AssetReportPlugin extends SimplePlugin
     }
   }
 
+
   private void allocateLocal(Task task) {
     Asset reportingAsset = task.getDirectObject();
     Asset reportee = (Asset) findIndirectObject(task, Constants.Preposition.FOR);
+
 
     Asset localReportingAsset = findLocalAsset(reportingAsset);
     if ((localReportingAsset == null) ||
         (!((HasRelationships )localReportingAsset).isLocal())) {
         //(!localReportingAsset.getClusterPG().getMessageAddress().equals(getMessageAddress()))) {
       myLogger.error(getMessageAddress().toString()+
-		     "/AssetReportPlugin: unable to process " + 
-		     task.getVerb() + " task - " + 
-		     reportingAsset + " reporting to " + reportee + ".\n" +
-		     reportingAsset + " not local to this cluster."
-		     );
+                     "/AssetReportPlugin: unable to process " + 
+                     task.getVerb() + " task - " + 
+                     reportingAsset + " reporting to " + reportee + ".\n" +
+                     reportingAsset + " not local to this cluster."
+                     );
       return;
     }
     
     long startTime = (long) task.getPreferredValue(AspectType.START_TIME);
     long endTime = (long) task.getPreferredValue(AspectType.END_TIME);
     
+
 
     // Make RelationshipSchedule for the reporting asset
     Collection roles = 
@@ -201,10 +223,10 @@ public class AssetReportPlugin extends SimplePlugin
     for (Iterator iterator = roles.iterator(); iterator.hasNext();) {
       Relationship relationship = 
         myPlanningFactory.newRelationship((Role) iterator.next(),
-					  (HasRelationships) reportingAsset,
-					  (HasRelationships) reportee,
-					  startTime,
-					  endTime);
+                                          (HasRelationships) reportingAsset,
+                                          (HasRelationships) reportee,
+                                          startTime,
+                                          endTime);
       schedule.add(relationship);
     }
     ((HasRelationships) reportingAsset).setRelationshipSchedule(schedule);
@@ -212,7 +234,8 @@ public class AssetReportPlugin extends SimplePlugin
     // create the transfer
     NewSchedule availSchedule = 
       myPlanningFactory.newSimpleSchedule(startTime,
-					  endTime);
+                                          endTime);
+
 
     AllocationResult newEstimatedResult = 
       PluginHelper.createEstimatedAllocationResult(task,
@@ -220,15 +243,17 @@ public class AssetReportPlugin extends SimplePlugin
                                                    1.0,
                                                    true);
 
+
     AssetTransfer assetTransfer = 
       myPlanningFactory.createAssetTransfer(task.getPlan(), task, 
-					    reportingAsset,
-					    availSchedule, 
-					    reportee,
-					    newEstimatedResult, 
-					    Role.ASSIGNED);
+                                            reportingAsset,
+                                            availSchedule, 
+                                            reportee,
+                                            newEstimatedResult, 
+                                            Role.ASSIGNED);
     publishAdd(assetTransfer);
   }
+
 
   private void allocateRemote(Task task) {
     Asset reportingAsset = task.getDirectObject();
@@ -241,12 +266,13 @@ public class AssetReportPlugin extends SimplePlugin
     
     Allocation allocation = 
       myPlanningFactory.createAllocation(task.getPlan(), task, 
-					 reportingAsset,
-					 newEstimatedResult, 
-					 Role.ASSIGNED);
+                                         reportingAsset,
+                                         newEstimatedResult, 
+                                         Role.ASSIGNED);
     publishAdd(allocation);
     return;
   }
+
 
   protected Asset findLocalAsset(Asset asset) {
     final Object key = asset.getKey();
@@ -265,9 +291,11 @@ public class AssetReportPlugin extends SimplePlugin
       }
     });
 
+
     if (collection.size() > 0) {
       Iterator iterator = collection.iterator();
       localAsset = (Asset)iterator.next();
+
 
       if (iterator.hasNext()) {
         throw new RuntimeException("AssetReportPlugin - multiple assets with UIC = " + 
@@ -275,12 +303,15 @@ public class AssetReportPlugin extends SimplePlugin
       }
     } 
 
+
     return localAsset;
   }
+
 
   // ###############################################################
   // END Allocation
   // ###############################################################
+
 
   protected Object findIndirectObject(Task _task, String _prep) {
     PrepositionalPhrase pp = _task.getPrepositionalPhrase(_prep);
@@ -288,8 +319,10 @@ public class AssetReportPlugin extends SimplePlugin
       throw new RuntimeException("Didn't find a single \"" + _prep + 
                                  "\" Prepositional Phrase in " + _task);
 
+
     return pp.getIndirectObject();
   }
+
 
   private void resendAssetTransfers() {
     // BOZO - No support for removal of a local Asset
@@ -299,6 +332,7 @@ public class AssetReportPlugin extends SimplePlugin
       return;
     }
 
+
     for (Iterator iterator = changes.iterator();
          iterator.hasNext();) {
       Asset localAsset = (Asset) iterator.next();
@@ -307,15 +341,22 @@ public class AssetReportPlugin extends SimplePlugin
       // schedule changed. Warning - legtimate change will get lost if batched
       // with relationship schedule changes unless a separate change report is 
       // generated.
+      // Also, do not resend just because a LocalPG changed. That is, the change must 
+      // be anonymous or explicitly something other than RelationshipSchedule or LocalPG Change.
+      // OrgActivity changes that result in LocationSchedule changes (see the OplanWatcherLP)
+      // are such LocalPG changes that should not be propogated. The reasoning being that the 
+      // AssetTransferLP / ReceiveAssetLP will just ignore any LocalPG changes, so why bother
+      // needlessly waking people up.
       Collection changeReports = myLocalAssets.getChangeReports(localAsset);
       boolean resendRequired = false;
+
 
       if ((changeReports != AnonymousChangeReport.SET) &&
           (changeReports != null)) {
         for (Iterator reportIterator = changeReports.iterator();
              reportIterator.hasNext();) {
           ChangeReport report = (ChangeReport) reportIterator.next();
-          if (!(report instanceof RelationshipSchedule.RelationshipScheduleChangeReport)) {
+          if (!(report instanceof RelationshipSchedule.RelationshipScheduleChangeReport || report instanceof LocalPG.LocalPGChangeReport)) {
             resendRequired = true;
             break;
           }
@@ -328,6 +369,7 @@ public class AssetReportPlugin extends SimplePlugin
       }
     }
   }
+
 
   /**
      Resend a collection of AssetTransfers. Asset transfers are "sent"
@@ -344,19 +386,20 @@ public class AssetReportPlugin extends SimplePlugin
       AssetTransfer at = (AssetTransfer) i.next();
       if (at.getAsset().equals(localAsset)) {
         if (at.getAssignee().equals(localAsset)) {
-	  if (myLogger.isDebugEnabled()) {
-	    myLogger.debug(getAgentIdentifier() + 
-			   " resendAssetTransfers: not resending " + at);
-	  }
+          if (myLogger.isDebugEnabled()) {
+            myLogger.debug(getAgentIdentifier() + 
+                           " resendAssetTransfers: not resending " + at);
+          }
         } else {
-	  if (myLogger.isInfoEnabled())
-	    myLogger.info(getAgentIdentifier() + " IS resending AssetTransfer of self to " + at.getAssignee());
+          if (myLogger.isInfoEnabled())
+            myLogger.info(getAgentIdentifier() + " IS resending AssetTransfer of self to " + at.getAssignee());
           at.indicateAssetChange();
           publishChange(at, changeReports);
         }
       }
     }
   }
+
 
   // #######################################################################
   // BEGIN predicates
@@ -366,16 +409,17 @@ public class AssetReportPlugin extends SimplePlugin
   private static UnaryPredicate allReportTaskPred() {
     return new UnaryPredicate() {
       public boolean execute(Object o) {
-	if (o instanceof Task) {
+        if (o instanceof Task) {
           Task task = (Task) o;
-	  if (task.getVerb().equals(Constants.Verb.REPORT)) {
-	    return true;
+          if (task.getVerb().equals(Constants.Verb.REPORT)) {
+            return true;
           }
-	}
-	return false;
+        }
+        return false;
       }
     };
   }
+
 
   private static UnaryPredicate allReportAssetTransferPred() {
     return new UnaryPredicate() {
@@ -392,6 +436,7 @@ public class AssetReportPlugin extends SimplePlugin
       }
     };
   }
+
 
   private static class allLocalAssetPred implements UnaryPredicate {
     private final MessageAddress myCID;

@@ -20,11 +20,23 @@
  */
 
 
+
 package org.cougaar.planning.ldm.asset;
 
+
 /** marker class for indicating that a PG contains information which is 
- * to the current cluster.
+ * specific to the current agent.
  **/
 public interface LocalPG {
-}
 
+  /** Marks a change only on a LocalPG -- and therefore not a change
+   * that needs to be propogated to remote Agents. **/
+  class LocalPGChangeReport implements Asset.AssetChangeReport {
+    public LocalPGChangeReport() {
+    }
+
+    public String toString() {
+      return "LocalPGChangeReport";
+    }
+  }
+}

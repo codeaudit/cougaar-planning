@@ -63,17 +63,17 @@ import org.cougaar.util.PropertyParser;
 
 /**
  * Base class for all instantiable assets.
+ *
+ * @property org.cougaar.planning.ldm.asset.Asset.regeneratePrototypeCache If set to true
+ * (the default), the prototypeCache will be regenerated as much as possible
+ * from persistence information on rehydration.
  **/
 
 public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
   implements Cloneable, UniqueObject, Publishable 
 {
-  /** @property org.cougaar.planning.ldm.asset.Asset.regeneratePrototypeCache If set to true
-   * (defaults to false), the prototypeCache will be regenerated as much as possible
-   * from persistence information on rehydration.
-   **/
   public static final boolean regeneratePrototypeCacheP = 
-    PropertyParser.getBoolean("org.cougaar.planning.ldm.asset.Asset.regeneratePrototypeCache", false);
+    PropertyParser.getBoolean("org.cougaar.planning.ldm.asset.Asset.regeneratePrototypeCache", true);
 
   static final long serialVersionUID = -7188316484839955973L;
 

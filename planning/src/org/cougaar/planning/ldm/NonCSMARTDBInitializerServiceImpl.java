@@ -58,7 +58,6 @@ public class NonCSMARTDBInitializerServiceImpl implements DBInitializerService {
    * Constructor creates a DBInitializer from the DBInitializer.q
    * query control file and sets up variables for referencing the database.
    * <p>
-   * @param trialId the Trial identifier.
    */
   public NonCSMARTDBInitializerServiceImpl()
     throws SQLException, IOException

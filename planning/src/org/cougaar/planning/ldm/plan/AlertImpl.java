@@ -82,8 +82,6 @@ public class AlertImpl implements Alert, NewAlert {
   
   /**
    * setAlertText - sets display text for the alert
-   * 
-   * @param String alertText
    */
   public void setAlertText(String alertText) {
     myDisplayText = alertText;
@@ -91,8 +89,6 @@ public class AlertImpl implements Alert, NewAlert {
 
   /**
    * getAlertText - returns the display text for the alert
-   *
-   * @return String
    */
   public String getAlertText() {
     return myDisplayText;

@@ -113,7 +113,6 @@ public class CompositionImpl
   }
   
   /**Calculate seperate AllocationResults for each parent task of the Composition.
-   * @param composition
    * @return distributedresults
    * @see org.cougaar.planning.ldm.plan.Composition
    * @see org.cougaar.planning.ldm.plan.TaskScoreTable
@@ -136,7 +135,7 @@ public class CompositionImpl
   // NewComposition interface implementations
   
   /** Set the Aggregation PlanElements of the tasks being combined
-    * @param Collection  The Aggregations
+    * @param aggs  The Aggregations
     * @see org.cougaar.planning.ldm.plan.Aggregation
     */
   public synchronized void setAggregations(Collection aggs) {
@@ -160,7 +159,6 @@ public class CompositionImpl
   }
 
   /** Add a single Aggregation to the existing collection
-   * @param Aggregation
    */
   public synchronized void addAggregation(Aggregation singleagg) {
     aggregations.add(singleagg);

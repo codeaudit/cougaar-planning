@@ -34,14 +34,14 @@ public interface NewReport extends Report
   /**
    * setText - Set report text
    *
-   * @param String reportText report text
+   * @param reportText report text
    **/
   void setText(String reportText);
 
   /**
    * setDate - Set creation date for the object
    *
-   * @param Date creation date for the object
+   * @param reportDate creation date for the object
    **/
   void setDate(Date reportDate);
 

@@ -355,7 +355,7 @@ public class ClusterObjectFactoryImpl implements ClusterObjectFactory {
   /** Create an assigned relationship schedule.  This schedule is a container
    * of AssignedRelationshipElements. Should only be used by logic providers
    * in handling new/modified/removed AssetTransfers 
-   * @param Enumeration{AssignedRelationshipElement}
+   * @param elements Enumeration{AssignedRelationshipElement}
    * @see org.cougaar.planning.ldm.plan.AssignedRelationshipElement
    **/
   public NewSchedule newAssignedRelationshipSchedule(Enumeration elements) {
@@ -375,7 +375,7 @@ public class ClusterObjectFactoryImpl implements ClusterObjectFactory {
   }
 
   /** Build an asset transfer availabity schedule.
-   * @param Enumeration{AssignedAvailabilityElement}
+   * @param availElements Enumeration{AssignedAvailabilityElement}
    * @see org.cougaar.planning.ldm.plan.AssignedAvailabilityElement 
    **/
   public NewSchedule newAssignedAvailabilitySchedule(Enumeration availElements) {
@@ -387,7 +387,6 @@ public class ClusterObjectFactoryImpl implements ClusterObjectFactory {
   }
 
   /** Build a an asset transfer availabity schedule
-   * @param Enumeration{AssignedAvailabilityElement}
    * @see org.cougaar.planning.ldm.plan.AssignedAvailabilityElement 
    **/
   public NewSchedule newAssignedAvailabilitySchedule() {
@@ -399,7 +398,7 @@ public class ClusterObjectFactoryImpl implements ClusterObjectFactory {
   
   /** Create a location schedule.  This schedule is a container of 
    * LocationScheduleElements.
-   * @param Enumeration{LocationScheduleElement}
+   * @param locationElements Enumeration{LocationScheduleElement}
    * @see org.cougaar.planning.ldm.plan.LocationScheduleElement
    **/
   public NewSchedule newLocationSchedule(Enumeration locationElements) {
@@ -411,7 +410,7 @@ public class ClusterObjectFactoryImpl implements ClusterObjectFactory {
   
   /** Create a location range schedule.  This schedule has a container
    * of LocationRangeScheduleElements.
-   * @param Enumeration{LocationRangeScheduleElement}
+   * @param locationRangeElements Enumeration{LocationRangeScheduleElement}
    * @see org.cougaar.planning.ldm.plan.LocationRangeScheduleElement
    **/
   public NewSchedule newLocationRangeSchedule(Enumeration locationRangeElements) {
@@ -423,7 +422,7 @@ public class ClusterObjectFactoryImpl implements ClusterObjectFactory {
   
   /** Create a schedule that contains different types of scheduleelements.
    * Note that ScheduleElement has multiple subclasses which are excepted.
-   * @param Enumeration{ScheduleElement}
+   * @param scheduleElements Enumeration{ScheduleElement}
    * @see org.cougaar.planning.ldm.plan.ScheduleElement
    **/
   public NewSchedule newSchedule(Enumeration scheduleElements) {

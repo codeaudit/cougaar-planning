@@ -81,7 +81,7 @@ public class BooleanRuleParameter implements RuleParameter, java.io.Serializable
 
   /**
    * Set parameter value
-   * @param Object new_value : must be Boolean
+   * @param new_value : must be Boolean
    * @throws RuleParameterIllegalValueException (only Boolean accepted)
    */
   public void setValue(Object new_value) 
@@ -98,7 +98,7 @@ public class BooleanRuleParameter implements RuleParameter, java.io.Serializable
   }
 
   /**
-   * @param Object test_value : must be Boolean
+   * @param test_value : must be Boolean
    * @return true if Object is a Boolean, false otherwise
    */
   public boolean inRange(Object test_value)

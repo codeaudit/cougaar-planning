@@ -66,7 +66,7 @@ public class ReportImpl
   /**
    * setText - set text for message
    * 
-   * @param infoText String with new text
+   * @param reportText String with new text
    */
   public void setText(String reportText) {
     myText = reportText;

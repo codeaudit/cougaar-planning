@@ -69,7 +69,7 @@ public interface PrototypeRegistryService extends Service {
    * the prototype under both type identifiers in these cases.
    *
    * @param aTypeName specifies an Asset description. 
-   * @param anAssetClassHint is an optional hint to LDM plugins
+   * @param anAssetClass is an optional hint to LDM plugins
    * to reduce their potential work load.  If non-null, the returned asset 
    * (if any) should be an instance the specified class or one of its
    * subclasses.  When null, each PrototypeProvider will attemt to decode

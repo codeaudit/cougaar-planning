@@ -51,10 +51,11 @@ public interface RoleSchedule
   /** @deprecated use getEncapsulatedRoleSchedule(long, long) **/
   Collection getEncapsulatedRoleSchedule(Date start, Date end);
   
-  /** @return a sorted Collection containing planelements with
-   * a given AspectType and value.
-   * @param int  The AspectType
+  /**
+   * @param aspecttype  The AspectType
    * @param value The double representing value of the given AspectType
+   * @return a sorted Collection containing planelements with
+   * a given AspectType and value.
    **/
   Collection getEqualAspectValues(int aspecttype, double value);
 	

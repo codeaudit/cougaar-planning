@@ -80,7 +80,7 @@ extends Factory, ClusterObjectFactory
    * This *always* creates a prototype of the specific class.
    * most plugins want to call getPrototype(String typeid);
    *
-   * @param class an LDM Asset class.
+   * @param assetClass an LDM Asset class.
    **/
   Asset createAsset(Class assetClass);
 

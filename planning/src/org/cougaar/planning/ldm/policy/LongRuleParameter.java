@@ -144,7 +144,7 @@ public class LongRuleParameter implements RuleParameter, java.io.Serializable {
 
   /**
    * 
-   * @param Object test_value : must be Long
+   * @param test_value : must be Long
    * @return true if test_value is within the acceptable range
    */
   public boolean inRange(Object test_value)

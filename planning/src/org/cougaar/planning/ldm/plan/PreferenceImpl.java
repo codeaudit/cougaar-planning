@@ -43,12 +43,10 @@ public class PreferenceImpl
   }
    
   /** Simple Constructor 
-   * @param aspect
+   * @param aspecttype
    * @param scoringfunction
    * @see org.cougaar.planning.ldm.plan.AspectValue
    */
-  
-    
   public PreferenceImpl(int aspecttype, ScoringFunction scoringfunction) {
     super();
     aspect = aspecttype;
@@ -57,7 +55,7 @@ public class PreferenceImpl
   }
    
   /** Constructor that takes aspect type, scoring function and weight.
-   * @param aspect
+   * @param aspecttype
    * @param scoringfunction
    * @param weight
    * @see org.cougaar.planning.ldm.plan.AspectValue

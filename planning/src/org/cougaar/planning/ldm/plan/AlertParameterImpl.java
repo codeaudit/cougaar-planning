@@ -102,8 +102,6 @@ public class AlertParameterImpl implements AlertParameter, NewAlertParameter {
   /**
    * setResponse - saves the answer to the question posed by this AlertParameter. 
    * This method would be used by the UI to fill in the user's response, if any.
-   *
-   * @param Object response
    **/
   public void setResponse(Object response) {
     myResponse = response;
@@ -112,8 +110,6 @@ public class AlertParameterImpl implements AlertParameter, NewAlertParameter {
   /**
    * getRespose - The answer to the question posed by this AlertParameter. This method
    * would be used by the UI to fill in the user's response, if any.
-   * 
-   * @return Object
    **/
   public Object getResponse() {
     return myResponse;

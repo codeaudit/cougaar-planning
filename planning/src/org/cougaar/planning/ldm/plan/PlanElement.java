@@ -83,7 +83,7 @@ public interface PlanElement
   /**
    * Set the observed allocation result that be incorporated into the
    * reported result
-   * @param observedresult
+   * @param observedResult
    **/
   void setObservedResult(AllocationResult observedResult);
   

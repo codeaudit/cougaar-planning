@@ -84,9 +84,7 @@ public class AssetVerificationImpl extends PlanningDirectiveImpl
 
   /** 
    * Sets the asset the notification is in reference to.
-   * @param asset Asset
    **/
-                
   public void setAssignee(Asset assignee) {
     myAssignee = assignee;
   }

@@ -48,8 +48,7 @@ import org.cougaar.planning.plugin.legacy.PluginDelegate;
   
 public interface Predictor extends Serializable {
     
-  /** @param Task for_task
-   * @param PluginDelegate plugin
+  /** 
    * @return AllocationResult A predictive result for the given task.
    * @see org.cougaar.planning.ldm.plan.AllocationResult
    **/

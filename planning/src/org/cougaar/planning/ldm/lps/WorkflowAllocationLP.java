@@ -49,7 +49,7 @@ implements LogicProvider, EnvelopeLogicProvider
   public void init() {
   }
 
-  /** @param Object  Object Envelope.tuple
+  /** @param o EnvelopeTuple
    *        where Envelope.Tuple.object
    *            == PlanElement object ADDED TO LOGPLAN containing Expansion
    **/

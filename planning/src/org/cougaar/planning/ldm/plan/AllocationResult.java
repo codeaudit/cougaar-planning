@@ -515,8 +515,6 @@ public class AllocationResult
   }
   
   /** checks to see if the AllocationResult is equal to this one.
-     * @param anAllocationResult
-     * @return boolean
      */
   public boolean isEqual(AllocationResult that) {
     if (this == that) return true; // quick success

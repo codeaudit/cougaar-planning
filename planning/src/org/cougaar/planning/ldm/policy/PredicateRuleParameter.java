@@ -96,7 +96,7 @@ public class PredicateRuleParameter implements RuleParameter, java.io.Serializab
 
   /**
    * 
-   * @param Object test_value : Any object
+   * @param test_value : Any object
    * @return true if test_value is acceptable to the predicate
    */
   public boolean inRange(Object test_value) {

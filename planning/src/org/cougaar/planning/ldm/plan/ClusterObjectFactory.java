@@ -182,9 +182,6 @@ public interface ClusterObjectFactory {
   Disposition createFailedDisposition(Plan aPlan, Task aTask, AllocationResult failure);
   	
   /** Build a new Disposition
-   * @param aPlan
-   * @param aTask
-   * @param failure
    * @return a Disposition
    * @see org.cougaar.planning.ldm.plan.AllocationResult
    */
@@ -211,7 +208,7 @@ public interface ClusterObjectFactory {
   /** Create an assigned relationship schedule.  This schedule is a container
    * of AssignedRelationshipElements. Should only be used by logic providers
    * in handling new/modified/removed AssetTransfers.
-   * @param Enumeration{AssignedRelationshipElement}
+   * @param elements Enumeration{AssignedRelationshipElement}
    * @see org.cougaar.planning.ldm.plan.AssignedRelationshipElement
    **/
   NewSchedule newAssignedRelationshipSchedule(Enumeration elements);
@@ -224,7 +221,7 @@ public interface ClusterObjectFactory {
   NewSchedule newAssignedRelationshipSchedule();
 
   /** Build an asset transfer availabity schedule.
-   * @param Enumeration{AssignedAvailabilityElement}
+   * @param availElements Enumeration{AssignedAvailabilityElement}
    * @see org.cougaar.planning.ldm.plan.AssignedAvailabilityElement 
    **/
   NewSchedule newAssignedAvailabilitySchedule(Enumeration availElements);
@@ -236,21 +233,21 @@ public interface ClusterObjectFactory {
 
   /** Create a location schedule.  This schedule is a container of 
    * LocationScheduleElements.
-   * @param Enumeration{LocationScheduleElement}
+   * @param locationElements Enumeration{LocationScheduleElement}
    * @see org.cougaar.planning.ldm.plan.LocationScheduleElement
    **/
   NewSchedule newLocationSchedule(Enumeration locationElements);
   
   /** Create a location range schedule.  This schedule is a container
    * of LocationRangeScheduleElements.
-   * @param Enumeration{LocationRangeScheduleElement}
+   * @param locationRangeElements Enumeration{LocationRangeScheduleElement}
    * @see org.cougaar.planning.ldm.plan.LocationRangeScheduleElement
    **/
   NewSchedule newLocationRangeSchedule(Enumeration locationRangeElements);
   
   /** Create a schedule that contains different types of scheduleelements.
    * Note that ScheduleElement has multiple subclasses which are excepted.
-   * @param Enumeration{ScheduleElement}
+   * @param scheduleElements Enumeration{ScheduleElement}
    * @see org.cougaar.planning.ldm.plan.ScheduleElement
    **/
   NewSchedule newSchedule(Enumeration scheduleElements);
@@ -375,7 +372,7 @@ public interface ClusterObjectFactory {
   /** Create a new NON-PHASE AllocationResult
     * @param rating The confidence rating of this result.
     * @param success  Whether the allocationresult violated any preferences.
-    * @param aspectvalues The AspectValues of the result.
+    * @param avrs The AspectValues of the result.
     * @return AllocationResult  A new AllocationResult
     */
   AllocationResult newAllocationResult(double rating, boolean success, AspectValue[] avrs);
@@ -397,7 +394,6 @@ public interface ClusterObjectFactory {
   /** Create a new  PHASED AllocationResult instance. 
     * @param rating The confidence rating of this result.
     * @param success  Whether the allocationresult violated any preferences.
-    * @param aspecttypes  The AspectTypes (and order) of the results.
     * @param rollup  The summary values for each aspect as AspectValues.
     * @param allresults  An Enumeration of Vectors representing
     * each phased collection of results.

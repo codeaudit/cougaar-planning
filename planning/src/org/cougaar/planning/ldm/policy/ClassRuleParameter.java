@@ -106,7 +106,7 @@ public class ClassRuleParameter implements RuleParameter, java.io.Serializable {
 
   /**
    * Set parameter value
-   * @param Object new_value : must be Class that implements/extends 
+   * @param new_value : must be Class that implements/extends 
    * given class
    * @throws RuleParameterIllegalValueException
    */
@@ -128,7 +128,7 @@ public class ClassRuleParameter implements RuleParameter, java.io.Serializable {
   }
 
   /**
-   * @param Object test_value : must be Class
+   * @param test_value : must be Class
    * @return true if Object isAssignableFrom Class specified in constructor,
    * false otherwise
    */

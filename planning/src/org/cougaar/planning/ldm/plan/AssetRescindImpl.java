@@ -43,11 +43,6 @@ public class AssetRescindImpl extends PlanningDirectiveImpl
   private transient Asset rescindeeAsset;
   private Schedule rescindedSchedule;
         
-  /**
-   * @param src
-   * @param dest
-   * @param assetUID
-   **/
   public AssetRescindImpl(MessageAddress src, MessageAddress dest, Plan plan,
                           Asset rescindedAsset, Asset rescindeeAsset, 
                           Schedule rescindSchedule) {
@@ -71,14 +66,11 @@ public class AssetRescindImpl extends PlanningDirectiveImpl
     
   /**
    * Sets the asset to be rescinded
-   * @param Asset
    **/
 
   public void setAsset(Asset asset) {
     rescindedAsset = asset;
   }
-     
-
 
   public Asset getRescindee() {
     return rescindeeAsset;
@@ -87,7 +79,6 @@ public class AssetRescindImpl extends PlanningDirectiveImpl
   public void setRescindee(Asset newRescindeeAsset) {
     rescindeeAsset = newRescindeeAsset;
   }
-
 
   public Schedule getSchedule() {
     return rescindedSchedule;

@@ -45,7 +45,7 @@ public class RoleScheduleImpl
   private Asset asset;
 	
   /** Constructor
-   * @param Asset the asset this roleschedule is attached to
+   * @param theasset this roleschedule is attached to
    **/
   public RoleScheduleImpl(Asset theasset) {
     super();

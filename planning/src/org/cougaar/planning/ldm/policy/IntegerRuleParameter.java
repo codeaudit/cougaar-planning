@@ -123,7 +123,7 @@ public class IntegerRuleParameter implements RuleParameter, java.io.Serializable
 
   /**
    * Set parameter value
-   * @param Object new_value : must be Integer
+   * @param new_value : must be Integer
    * @throws RuleParameterIllegalValueException
    */
   public void setValue(Object new_value) 
@@ -146,7 +146,7 @@ public class IntegerRuleParameter implements RuleParameter, java.io.Serializable
 
   /**
    * 
-   * @param Object test_value : must be Integer
+   * @param test_value : must be Integer
    * @return true if test_value is within the acceptable range
    */
   public boolean inRange(Object test_value)

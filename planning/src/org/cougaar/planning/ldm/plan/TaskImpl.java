@@ -341,7 +341,7 @@ public class TaskImpl extends PlanningDirectiveImpl
     * requesting information on.  This information will be returned in
     * the AllocationResult of this task's disposition.
     * Note that this method clears all previous types.
-    * @param int[]  A collection of defined AuxiliaryQueryTypes
+    * @param thetypes  A collection of defined AuxiliaryQueryTypes
     * @see org.cougaar.planning.ldm.plan.AuxiliaryQueryType
     */
   public void setAuxiliaryQueryTypes(int[] thetypes) {

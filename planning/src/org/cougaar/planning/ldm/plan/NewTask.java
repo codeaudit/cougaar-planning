@@ -53,7 +53,7 @@ public interface NewTask extends Task, NewPlanningDirective
    * parent task could be "move vehicles
    * from point a to point b ...". An
    * expanded task could be "fuel vehicles ...".
-   * @param pt - Task that is the "parenttask"
+   * @param ptuid - Task that is the "parenttask"
    **/
 
   void setParentTaskUID(UID ptuid);
@@ -197,7 +197,7 @@ public interface NewTask extends Task, NewPlanningDirective
     * requesting information on.  This information will be returned in
     * the AllocationResult of this task's disposition.
     * Note that this method clears all previous types.
-    * @param int[]  A collection of defined AuxiliaryQueryTypes
+    * @param thetypes  A collection of defined AuxiliaryQueryTypes
     * @see org.cougaar.planning.ldm.plan.AuxiliaryQueryType
     */
   void setAuxiliaryQueryTypes(int[] thetypes);

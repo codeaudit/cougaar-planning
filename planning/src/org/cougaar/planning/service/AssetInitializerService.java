@@ -27,7 +27,7 @@ import org.cougaar.planning.plugin.asset.AssetDataReader;
 /**
  * Planning asset configuration service.
  * <p>
- * @see org.cougaar.planing.plugin.asset.AssetDataPluginBase
+ * @see org.cougaar.planning.plugin.asset.AssetDataPluginBase
  */
 public interface AssetInitializerService extends Service {
 

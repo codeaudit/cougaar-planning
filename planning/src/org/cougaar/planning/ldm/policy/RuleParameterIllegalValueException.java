@@ -34,8 +34,8 @@ package org.cougaar.planning.ldm.policy;
 public class RuleParameterIllegalValueException extends Exception {
   /**
    * Constructor - Contains parameter type and message
-   * @param int parameter_type for type code of parameter (from RuleParameter)
-   * @param String message 
+   * @param parameter_type for type code of parameter (from RuleParameter)
+   * @param message 
    */
   public RuleParameterIllegalValueException
       (int parameter_type, String message) 

@@ -115,7 +115,7 @@ public class RangeRuleParameter implements RuleParameter,
 
   /**
    * Set parameter value
-   * @param Object new_value : must be String within given list
+   * @param new_value : must be String within given list
    * @throws RuleParameterIllegalValueException
    */
   public void setValue(Object new_value) 
@@ -125,7 +125,7 @@ public class RangeRuleParameter implements RuleParameter,
   }
 
   /**
-   * @param Object test_value 
+   * @param test_value 
    * @return always returns true 
    */
   public boolean inRange(Object test_value)

@@ -92,7 +92,7 @@ public class EnumerationRuleParameter implements RuleParameter, java.io.Serializ
 
   /**
    * Set parameter value
-   * @param Object new_value : must be String within given list
+   * @param new_value : must be String within given list
    * @throws RuleParameterIllegalValueException
    */
   public void setValue(Object new_value) 
@@ -116,7 +116,7 @@ public class EnumerationRuleParameter implements RuleParameter, java.io.Serializ
   }
 
   /**
-   * @param Object test_value : must be String
+   * @param test_value : must be String
    * @return true if Object is a String in the enumeration, false otherwise
    */
   public boolean inRange(Object test_value)

@@ -107,7 +107,6 @@ public class AssignedRelationshipElementImpl extends ScheduleElementImpl
 
   /** Set the string identifier for the Asset mapping to HasRelationships B 
    * in the associated relationship
-   * @param String
    **/ 
   public void setItemIDB(String itemID) {
     myItemIDB = itemID;
@@ -115,7 +114,6 @@ public class AssignedRelationshipElementImpl extends ScheduleElementImpl
 
   /** Set the string identifier for the Asset mapping to HasRelationships B 
    * in the associated relationship
-   * @param asset Asset
    **/ 
   public void setItemIDB(Asset asset) {
     myItemIDB = asset.getItemIdentificationPG().getItemIdentification();

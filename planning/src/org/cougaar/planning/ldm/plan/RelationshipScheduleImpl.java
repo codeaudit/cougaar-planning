@@ -165,7 +165,7 @@ public class RelationshipScheduleImpl extends ScheduleImpl
    * specified role, other object, and overlap the specified time span.
    * 
    * @param role Role to look for
-   * @param otherObject HasRelationships 
+   * @param other HasRelationships 
    * @param startTime long specifying the start of the time span
    * @param endTime long specifying the end of the time span
    * @return a sorted Collection containing all Relationships which
@@ -194,7 +194,7 @@ public class RelationshipScheduleImpl extends ScheduleImpl
    * specified role, direct object flag, and overlap the specified time span.
    * 
    * @param role Role to look for
-   * @param otherObject HasRelationships 
+   * @param other HasRelationships 
    * @param timeSpan TimeSpan 
    * @return a sorted Collection containing all Relationships which
    * which match the specified Role and overlap the specified time span
@@ -211,7 +211,7 @@ public class RelationshipScheduleImpl extends ScheduleImpl
   /** getMatchingRelationships - return all Relationships which contain the
    * specified other object and overlap the specified time span.
    * 
-   * @param otherObject HasRelationships 
+   * @param other HasRelationships 
    * @param startTime long specifying the start of the time span
    * @param endTime long specifying the end of the time span
    * @return a sorted Collection containing all Relationships which
@@ -235,7 +235,7 @@ public class RelationshipScheduleImpl extends ScheduleImpl
   /** getMatchingRelationships - return all Relationships which contain the
    * specified other object and overlap the specified time span.
    * 
-   * @param otherObject HasRelationships 
+   * @param other HasRelationships 
    * @param timeSpan TimeSpan 
    * @return a sorted Collection containing all Relationships which
    * which match the specified Role and overlap the specified time span
@@ -250,7 +250,7 @@ public class RelationshipScheduleImpl extends ScheduleImpl
   /** getMatchingRelationships - return all Relationships where the role
    * ends with the specifed suffix and overlap the specified time span.
    * 
-   * @param ruleSuffix String
+   * @param roleSuffix String
    * @param startTime long specifying the start of the time span
    * @param endTime long specifying the end of the time span
    * @return a sorted Collection containing all Relationships which
@@ -274,7 +274,7 @@ public class RelationshipScheduleImpl extends ScheduleImpl
   /** getMatchingRelationships - return all Relationships where the role
    * ends with the specifed suffix and overlap the specified time span.
    * 
-   * @param ruleSuffix String
+   * @param roleSuffix String
    * @param timeSpan TimeSpan 
    * @return a sorted Collection containing all Relationships which
    * which match the specified role suffix and overlap the specified time span

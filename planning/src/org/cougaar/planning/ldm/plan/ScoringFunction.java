@@ -170,7 +170,7 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
    * that BEST point is specified, even though the
    * Scores of low, best and high are all actually the same.
    * @param low  The low point.
-   * @param low  The preferred point.
+   * @param best  The preferred point.
    * @param high The high point.
    * @return StrictBetweenWithBest
    */
@@ -184,7 +184,7 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
    * anything outside the range is WORST.
    * The best point need not be centered between low and high.
    * @param low  The low point.
-   * @param low  The best point.
+   * @param best  The best point.
    * @param high The high point.
    * @return VScoringFunction
    */

@@ -77,7 +77,7 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
   }
 
   /**
-   *  @param Object an Envelope.Tuple.object is an ADDED 
+   *  @param o an Envelope.Tuple.object is an ADDED 
    * PlanElement which contains an Allocation to an Organization.
    * Do something if the test returned true i.e. it was an Allocation
    **/

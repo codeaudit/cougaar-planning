@@ -93,7 +93,7 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
   }
 
   /**
-   * @param Object Envelopetuple,
+   * @param o Envelopetuple,
    *          where tuple.object
    *             == PlanElement with an Allocation to an agent ADDED to LogPlan
    *

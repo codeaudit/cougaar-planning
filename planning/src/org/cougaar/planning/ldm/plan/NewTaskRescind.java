@@ -31,7 +31,7 @@ public interface NewTaskRescind extends TaskRescind, NewPlanningDirective
 {
   /**
    * Sets the UID of the task to be rescinded
-   * @param atask - The Task to be rescinded.
+   * @param uid - The Task to be rescinded.
    **/
   void setTaskUID(UID uid);
 

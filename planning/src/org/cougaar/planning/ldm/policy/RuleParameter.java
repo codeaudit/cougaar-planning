@@ -67,7 +67,7 @@ public interface RuleParameter extends Cloneable {
 
   /**
    * Set parameter object value 
-   * @param Object new_value - the new value to be set
+   * @param new_value - the new value to be set
    * @throws RuleParameterIllegalValueException if value set is illegal for 
    * given parameter
    */
@@ -76,7 +76,7 @@ public interface RuleParameter extends Cloneable {
 
   /**
    * Test the value to see if it is valid.
-   * @param Object test_object - the value to be tested
+   * @param test_object - the value to be tested
    * @return true if the test_object is within the allowable range, false
    * otherwise.
    **/

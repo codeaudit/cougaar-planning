@@ -33,7 +33,7 @@ import org.cougaar.planning.ldm.asset.Asset;
 public interface NewAssetRescind extends AssetRescind, NewPlanningDirective {
   /**
    * Sets the asset to be rescinded
-   * @param asset - The Asset to be rescinded.
+   * @param anAsset - The Asset to be rescinded.
    **/
   void setAsset(Asset anAsset);
 

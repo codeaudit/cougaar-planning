@@ -90,7 +90,7 @@ implements LogicProvider, EnvelopeLogicProvider {
   }
 
   /**
-   *  @param Object  Envelope.Tuple
+   *  @param o  EnvelopeTuple
    *             where Envelope.Tuple.object is an ADDED PlanElement which contains
    *                             an Allocation to an agent asset.
    * Do something if the test returned true i.e. it was a PlanElement being removed

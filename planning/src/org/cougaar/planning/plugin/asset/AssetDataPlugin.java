@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.Vector;
 
 import org.cougaar.core.mts.MessageAddress;
@@ -94,6 +95,27 @@ import org.cougaar.util.TimeSpan;
  * Currently assumes that each Cluster has exactly 1 local asset.
  *
  * Extensions of this class load this information from specific media such as files.
+ * Now supports adding additional relationships via plugin parameters. Each
+ * parameter represents 1 relationship between the local asset and some 'other' 
+ * asset. Parameter must completely identify both the other asset and the 
+ * relationship. Building the other asset requires knowing the asset's message 
+ * address (ClusterPG), item identification (ItemIdentificationPG), and type 
+ * identification (TypeIdentificationPG). Building the relationship requires 
+ * knowing the role and optionally the start and end times.
+ * 
+ * Parameter format -
+ * Relationship:MessageAddress=<ClusterPG.getMessageAddress of other asset>,\
+ * ItemIdentification=<ItemIdentificatioPG.getItemIdentification of other asset>,\
+ * TypeIdentification=<TypeIdentificatioPG.getTypeIdentification of other asset>,\
+ * Role=<Role performed by the local asset>\
+ * StartTime=<Date relationship starts>\
+ * EndTime=<Date relations ends>
+ * 
+ * Sample parameter -
+ * Relationship:MessageAddress=DISCOM-1-AD,ItemIdentification=DISCOM-1-AD,TypeIdentification=UTC/NBTTT,Role=Superior,StartTime=01/01/2001 12:00 am,EndTime= 01/01/2010 11:59 pm
+ *
+ * StartTime and EndTime specifications are optional. Will default to 
+ * getDefaultStartTime()/getDefaultEndTime() if not included
  **/
 public class AssetDataPlugin extends SimplePlugin {
   public static final String SELF = ("Self");
@@ -125,7 +147,7 @@ public class AssetDataPlugin extends SimplePlugin {
       myLogger = LoggingService.NULL;
     }
 
-    
+
     if (!didRehydrate()) {
       try {
         openTransaction();
@@ -183,11 +205,12 @@ public class AssetDataPlugin extends SimplePlugin {
 		       " Unable to create local asset.");
 	return;
       }
-	
-      AssetDataReader assetDataReader = 
-	myAssetInitializerService.getAssetDataReader();
+      AssetDataReader assetDataReader = getAssetDataReader();
       assetDataReader.readAsset(cId, new AssetDataCallbackImpl());
-      
+
+      // Process relationships specified as plugin arguments 
+      addParamRelationships();      
+
       if (myLogger.isDebugEnabled()) {
 	myLogger.debug(getAgentIdentifier() + 
 		       ": property groups for local asset: ");
@@ -488,6 +511,10 @@ public class AssetDataPlugin extends SimplePlugin {
       }
     }
   }
+  
+  protected AssetDataReader getAssetDataReader() {
+    return myAssetInitializerService.getAssetDataReader();
+  }
 
   private static Class[] stringArgSpec = {String.class};
 
@@ -582,13 +609,14 @@ public class AssetDataPlugin extends SimplePlugin {
       try {
         Class ldmfc = i.next().getClass();
         Method fm = ldmfc.getMethod(newname, nullClassList);
+	// Documentation says first arg is ignored for static methods,
+	// which it is ?always?
         return fm.invoke(myPlanningFactory, nullArgList);
       } catch (NoSuchMethodException nsme) {
         // This is okay - just try the next factory
       } catch (Exception e) { 
 	myLogger.error(getAgentIdentifier() + 
-		       " Problem loading Domain Factory");
-	e.printStackTrace(); 
+		       " Problem loading Domain Factory", e);
       }
     }
       
@@ -618,7 +646,7 @@ public class AssetDataPlugin extends SimplePlugin {
         }
       }
     } catch (Exception e) {
-      throw new RuntimeException("Couldn't find set"+slotname+" for "+o+", value "+value);
+      throw new RuntimeException("Couldn't find set"+slotname+" for "+o+", value "+value + ". Typo in slot name: " + slotname + "?");
     }
 
     throw new RuntimeException("Couldn't find set"+slotname+" for "+o+", value "+value);
@@ -768,6 +796,132 @@ public class AssetDataPlugin extends SimplePlugin {
     }
     return null;
   }
+
+  public static final String ATTRIBUTE_DELIMITER = "=";
+  public static final String VALUE_DELIMITER = ",";
+  public static final String KEYWORD_DELIMITER = ":";
+
+  protected void addParamRelationships() {
+    Collection params = getDelegate().getParameters();    
+
+    for (Iterator iterator = params.iterator();
+	 iterator.hasNext();) {
+      String param = (String) iterator.next();
+      
+      addParamRelationship(param);
+    }
+  }
+
+  public static final String RELATIONSHIP_KEY = "Relationship";
+
+  protected void addParamRelationship(String param) {
+    StringTokenizer tokenizer = 
+      new StringTokenizer(param, KEYWORD_DELIMITER + ATTRIBUTE_DELIMITER + VALUE_DELIMITER, true);
+
+    if (myLogger.isDebugEnabled()) {
+      myLogger.debug("addParamRelationship: param = " + param + 
+		     " - tokenizer count = " + tokenizer.countTokens());
+    }
+
+    String nextAttribute = getToken(tokenizer, KEYWORD_DELIMITER);
+
+    if (!nextAttribute.equals(RELATIONSHIP_KEY)) {
+      if (myLogger.isDebugEnabled()) {
+	myLogger.debug("addParamRelationship: skipping param - " + param);
+      }
+      return;
+    } 
+    
+    String messageAddress = null;
+    String typeIdentification = null;
+    String itemIdentification=null;
+    String role = "";
+    long start = getDefaultStartTime();
+    long end = getDefaultEndTime();
+    
+    while (tokenizer.hasMoreTokens()) {
+
+      nextAttribute = getToken(tokenizer, ATTRIBUTE_DELIMITER);
+      
+      if (myLogger.isDebugEnabled()) {
+	myLogger.debug("addParamRelelationship: nextAttribute " + nextAttribute);
+      }
+
+      if (nextAttribute == null) {
+	myLogger.error(getAgentIdentifier() + ":Unrecognized attribute " + 
+		       nextAttribute + " in " + param + 
+		       ". No relationship added.");
+	return;
+      } else if (nextAttribute.equals("MessageAddress")) {
+	messageAddress = getToken(tokenizer, VALUE_DELIMITER);
+      } else if (nextAttribute.equals("ItemIdentification")) {
+	itemIdentification = getToken(tokenizer, VALUE_DELIMITER);
+      } else if (nextAttribute.equals("TypeIdentification")) { 
+	typeIdentification = getToken(tokenizer, VALUE_DELIMITER);
+      } else if (nextAttribute.equals("Role")) { 
+	role =getToken(tokenizer, VALUE_DELIMITER);
+      } else if (nextAttribute.equals("StartTime")) { 
+	String timeString = getToken(tokenizer, VALUE_DELIMITER);
+	if (myLogger.isDebugEnabled())
+	  myLogger.debug(getMessageAddress() + " trying to parse timeString: " + timeString + " from " + param);
+	try {
+	  if (timeString != null)
+	    start = parseDate(timeString);
+	  else
+	    start = getDefaultStartTime();
+	} catch (java.text.ParseException pe) {
+	  myLogger.error(getAgentIdentifier() + 
+			 ":Unable to parse start date from " + param +  
+			 ". Start time defaulting to " + 
+			 getDefaultStartTime());
+	}
+      } else if (nextAttribute.equals("EndTime")) { 
+	String timeString = getToken(tokenizer, VALUE_DELIMITER);
+	try {
+	  if (timeString != null)
+	    end = parseDate(timeString);
+	  else
+	    end = getDefaultEndTime();
+	} catch (java.text.ParseException pe) {
+	  myLogger.error(getAgentIdentifier() + 
+			 ":Unable to parse end date from " + param +  
+			 ". Start time defaulting to " + 
+			 getDefaultEndTime());
+	}
+      } else {
+	myLogger.error(getAgentIdentifier() + ":Unrecognized attribute " + 
+		       nextAttribute + " in " + param + 
+		       ". No relationship added.");
+	return;
+      }
+    }
+
+    if ((messageAddress == null) ||
+	(typeIdentification == null) ||
+	(itemIdentification == null) ||
+	(role == null)) {
+      myLogger.error(getAgentIdentifier() + 
+		     ":Incomplete relationship specification - " + param +
+		     ". No relationship added.");
+    } else {
+      addRelationship(typeIdentification, itemIdentification, messageAddress,
+		      role, start, end);
+    }
+  }
+
+  private String getToken(StringTokenizer tokenizer, String delim) {
+    String token = null;
+    if (tokenizer.hasMoreTokens()) {
+      token = tokenizer.nextToken(delim);
+      if (tokenizer.hasMoreTokens() &&
+	  !(tokenizer.nextToken().equals(delim))) {
+	token = null;
+      }
+    }
+
+    return token;
+  }
+
   
   private static class TrivialTimeSpan implements TimeSpan {
     long myStart;
@@ -826,6 +980,7 @@ public class AssetDataPlugin extends SimplePlugin {
     public void addPropertyToAsset(PropertyGroup pg) {
       AssetDataPlugin.this.addPropertyToAsset(pg);
     }
+
     public void addRelationship(String typeId, String itemId,
                                 String otherClusterId, String roleName,
                                 long start, long end)
@@ -834,3 +989,7 @@ public class AssetDataPlugin extends SimplePlugin {
     }
   }
 }
+
+
+
+

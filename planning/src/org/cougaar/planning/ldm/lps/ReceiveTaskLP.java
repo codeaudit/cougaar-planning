@@ -34,11 +34,16 @@ import org.cougaar.planning.ldm.plan.NewTask;
 import org.cougaar.planning.ldm.plan.Preference;
 import org.cougaar.planning.ldm.plan.PlanElement;
 import org.cougaar.planning.ldm.plan.TaskImpl;
+import org.cougaar.planning.ldm.plan.Context;
 
 import org.cougaar.util.log.Logger;
 import org.cougaar.util.log.Logging;
 
 import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * Sample LogicProvider for use by ClusterDispatcher to
@@ -56,6 +61,8 @@ implements LogicProvider, MessageLogicProvider
 
   private final RootPlan rootplan;
   private final LogPlan logplan;
+  private Set existingPhrases = new HashSet();
+  private Set newPhrases = new HashSet();
 
   public ReceiveTaskLP(
       RootPlan rootplan,
@@ -90,12 +97,20 @@ implements LogicProvider, MessageLogicProvider
       Task tsk = (Task) dir;
       try {
         Task existingTask = logplan.findTask(tsk);
+        // We don't know about this task
         if (existingTask == null) {
-          // only add if it isn't already there.
-          if (logger.isDebugEnabled()) {
-            logger.debug("Received new task from another node " + tsk.getUID());
+          if (tsk.isDeleted()) {
+            // Ignore received deleted tasks
+            if (logger.isDebugEnabled()) {
+              logger.debug("Ignoring new, but deleted task from another node " + tsk.getUID());
+            }
+          } else {
+            // Add it to our blackboard
+            if (logger.isDebugEnabled()) {
+              logger.debug("Received new task from another node " + tsk.getUID());
+            }
+            rootplan.add(tsk);
           }
-          rootplan.add(tsk);
         } else if (tsk.isDeleted()) {
           if (existingTask.isDeleted()) {
             if (logger.isDebugEnabled()) {
@@ -118,22 +133,114 @@ implements LogicProvider, MessageLogicProvider
           }
           rootplan.change(existingTask, changes);
         } else {
+          // Update task from received task
+          boolean changedTask = false;
           Preference[] newPreferences = ((TaskImpl) tsk).getPreferencesAsArray();
           Preference[] existingPreferences = ((TaskImpl) existingTask).getPreferencesAsArray();
-          if (java.util.Arrays.equals(newPreferences, existingPreferences)) {
+          if (logger.isDebugEnabled()) {
+            logger.debug("Comparing " + tsk);
+          }
+          if (!java.util.Arrays.equals(newPreferences, existingPreferences)) {
             if (logger.isDebugEnabled()) {
-              logger.debug("Preferences compare equal " + tsk.getUID());
+              logger.debug("Preferences differ "
+                           + newPreferences +
+                           "!="
+                           + existingPreferences);
             }
+            ((NewTask) existingTask).setPreferences(tsk.getPreferences());
+            changedTask = true;
+          } else {
+            if (logger.isDebugEnabled()) {
+              logger.debug("Preferences compare equal "
+                           + newPreferences
+                           + "=="
+                           + existingPreferences);
+            }
+          }
+          for (Enumeration e = existingTask.getPrepositionalPhrases(); e.hasMoreElements(); ) {
+            existingPhrases.add(e.nextElement());
+          }
+          for (Enumeration e = tsk.getPrepositionalPhrases(); e.hasMoreElements(); ) {
+            newPhrases.add(e.nextElement());
+          }
+
+
+	  boolean match = false;
+
+	  if (newPhrases.size() == existingPhrases.size()) {
+	    for (Iterator existingIterator = existingPhrases.iterator();
+		 existingIterator.hasNext();) {
+	      Object existingPhrase = existingIterator.next();
+	      match = false;
+
+	      for (Iterator newIterator = newPhrases.iterator();
+		   newIterator.hasNext();) {
+		if (newIterator.next().equals(existingPhrase)) {
+		  match = true;
+		  break;
+		}
+	      }
+	      
+	      if (match == false) {
+		break;
+	      }
+	    }
+	  }
+		 
+
+          if (!match) {
+            ((NewTask) existingTask).setPrepositionalPhrases(tsk.getPrepositionalPhrases());
+            changedTask = true;
+            if (logger.isDebugEnabled()) {
+              logger.debug("Phrases differ " + newPhrases + "!=" + existingPhrases);
+            }
+          } else {
+            if (logger.isDebugEnabled()) {
+              logger.debug("Phrases compare equal " + newPhrases + "==" + existingPhrases);
+            }
+          }
+            
+          existingPhrases.clear();
+          newPhrases.clear();
+          Context existingContext = existingTask.getContext();
+          Context tskContext = tsk.getContext();
+          boolean contextsDiffer = false;
+          if (logger.isWarnEnabled()) {
+            if (existingContext == null) {
+              logger.warn("existingTask has null context: " + existingTask);
+            }
+            if (tskContext == null) {
+              logger.warn("received Task has null context: " + tsk);
+            }
+          }
+          if (((existingContext != null) && !existingContext.equals(tskContext)) ||
+	      ((existingContext == null) && (tskContext != null))) {
+            ((NewTask) existingTask).setContext(tskContext);
+            changedTask = true;
+            if (logger.isDebugEnabled()) {
+              logger.debug("Contexts differ: "
+                           + tskContext
+                           + "!="
+                           + existingContext);
+            }
+          }
+          if (!existingTask.getVerb().equals(tsk.getVerb())) {
+            ((NewTask) existingTask).setVerb(tsk.getVerb());
+            changedTask = true;
+            if (logger.isDebugEnabled()) {
+              logger.debug("Verbs differ "
+                           + tsk.getVerb()
+                           + "!="
+                           + existingTask.getVerb());
+            }
+          } 
+          if (changedTask) {
+            rootplan.change(existingTask, changes);
+          } else {
             PlanElement pe = existingTask.getPlanElement();
             if (pe != null) {
               rootplan.change(pe, changes);	// Cause estimated result to be resent
             }
-          } else {
-            if (logger.isDebugEnabled()) {
-              logger.debug("Preferences differ " + tsk.getUID());
-            }
-            ((NewTask) existingTask).setPreferences(tsk.getPreferences());
-            rootplan.change(existingTask, changes);
           }
         }
       } catch (SubscriberException se) {

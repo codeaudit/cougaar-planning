@@ -1,3 +1,52 @@
+2003-08-22  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/planning/ldm/lps/RemoteAllocationLP.java:
+	Bug #3266 -- Commitment time of tasks are not copied to remote allocation task
+	Copy the commitment data from original task to remote task if it
+	is not null.
+
+2003-08-21  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/planning/servlet/CompletionServlet.java:
+	Bug #3241 -- Stacktrace in completion servlet
+	Formatting integers into a too-narrow space attempts to construct
+	padding with a negative number of spaces leading to an exception.
+	Check for negative padding and return do not pad in that case.
+	Also check for attempts to add too much padding. The latter
+	shouldn't happen, but while we are being paranoid...
+
+2003-05-29  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/planning/servlet/CompletionServlet.java:
+	Bug #2912 -- GLMCompletion servlet URIs too long
+	Use POST instead of GET. The alternative is to use sessions, but
+	that is a bigger change.
+	Changed the one POST that might get redirected (where the action
+	specifies a different agent) back to GET. This form has no hidden
+	selectedAgent inputs and so should have a limited length.
+
+2003-05-28  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/planning/ldm/lps/RemoteAllocationLP.java:
+	Bug #2889 -- RemoteAllocationLP end date check affects the execution optempo perturbation
+	Offset the minValidTaskTime by VALID_TASK_TIME_OFFSET of one day.
+	Tasks with an end time preference more than one day in the past
+	are not sent to other agents.
+
+2003-05-12  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/planning/servlet/PlanViewServlet.java:
+	Add sort by end time option for tasks. Also added preferences
+	column to task display and reformatted phrases column to improve
+	readability.
+
+	* org/cougaar/planning/ldm/lps/RemoteAllocationLP.java:
+	Additional logging.
+
+	* org/cougaar/planning/ldm/lps/ReceiveTaskLP.java:
+	Compare phrases, context, and verb of received tasks and update
+	the task if any of these have changed. Also add more logging.
+
 2003-04-25  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* org/cougaar/planning/plugin/asset/AssetDataPlugin.java:
@@ -17,7 +66,6 @@
 	Bug #2798 -- ReceiveNotification reports notification for inappropriate PE
 	Print the task instead of the UID to aid in debugging.
 	
-
 2003-04-07  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* org/cougaar/planning/plugin/legacy/DeletionPlugin.java: 

@@ -786,7 +786,7 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
     public boolean equals(Object o) {
       if (o instanceof TwoPointScoringFunction) {
         TwoPointScoringFunction that = (TwoPointScoringFunction) o;
-        return (this.point1 == that.point1 && this.point2 == that.point2);
+	return ((this.point1 == null ? that.point1 == null : this.point1.equals(that.point1)) && (this.point2 == null ? that.point2 == null : this.point2.equals(that.point2)));
       }
       return false;
     }

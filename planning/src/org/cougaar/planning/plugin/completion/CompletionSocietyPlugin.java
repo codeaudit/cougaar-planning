@@ -27,14 +27,18 @@ import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.cougaar.core.component.ServiceBroker;
 import org.cougaar.core.component.ServiceRevokedListener;
+import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.service.EventService;
 import org.cougaar.core.service.ServletService;
 import org.cougaar.core.service.wp.WhitePagesService;
@@ -175,23 +179,39 @@ public abstract class CompletionSocietyPlugin extends CompletionSourcePlugin {
 
   protected abstract CompletionAction[] getCompletionActions();
 
-  protected Set getTargetNames() {
-    Set names;
+  private static final Comparator messageAddressComparator =
+    new Comparator() {
+      public int compare(Object o1, Object o2) {
+        MessageAddress a1 = (MessageAddress) o1;
+        MessageAddress a2 = (MessageAddress) o2;
+        return a1.getAddress().compareTo(a2.getAddress());
+      }
+    };
+
+  protected Set getTargets() {
     try {
-      names = ListAllNodes.listAllNodes(wps); // not scalable!
+      Set names = ListAllNodes.listAllNodes(wps); // not scalable!
+      Set targets = new TreeSet(messageAddressComparator);
+      for (Iterator i = names.iterator(); i.hasNext(); ) {
+        targets.add(MessageAddress.getMessageAddress((String) i.next()));
+      }
+      return targets;
     } catch (Exception e) {
       if (logger.isErrorEnabled()) {
         logger.error("Unable to list all node names", e);
       }
-      names = Collections.EMPTY_SET;
+      return Collections.EMPTY_SET;
     }
-    return names;
   }
 
   private void insureCompletionActions() {
     if (completionActions == null) {
       completionActions = getCompletionActions();
     }
+  }
+
+  protected boolean adjustLaggards(SortedSet laggards) {
+    return false;
   }
 
   protected void handleNewLaggard(Laggard worstLaggard) {

@@ -102,25 +102,44 @@ public class AssetReportPlugin extends SimplePlugin
   public void execute() {
     // Handle REPORT tasks, expanding and allocating all at once
     if (myTasks.hasChanged()) {
+      if (myLogger.isInfoEnabled())
+	myLogger.info(getAgentIdentifier() + " had RFD or RFS task subscription fire");
       Enumeration newtasks = myTasks.getAddedList();
       while (newtasks.hasMoreElements()) {
         Task currentTask = (Task)newtasks.nextElement();
+	if (myLogger.isInfoEnabled())
+	  myLogger.info("       with added Task to now allocate: " + currentTask);
         allocate(currentTask);
       }
     }  
   
     // If get back a reported result, automatically send it up.
     if (myAssetTransfers.hasChanged()) {
+      if (myLogger.isInfoEnabled())
+	myLogger.info(getAgentIdentifier() + " had AssetTransfer with RFD or RFS task subscription fire");
       Enumeration changedallocs = myAssetTransfers.getChangedList();
+      boolean didLog = false;
+      int notSent = 0;
+      PlanElement cpe = null;
       while (changedallocs.hasMoreElements()) {
-        PlanElement cpe = (PlanElement)changedallocs.nextElement();
+        cpe = (PlanElement)changedallocs.nextElement();
         if (PluginHelper.updatePlanElement(cpe)) {
+	  if (myLogger.isInfoEnabled()) {
+	    myLogger.info("        with a changed PE to propagate up: " + cpe);
+	    didLog = true;
+	  }
           publishChange(cpe);
-        }
+        } else if (myLogger.isInfoEnabled()) {
+	  notSent++;
+	}
       }
+      if (!didLog && myLogger.isInfoEnabled())
+	myLogger.info("      with " + notSent + " changed ATs but no PE changes to propagate. Last PE was: " + cpe);
     }
   
     if (myLocalAssets.hasChanged()) {
+      if (myLogger.isInfoEnabled())
+	myLogger.info(getAgentIdentifier() + " had Local HasRelationship asset subscription fire -- will resend AssetTransfers if the ChangeReport is not a RelationshipSchedule change");
       resendAssetTransfers();
     }
   }
@@ -339,6 +358,8 @@ public class AssetReportPlugin extends SimplePlugin
 			   " resendAssetTransfers: not resending " + at);
 	  }
         } else {
+	  if (myLogger.isInfoEnabled())
+	    myLogger.info(getAgentIdentifier() + " IS resending AssetTransfer of self to " + at.getAssignee());
           at.indicateAssetChange();
           publishChange(at, changeReports);
         }

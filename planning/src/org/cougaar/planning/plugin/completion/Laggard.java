@@ -77,6 +77,7 @@ class Laggard implements Comparable, Serializable {
 //   }
 
   public int compareTo(Object o) {
+    if (this == o) return 0;
     Laggard that = (Laggard) o;
     if (isLaggard()) {
       if (!that.isLaggard()) return -1;

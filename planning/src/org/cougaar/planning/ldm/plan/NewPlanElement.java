@@ -39,4 +39,11 @@ public interface NewPlanElement extends PlanElement {
    * @param t - The Task that the PlanElement is referencing.
    **/
   void setTask(Task t);
+  /**
+   * Sets the Task of the PlanElement. This differs from setTask
+   * in that it is expected that the PlanElement is already attached
+   * to a Task so the Task and PlanElement are rewired accordingly.
+   * @param t - The new Task that the PlanElement is referencing.
+   **/
+  void resetTask(Task t);
 }

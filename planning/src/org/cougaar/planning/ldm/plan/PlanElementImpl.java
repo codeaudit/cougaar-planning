@@ -65,7 +65,9 @@ public abstract class PlanElementImpl
   extends PublishableAdapter
   implements PlanElement, NewPlanElement, PEforCollections, ScheduleElement, ActiveSubscriptionObject, ActivePersistenceObject, BeanInfo
 {
-        
+
+  private static final long serialVersionUID = -3303746652987764635L;
+
   protected transient Task task;   // changed to transient : Persistence
   //protected Plan plan;
   
@@ -138,6 +140,21 @@ public abstract class PlanElementImpl
         
   public void setTask(Task t) {
     task = t;
+  }
+
+  /**
+   * Sets the Task of the PlanElement. This method differs from
+   * setTask in that it is expected that the PlanElement is already
+   * attached to a Task so the Task and PlanElement are rewired
+   * accordingly.
+   * @param t - The new Task that the PlanElement is referencing.
+   **/
+  public void resetTask(Task t) {
+    Task oldTask = getTask();
+    if (oldTask != null) {
+      ((TaskImpl) oldTask).privately_resetPlanElement();
+    }
+    setTask(t);
   }
   
   /** @param p - set the plan this planelement is a part of */

@@ -1,3 +1,34 @@
+2003-06-30  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* SimpleTimeAdvanceComponent.java:
+	Simple servlet to advance by a number of hours or days. Does not
+	wait for completion or anything complex.
+
+2003-06-12  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* CompletionSourcePlugin.java: 
+	Bug #3033 -- Completion Event recieved yet servlet HTML view shows agents incomplete
+	Give subclasses an opportunity to adjustLaggards before they are
+	processed. The CompletionNodePlugin uses this to insure that
+	agents that the NodeBusyService indicates are busy are also
+	laggards.
+	Also change getTargetNames() to be getTargets() returning the
+	MessageAddress of the agents. This change was pending anyway and
+	it greatly simplifies the use of the NodeBusyService, which
+	accepts the MessageAddress of an agent.
+
+	* CompletionSocietyPlugin.java: 
+	Bug #3033 -- Completion Event recieved yet servlet HTML view shows agents incomplete
+	Replace getTargetNames with getTargets().
+
+	* CompletionNodePlugin.java:
+	Bug #3033 -- Completion Event recieved yet servlet HTML view shows agents incomplete
+	Adjust the Laggards that have reported in to account for those
+	that have become busy (e.g. due to persistence). The Laggards for
+	such agents are changed to indicate that they are not complete.
+	Also add Laggards for any agents that are busy and missing from
+	the list.
+
 2003-03-28  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* CompletionCalculator.java:

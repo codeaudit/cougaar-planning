@@ -156,10 +156,21 @@ implements LogicProvider, MessageLogicProvider
       PlanElement pe,
       UID tuid, AllocationResult result,
       UID childuid, Collection changes) {
+
+    // compare getReceivedResult .isEquals with this new one -- reconciliation after restart
+    // is going to resend all the ARs, and we should avoid propagating the changes
+    if (result == null || result.isEqual(pe.getReceivedResult())) {
+      if (logger.isInfoEnabled())
+	logger.info("Not propagating unchanged ReceivedResult for PE " + pe);
+      return;
+    }
+
     if ((pe instanceof Allocation) ||
         (pe instanceof AssetTransfer) ||
         (pe instanceof Aggregation)) {
       ((PEforCollections) pe).setReceivedResult(result);
+      if (logger.isDebugEnabled())
+	logger.debug("pubChanging local pe: " + pe);
       rootplan.change(pe, changes);
     } else if (pe instanceof Expansion) {
       rootplan.delayLPAction(

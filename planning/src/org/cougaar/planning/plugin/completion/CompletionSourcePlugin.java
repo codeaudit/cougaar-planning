@@ -102,11 +102,11 @@ public abstract class CompletionSourcePlugin extends CompletionPlugin {
     return result;
   }
 
-  public CompletionSourcePlugin() {
+  protected CompletionSourcePlugin() {
     super(requiredServices);
   }
 
-  public CompletionSourcePlugin(Class[] requiredServices) {
+  protected CompletionSourcePlugin(Class[] requiredServices) {
     super(concatRequiredServices(CompletionSourcePlugin.requiredServices, requiredServices));
   }
 
@@ -219,6 +219,9 @@ public abstract class CompletionSourcePlugin extends CompletionPlugin {
           } else if (shortCheckTargetsCount < SHORT_CHECK_TARGETS_MAX) {
             shortCheckTargetsCount++;
             nextCheckTargetsTime = now + SHORT_CHECK_TARGETS_INTERVAL;
+            if (logger.isDebugEnabled()) {
+              logger.debug("shortCheckTargetsCount=" + shortCheckTargetsCount);
+            }
           } else {              // Switch to using the long interval
             nextCheckTargetsTime = now + LONG_CHECK_TARGETS_INTERVAL;
           }
@@ -228,6 +231,10 @@ public abstract class CompletionSourcePlugin extends CompletionPlugin {
         }
         resetTimer(UPDATE_INTERVAL);
         timerTimeout = System.currentTimeMillis() + UPDATE_INTERVAL + TIMER_SLACK;
+      }
+    } else {
+      if (logger.isDebugEnabled()) {
+        logger.debug("waiting for services");
       }
     }
   }
@@ -249,12 +256,7 @@ public abstract class CompletionSourcePlugin extends CompletionPlugin {
    **/
   private boolean checkTargets() {
     MessageAddress me = getAgentIdentifier();
-    Set names = getTargetNames();
-    Set targets = new HashSet(names.size());
-    for (Iterator i = names.iterator(); i.hasNext(); ) {
-      MessageAddress cid = MessageAddress.getMessageAddress((String) i.next());
-      if (!cid.equals(me)) targets.add(cid);
-    }
+    Set targets = getTargets();
     if (relay == null) {
       relay = new CompletionRelay(null, targets, TASK_COMPLETION_THRESHOLD, CPU_CONSUMPTION_THRESHOLD);
       relay.setUID(uidService.nextUID());
@@ -278,6 +280,7 @@ public abstract class CompletionSourcePlugin extends CompletionPlugin {
    **/
   private void checkLaggards() {
     SortedSet laggards = relay.getLaggards();
+    adjustLaggards(laggards);
     if (laggards.size() > 0) {
       long oldestAllowedTimestamp = now - (LaggardFilter.NON_LAGGARD_UPDATE_INTERVAL + DEAD_NODE_TIMEOUT);
       for (Iterator i = laggards.iterator(); i.hasNext(); ) {
@@ -312,7 +315,12 @@ public abstract class CompletionSourcePlugin extends CompletionPlugin {
     blackboard.publishChange(relay);
   }
 
-  protected abstract Set getTargetNames();
+  /**
+   * Get the addresses of all targets
+   **/
+  protected abstract Set getTargets();
 
   protected abstract void handleNewLaggard(Laggard worstLaggard);
+
+  protected abstract boolean adjustLaggards(SortedSet laggards);
 }

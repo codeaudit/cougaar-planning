@@ -26,6 +26,7 @@ import org.cougaar.core.agent.*;
 import org.cougaar.planning.ldm.*;
 import org.cougaar.core.domain.*;
 import org.cougaar.core.util.UID;
+import org.cougaar.core.logging.LoggingServiceWithPrefix;
 import org.cougaar.planning.plugin.util.PluginHelper;
 import org.cougaar.planning.ldm.plan.PlanElement;
 import org.cougaar.planning.ldm.plan.Allocation;
@@ -42,6 +43,7 @@ import org.cougaar.planning.ldm.plan.AllocationforCollections;
 import org.cougaar.util.UnaryPredicate;
 import org.cougaar.util.log.*;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Enumeration;
 import org.cougaar.core.service.AlarmService;
@@ -55,9 +57,10 @@ import org.cougaar.core.service.AlarmService;
 public class RemoteAllocationLP
 implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
 {
-        
-  private static final Logger logger = 
-    LoggerFactory.getInstance().createLogger(RemoteAllocationLP.class);
+   // Tasks older than this are not sent to other agents.
+  private static final long VALID_TASK_TIME_OFFSET = 86400000L;
+
+  private static final Logger logger = Logging.getLogger(RemoteAllocationLP.class);
 
   private final RootPlan rootplan;
   private final PlanningFactory ldmf;
@@ -75,6 +78,8 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
     this.ldmf = ldmf;
     this.self = self;
     this.alarmService = alarmService;
+    // logger is static final now
+    //logger = new LoggingServiceWithPrefix(logger, self + ": ");
   }
 
   public void init() {
@@ -87,7 +92,15 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
   private void examineTask(Object obj, Collection changes) {
     if (obj instanceof Task) {
       Task task = (Task) obj;
-      examine(task.getPlanElement(), changes);
+      PlanElement pe = task.getPlanElement();
+      if (logger.isDebugEnabled()) {
+        logger.debug("examineTask " + task + ", pe=" + pe);
+      }
+      examine(pe, changes);
+    } else {
+      if (logger.isDebugEnabled()) {
+        logger.debug("examine(non)Task " + obj);
+      }
     }
   }
 
@@ -100,7 +113,12 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
     if (cpg == null) return;
     MessageAddress destination = cpg.getMessageAddress();
     if (destination == null) return;
-    if (!taskShouldBeSent(task)) return; // In past
+    if (!taskShouldBeSent(task)) {
+      if (logger.isDebugEnabled()) {
+        logger.debug("shouldNotBeSent: " + task);
+      }
+      return; // In past
+    }
 
     // see if we're reissuing the task... if so, we'll just use it.
     UID copyUID = all.getAllocationTaskUID();
@@ -118,6 +136,9 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
 //       NewTask nt = (NewTask) copytask;
 //       nt.setWorkflow(specialWorkflow);
 //     }
+    if (logger.isDebugEnabled()) {
+      logger.debug("Send task: " + copytask);
+    }
     rootplan.sendDirective(copytask, changes);
   }
 
@@ -146,7 +167,7 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
   public void restart(final MessageAddress cid) {
     if (logger.isInfoEnabled()) {
       logger.info(
-        self+": Reconcile with "+
+        "Reconcile with "+
         (cid==null?"all agents":cid.toString()));
     }
     UnaryPredicate pred = new UnaryPredicate() {
@@ -176,7 +197,7 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
         Task remoteTask = prepareRemoteTask(localTask, destination, remoteTaskUID, false);
         if (logger.isInfoEnabled()) {
           logger.info(
-              self + ": Resend" + (cid == null ? "*" : "")
+              "Resend" + (cid == null ? "*" : "")
               + " task to " + remoteTask.getDestination()
               + " with remoteUID=" + remoteTaskUID
               + " " + localTask);
@@ -185,7 +206,7 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
       }
     }
     if (logger.isInfoEnabled()) {
-      logger.info(self + ": Reconciled");
+      logger.info("Reconciled");
     }
   }
 
@@ -203,7 +224,8 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
         et = Double.NaN;
       }
     if (Double.isNaN(et)) return true; // Can't tell, send it
-    return ((long) et) >= currentTimeMillis();
+    long minValidTaskTime = currentTimeMillis() - VALID_TASK_TIME_OFFSET;
+    return ((long) et) >= minValidTaskTime;
   }
 
   private Task prepareRemoteTask(Task task, MessageAddress dest, UID uid, boolean isDeleted) {
@@ -231,6 +253,8 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
     nt.setVerb(task.getVerb());
     nt.setDirectObject(task.getDirectObject());
     nt.setPrepositionalPhrases(task.getPrepositionalPhrases());
+    Date commitmentDate = task.getCommitmentDate();
+    if (commitmentDate != null) nt.setCommitmentDate(commitmentDate);
     // no workflow
     synchronized (task) {
       nt.setPreferences(task.getPreferences());

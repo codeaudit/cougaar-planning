@@ -37,6 +37,7 @@ import org.cougaar.core.servlet.*;
 import org.cougaar.core.util.UID;
 import org.cougaar.core.util.UniqueObject;
 import org.cougaar.core.util.*;
+import org.cougaar.planning.plugin.util.PluginHelper;
 import org.cougaar.planning.ldm.asset.*;
 import org.cougaar.planning.ldm.measure.AbstractMeasure;
 import org.cougaar.planning.ldm.plan.*;
@@ -185,6 +186,10 @@ extends HttpServlet
     public static final String SORT_BY_UID = "sortByUID";
     private boolean sortByUID;
 
+    // sort results by END_TIME preference
+    public static final String SORT_BY_END_TIME = "sortByEndTime";
+    private boolean sortByEndTime;
+
     // writer from the request
     private PrintWriter out;
 
@@ -240,6 +245,11 @@ extends HttpServlet
                  true);
             } else if (name.equalsIgnoreCase(SORT_BY_UID)) {
 	      sortByUID = 
+		((value != null) ?  
+                 value.equalsIgnoreCase("true") : 
+                 true);
+            } else if (name.equalsIgnoreCase(SORT_BY_END_TIME)) {
+	      sortByEndTime = 
 		((value != null) ?  
                  value.equalsIgnoreCase("true") : 
                  true);
@@ -564,7 +574,7 @@ extends HttpServlet
           " cellspacing=1 width=75%\n"+
           " bordercolordark=#660000 bordercolorlight=#cc9966>\n"+
           "<tr>\n"+
-          "<td colspan=7>"+
+          "<td colspan=8>"+
           "<font size=+1 color=mediumblue><b>Tasks</b></font>"+
           "</td>\n"+
           "</tr>\n"+
@@ -576,6 +586,9 @@ extends HttpServlet
           "</td>\n"+
           "<td rowspan=2>"+
           "<font color=mediumblue><b>Prepositional Phrases</b></font>"+
+          "</td>\n"+
+          "<td rowspan=2>"+
+          "<font color=mediumblue><b>Preference Best Values</b></font>"+
           "</td>\n"+
           "</tr>\n"+
           "<tr>\n"+
@@ -617,9 +630,18 @@ extends HttpServlet
             String prep = pp.getPreposition();
             out.print("<font color=mediumblue>");
             out.print(prep);
-            out.print("</font>");
+            out.print("</font> ");
             printObject(pp.getIndirectObject());
-            out.print(",");
+            out.print("<br>");
+          }
+          out.print("</font></td><td><font size=-1>");
+          Enumeration enpref = task.getPreferences();
+          while (enpref.hasMoreElements()) {
+            Preference pref = (Preference) enpref.nextElement();
+            AspectValue av = pref.getScoringFunction().getBest().getAspectValue();
+            String type = AspectValue.aspectTypeToString(av.getAspectType());
+            out.print(encodeHTML(type + ": " + av.toString(), true));
+            out.print("<br>");
           }
           out.print(
               "</font>"+
@@ -688,8 +710,11 @@ extends HttpServlet
       // find tasks
       boolean oldSortByUID = sortByUID;
       sortByUID = false;
+      boolean oldSortByEndTime = sortByEndTime;
+      sortByEndTime = false;
       Collection col = findAllTasks();
       sortByUID = oldSortByUID;
+      sortByEndTime = oldSortByEndTime;
       int numTasks = col.size();
       Iterator tasksIter = col.iterator();
       if (DEBUG) {
@@ -1349,6 +1374,7 @@ extends HttpServlet
         ITEM_UID+
         "\" size=12><br>\n"+
         "Sort results by UID<input type=\"checkbox\" name=\"sortByUID\" value=\"true\"><br>\n"+
+        "Sort tasks by End Time<input type=\"checkbox\" name=\"sortByEndTime\" value=\"true\"><br>\n"+
         "<input type=\"submit\" name=\"formSubmit\" value=\"Search\"><br>\n"+
         "<p>\n"+
         // link to advanced search
@@ -3168,6 +3194,8 @@ extends HttpServlet
         }
 	if (sortByUID)
 	  out.print ("&" + SORT_BY_UID + "=true");
+	if (sortByEndTime)
+	  out.print ("&" + SORT_BY_END_TIME + "=true");
 
         out.print("\" target=\"tablesFrame\">");
         // print over-customized output .. make parameter?
@@ -3923,14 +3951,20 @@ extends HttpServlet
         UnaryPredicate pred) 
     {
       Collection col = support.queryBlackboard(pred);
-      if (sortByUID && 
-          (col.size() > 1)) {
-        Object[] a = col.toArray();
-        Arrays.sort(a, THE_ONLY_UID_COMPARATOR);
-        return Arrays.asList(a);
-      } else {
-        return col;
+      if (col.size() > 1) {
+        Comparator comparator = null;
+        if (sortByEndTime) {
+          comparator = THE_ONLY_END_TIME_COMPARATOR;
+        } else if (sortByUID) {
+          comparator = THE_ONLY_UID_COMPARATOR;
+        }
+        if (comparator != null) {
+          Object[] a = col.toArray();
+          Arrays.sort(a, comparator);
+          return Arrays.asList(a);
+        }
       }
+      return col;
     }
 
     private static final Comparator THE_ONLY_UID_COMPARATOR = new UIDComparator ();
@@ -3947,6 +3981,33 @@ extends HttpServlet
 	    return -1;
 	  }
 	} else if (second instanceof UniqueObject) {
+	  return 1;
+	} else {
+	  return 0;
+	}
+      }
+    }
+
+    private static final Comparator THE_ONLY_END_TIME_COMPARATOR = new EndTimeComparator ();
+
+    private static class EndTimeComparator implements Comparator {
+      public int compare (Object first, Object second) {
+	if (first instanceof Task) {
+	  if (second instanceof Task) {
+	    // return the usual UID compare
+            try {
+              long t1 = PluginHelper.getEndTime((Task) first);
+              long t2 = PluginHelper.getEndTime((Task) second);
+              if (t1 < t2) return -1;
+              if (t1 > t2) return 1;
+            } catch (Exception e) {
+              // Probably no end time preference
+            }
+            return THE_ONLY_UID_COMPARATOR.compare(first, second);
+	  } else {
+	    return -1;
+	  }
+	} else if (second instanceof Task) {
 	  return 1;
 	} else {
 	  return 0;
@@ -4187,6 +4248,37 @@ extends HttpServlet
         }
       }
       return s;
+    }
+
+    /**
+     * Encodes a string that may contain HTML syntax-significant
+     * characters by replacing with a character entity.
+     **/
+    private static String encodeHTML(String s, boolean noBreakSpaces) {
+      StringBuffer buf = null;  // In case we need to edit the string
+      int ix = 0;               // Beginning of uncopied part of s
+      for (int i = 0, n = s.length(); i < n; i++) {
+        String replacement = null;
+        switch (s.charAt(i)) {
+        case '"': replacement = "&quot;"; break;
+        case '<': replacement = "&lt;"; break;
+        case '>': replacement = "&gt;"; break;
+        case '&': replacement = "&amp;"; break;
+        case ' ': if (noBreakSpaces) replacement = "&nbsp;"; break;
+        }
+        if (replacement != null) {
+          if (buf == null) buf = new StringBuffer();
+          buf.append(s.substring(ix, i));
+          buf.append(replacement);
+          ix = i + 1;
+        }
+      }
+      if (buf != null) {
+        buf.append(s.substring(ix));
+        return buf.toString();
+      } else {
+        return s;
+      }
     }
 
     /**

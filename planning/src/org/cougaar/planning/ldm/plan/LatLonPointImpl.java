@@ -65,7 +65,7 @@ public class LatLonPointImpl
   }
 
   public String toString() {
-    return "("+lat+", "+lon+")";
+    return "<"+lat+", "+lon+">";
   }
 
 }

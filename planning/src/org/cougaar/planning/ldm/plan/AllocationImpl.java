@@ -248,7 +248,7 @@ public class AllocationImpl extends PlanElementImpl
     super.addPropertyDescriptors(c);
     c.add(new PropertyDescriptor("asset", AllocationImpl.class, "getAsset", null));
     c.add(new PropertyDescriptor("role", AllocationImpl.class, "getRole", null));
-    c.add(new PropertyDescriptor("allocationTask", AllocationImpl.class, "getAllocationTask", null));
+    c.add(new PropertyDescriptor("allocationTaskUID", AllocationImpl.class, "getAllocationTaskUID", null));
     c.add(new PropertyDescriptor("stale", AllocationImpl.class, "isStale", null));
   }
 

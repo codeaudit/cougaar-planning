@@ -1,3 +1,27 @@
+2003-08-21  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* AllocationImpl.java:
+	Bug #3260 -- Method getAllocationTask missing from AllocationforCollections
+	Replace property descriptor for getAllocationTask with
+	getAllocationTaskUID. It is impossible to provide full
+	compatibility with former behavior.
+
+2003-06-27  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* PlanElementImpl.java: 
+	* NewPlanElement.java:
+	Predictor reconciliation
+	Add "resetTask" method to change the task of a PlanElement.
+	Functionally like setTask, but allows for the planelement already
+	being attached to a task. It rewires the task and the plan element
+	accordingly.
+
+2003-05-12  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* ContextOfOplanIds.java:
+	Make equals work correctly. This now just extends HashSet, which
+	provides the correct functionality with no effort.
+
 2003-04-25  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* WorkflowImpl.java:

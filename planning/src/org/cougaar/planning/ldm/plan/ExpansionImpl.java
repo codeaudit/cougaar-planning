@@ -30,10 +30,13 @@ import org.cougaar.planning.ldm.plan.WorkflowImpl;
 import org.cougaar.planning.ldm.plan.Plan;
 import org.cougaar.planning.ldm.plan.TaskScoreTable;
 import org.cougaar.planning.ldm.plan.Task;
+import org.cougaar.planning.ldm.plan.NewTask;
 import org.cougaar.planning.ldm.plan.SubTaskResult;
 import org.cougaar.core.blackboard.Subscriber;
 import org.cougaar.core.blackboard.ActiveSubscriptionObject;
 import org.cougaar.core.util.UID;
+
+import org.cougaar.util.log.Logger;
 
 import java.util.*;
 import java.beans.*;
@@ -177,4 +180,23 @@ public class ExpansionImpl extends PlanElementImpl
     super.addPropertyDescriptors(c);
     c.add(new PropertyDescriptor("workflow", ExpansionImpl.class, "getWorkflow", null));
   }
+
+  /**
+   * Fix an object once rehydration has completed.
+   * <p>
+   * This is used as a last-minute cleanup, in case the
+   * object requires special deserialization work.
+   */
+   public void postRehydration(Logger logger) {
+      Workflow wf = getWorkflow();
+      if(wf != null) {
+	for (Enumeration tasks = wf.getTasks(); tasks.hasMoreElements(); ) {
+	  NewTask subtask = (NewTask) tasks.nextElement();
+	  if(subtask.getWorkflow() != wf) {
+	    subtask.setWorkflow(wf);
+	  }
+	}
+      }
+      super.postRehydration(logger);
+    }
 }

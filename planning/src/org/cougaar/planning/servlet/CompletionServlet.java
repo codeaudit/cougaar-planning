@@ -571,7 +571,7 @@ extends BaseServletComponent
     }
 
     private void printThresholdAndRefreshForm(PrintWriter out, List selectedAgents, String[] menu, String thisPage) {
-      out.println("<form name=\"viewTitle\" action=\"/$" + getEncodedAgentName() + getPath() + "\"method=\"get\" target=\"_top\">");
+      out.println("<form name=\"viewTitle\" action=\"/$" + getEncodedAgentName() + getPath() + "\"method=\"post\" target=\"_top\">");
       out.println("<table>");
       out.print("<tr><td>");
       out.print("Red Threshold");
@@ -790,7 +790,7 @@ extends BaseServletComponent
       out.println(
           "<body>\n"+
           "<h2><center>"+title+"</h2></center>");
-      out.println("<form action=\"/$"+
+      out.println("<form method=\"post\" action=\"/$"+
           getEncodedAgentName()+getPath()+
           "\" target=\"_top\">");
       out.println("<input type=\"submit\" name=\"submit\" value=\"Select All\">");
@@ -908,9 +908,15 @@ extends BaseServletComponent
       return formatInteger(n, 5);
     }
 
+    private final String SPACES = "                    ";
+    private final int NSPACES = SPACES.length();
+
     private String formatInteger(int n, int w) {
+      if (w > NSPACES) w = NSPACES;
       String r = String.valueOf(n);
-      return "        ".substring(0, w - r.length()) + r;
+      int needed = w - r.length();
+      if (needed <= 0) return r;
+      return SPACES.substring(0, needed) + r;
     }
 
     private String formatPercent(double percent) {

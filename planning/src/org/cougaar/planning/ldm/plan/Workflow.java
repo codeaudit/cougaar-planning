@@ -21,11 +21,11 @@
  
 package org.cougaar.planning.ldm.plan;
 
-import java.util.Vector;
 import java.util.Enumeration;
-import org.cougaar.planning.ldm.plan.AllocationResult;
-
+import java.util.List;
+import java.util.Vector;
 import org.cougaar.core.util.UniqueObject;
+import org.cougaar.planning.ldm.plan.AllocationResult;
 
 /**
  * Workflow Interface
@@ -94,6 +94,22 @@ public interface Workflow
    * @see org.cougaar.planning.ldm.plan.AllocationResultAggregator
    **/
   AllocationResult aggregateAllocationResults();
+
+  /**
+   * Get allocation results and change information for all subtasks
+   * corresponding to the most recently computed received allocation
+   * result of the corresponding expansion. The returned List contains
+   * a SubTaskResult for each subtask. Each of the SubTaskResult
+   * objects contains:
+   * Task - the subtask,
+   * boolean - whether the result changed,
+   * AllocationResult - the result used by the aggregator for this sub-task.
+   * The boolean indicates whether the AllocationResult changed since the 
+   * last time the collection was cleared by the plugin (which should be
+   * the last time the plugin looked at the list).
+   * @return List of SubTaskResultObjects one for each subtask
+   **/
+  SubtaskResults getSubtaskResults();
   
   /** Has a constraint been violated?
     * @return boolean

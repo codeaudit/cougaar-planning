@@ -46,7 +46,18 @@ public final class TaskScoreTable {
       results[i] = (AllocationResult) table.get(t);
     }
   }
-  
+
+  /**
+   * Use this constructor when no allocation results have been computed
+   **/
+  public TaskScoreTable(Task tasks[]) {
+    this(tasks, new AllocationResult[tasks.length]);
+  }
+
+
+  /**
+   * Use this constructor when allocation results have already been computed
+   **/
   public TaskScoreTable(Task tasks[], AllocationResult results[]) {
     this.tasks = tasks;
     this.results = results;
@@ -76,6 +87,10 @@ public final class TaskScoreTable {
   public AllocationResult getAllocationResult(int i) {
     return results[i];
   }
+  public void setAllocationResult(int i, AllocationResult newAR) {
+    results[i] = newAR;
+  }
+
   public AllocationResult getAllocationResult(UID uid) {
     int l = tasks.length;
     for (int i = 0; i<l; i++) {

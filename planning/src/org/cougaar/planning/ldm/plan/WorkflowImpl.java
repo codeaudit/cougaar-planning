@@ -21,26 +21,25 @@
 
 package org.cougaar.planning.ldm.plan;
 
-import org.cougaar.core.mts.MessageAddress;
-import org.cougaar.core.blackboard.Subscriber;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Set;
+import java.util.Vector;
 import org.cougaar.core.blackboard.ActiveSubscriptionObject;
 import org.cougaar.core.blackboard.ClaimableImpl;
-
+import org.cougaar.core.blackboard.Subscriber;
+import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.core.util.UID;
 import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.util.Empty;
-
-import java.util.Vector;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Date;
-
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
-import java.io.IOException;
-
-import org.cougaar.core.util.UID;
 
 /**
  * This class implements Workflow
@@ -59,6 +58,7 @@ public class WorkflowImpl
   private transient AllocationResultAggregator currentARA = AllocationResultAggregator.DEFAULT;
   private transient AllocationResult cachedar = null;
   private transient int walkingSubtasks = 0;
+  private Set changedSubtasks = new HashSet(3);
 
   public void setWalkingSubtasks(boolean walking) {
     if (walking) {
@@ -81,7 +81,20 @@ public class WorkflowImpl
   public Task getParentTask() { return basetask; }
 
 
-  /** @return Enumeration{Task} Enumerate over our subtasks. */
+  /**
+   * Get an Enumeration of all subtasks. The subtasks of a workflow is
+   * volatile and subject to change at any time (due to rescind of the
+   * expansion) to guard against such volatility, the use of the
+   * returned Enumeration should be protected by synchronizing on the
+   * workflow. E.g.:<pre>
+   * synchronized (wf) {
+   *   Enumeration enum = wf.getTasks();
+   *   // Use the enum
+   * }</pre>
+   * The code using the enum should be brief to avoid locking the
+   * workflow for an extended period of time.
+   * @return Enumeration{Task} Enumerate over our subtasks.
+   **/
   public Enumeration getTasks() {
     return subtasks.elements();
   }
@@ -123,36 +136,27 @@ public class WorkflowImpl
     return contasks.elements();
   }
 
-
   private transient TaskScoreTable _tst = null;
-  private transient Task[] _tasks;
-  private transient AllocationResult[] _ars;
 
-  private synchronized void clearTST() {
+  private void clearTST() {
     _tst = null;
-    _tasks = null;
-    _ars = null;
   }
 
   private TaskScoreTable updateTST() {
-    synchronized (subtasks) {
-
-      if (_tst == null) {
-  	_tasks = new Task[subtasks.size()];
-  	_tasks = (Task[]) subtasks.toArray(_tasks);
-	if (_tasks.length == 0) return null;
-	_ars = new AllocationResult[_tasks.length];
-        _tst = new TaskScoreTable(_tasks, _ars);
-      }
-
-      for (int i=0; i<_ars.length; i++) {
-        PlanElement pe = _tasks[i].getPlanElement();
-        if (pe != null) {
-          _ars[i] = pe.getEstimatedResult();
-        }
-      }
-      return _tst;
+    if (_tst == null) {
+      int n = subtasks.size();
+      if (n == 0) return null;
+      Task[] _tasks = (Task[]) subtasks.toArray(new Task[n]);
+      _tst = new TaskScoreTable(_tasks);
     }
+    for (int i = 0, n = _tst.size(); i < n; i++) {
+      Task task = _tst.getTask(i);
+      PlanElement pe = task.getPlanElement();
+      if (pe != null) {
+        _tst.setAllocationResult(i, pe.getEstimatedResult());
+      }
+    }
+    return _tst;
   }
 
 
@@ -160,27 +164,54 @@ public class WorkflowImpl
    * @return a new AllocationResult representing aggregation of
    * all subtask results
    */
-  public synchronized AllocationResult aggregateAllocationResults() {
+  public AllocationResult aggregateAllocationResults() {
+    return aggregateAllocationResults(Collections.EMPTY_LIST);
+  }
+
+  /**
+   * This variant is used by the infrastructure
+   * (ReceiveNotificationLP) to record the list of changed subtasks
+   * contributing to the new allocation result.
+   **/
+  public synchronized AllocationResult aggregateAllocationResults(List changedSubtaskUIDs) {
     TaskScoreTable tst = updateTST();
     if (tst == null) return null;
     // call calculate on the PenaltyValueAggregator
     AllocationResult newresult = currentARA.calculate(this, tst, cachedar);
     cachedar = newresult;
+    changedSubtasks.addAll(changedSubtaskUIDs);
     return newresult;
   }
 
-  /** Conses a new TaskScoreTable each time **/
-  public synchronized TaskScoreTable getCurrentTST() {
-    if (_tasks == null) return null;
-    int l = _tasks.length;
-    if (l == 0) return null;
-    Task[] ts = new Task[l];
-    AllocationResult[] ars = new AllocationResult[l];
-    for (int i=0; i<l; i++) {
-      ts[i] = _tasks[i];
-      ars[i] = _ars[i];
+  /**
+   * get the latest copy of the allocationresults for each subtask.
+   * Information is stored in a List which contains a SubTaskResult for each subtask.  
+   * Each of the SubTaskResult objects contain the following information:
+   * Task - the subtask, boolean - whether the result changed,
+   * AllocationResult - the result used by the aggregator for this sub-task.
+   * The boolean indicates whether the AllocationResult changed since the 
+   * last time the collection was cleared by the plugin (which should be
+   * the last time the plugin looked at the list).
+   * @return List of SubTaskResultObjects one for each subtask
+   **/
+  public synchronized SubtaskResults getSubtaskResults() {
+    int n = subtasks.size();
+    SubtaskResults result = new SubtaskResults(n, cachedar);
+    for (int i = 0; i < n; i++) {
+      Task task = (Task) subtasks.get(i);
+      UID uid = task.getUID();
+      boolean changed = changedSubtasks.contains(uid);
+      AllocationResult ar;
+      PlanElement pe = task.getPlanElement();
+      if (pe == null) {
+        ar = null;
+      } else {
+        ar = pe.getEstimatedResult();
+      }
+      result.add(new SubTaskResult(task, changed, ar));
     }
-    return new TaskScoreTable(ts, ars);
+    changedSubtasks.clear();
+    return result;
   }
 
   /** Has a constraint been violated?
@@ -229,38 +260,32 @@ public class WorkflowImpl
   }
 
   /** @param tasks set the tasks of the Workflow */
-  public void setTasks(Enumeration tasks) {
+  public synchronized void setTasks(Enumeration tasks) {
     if (tasks == null) {
         throw new IllegalArgumentException("Workflow.setTasks(Enum e): e must be a non-null Enumeration");
     }
-
-    synchronized (subtasks) {
-      if (walkingSubtasks > 0) {
-	RuntimeException rt = 
-	  new RuntimeException("Attempt to remove subtasks while enum is active");
-	rt.printStackTrace();
-      }
-
-      // Attempt to wait until walk is complete
-      synchronized (this) {
-	subtasks.removeAllElements();
-      }
-
-      while (tasks.hasMoreElements()) {
-        Task t = (Task) tasks.nextElement();
-        if ( t != null ) {
-          subtasks.addElement(t);
-        } else {
-          // buzzz... wrong answer - tried to pass in a null!
-          throw new IllegalArgumentException("Workflow.setTasks(Enum e): all elements of e must be Tasks");
-        }
-      }
-      clearTST();
+    if (walkingSubtasks > 0) {
+      RuntimeException rt = 
+        new RuntimeException("Attempt to remove subtasks while enum is active");
+      rt.printStackTrace();
     }
+
+    subtasks.removeAllElements();
+    while (tasks.hasMoreElements()) {
+      Task t = (Task) tasks.nextElement();
+      if ( t != null ) {
+        subtasks.addElement(t);
+      } else {
+        // buzzz... wrong answer - tried to pass in a null!
+        throw new IllegalArgumentException("Workflow.setTasks(Enum e): all elements of e must be Tasks");
+      }
+    }
+    changedSubtasks.clear();
+    clearTST();
   }
 
   /** @param newTask addTask allows you to add a Task to a Workflow.*/
-  public void addTask(Task newTask) {
+  public synchronized void addTask(Task newTask) {
     if (newTask == null) {
       // buzzzz wrong answer - tried to pass in a null!!
       throw new IllegalArgumentException("Workflow.addTask(arg): arg must be a non-null Task");
@@ -269,27 +294,25 @@ public class WorkflowImpl
     // If the context of the new task is not set, set it to be the context of the parent task
     if (newTask.getContext() == null) {
       if (basetask != null) {
-	if (newTask instanceof NewTask) {
-	  ((NewTask)newTask).setContext(basetask.getContext());
-	}
+        if (newTask instanceof NewTask) {
+          ((NewTask) newTask).setContext(basetask.getContext());
+        }
       }
     }
+    changedSubtasks.clear();
     clearTST();
   }
 
   /** @param remTask Remove the specified Task from the Workflow's sub-task collection  **/
-  public void removeTask(Task remTask) {
+  public synchronized void removeTask(Task remTask) {
     if (walkingSubtasks > 0) {
       RuntimeException rt = 
 	new RuntimeException("Attempt to remove subtask while enum is active");
       rt.printStackTrace();
     } 
 
-    // Attempt to wait until walk is complete
-    synchronized (this) {
-      subtasks.removeElement(remTask);
-    }
-
+    subtasks.removeElement(remTask);
+    changedSubtasks.remove(remTask.getUID());
     clearTST();
   }
 
@@ -461,6 +484,7 @@ public class WorkflowImpl
     }
     if (stream instanceof org.cougaar.core.persist.PersistenceOutputStream) {
         stream.writeObject(myAnnotation);
+        stream.writeObject(changedSubtasks);
     }
   }
 
@@ -476,6 +500,9 @@ public class WorkflowImpl
     }
     if (stream instanceof org.cougaar.core.persist.PersistenceInputStream) {
       myAnnotation = (Annotation) stream.readObject();
+      changedSubtasks = (Set) stream.readObject();
+    } else {
+      changedSubtasks = new HashSet(3);
     }
   }
 
@@ -485,13 +512,11 @@ public class WorkflowImpl
     return getParentTask().getUID().toString();
   }
 
-  public String[] getTaskIDs() {
-    synchronized (subtasks) {
-      String taskID[] = new String[subtasks.size()];
-      for (int i = 0; i < subtasks.size(); i++)
-        taskID[i] = ((Task)subtasks.elementAt(i)).getUID().toString();
-      return taskID;
-    }
+  public synchronized String[] getTaskIDs() {
+    String taskID[] = new String[subtasks.size()];
+    for (int i = 0; i < subtasks.size(); i++)
+      taskID[i] = ((Task)subtasks.elementAt(i)).getUID().toString();
+    return taskID;
   }
 
   public String getTaskID(int i) {
@@ -524,20 +549,16 @@ public class WorkflowImpl
   public void setIsPropagatingToSubtasks() { _propagateP = true; }
 
   // used by ExpansionImpl for infrastructure propagating rescinds.
-  public List clearSubTasks() {
-    ArrayList l = null;
-    l = new ArrayList(subtasks);
-    
+  public synchronized List clearSubTasks() {
     if (walkingSubtasks > 0) {
       RuntimeException rt = 
 	new RuntimeException("Attempt to remove subtasks while enum is active");
       rt.printStackTrace();
     }
 
-    synchronized (this) {
-      subtasks.removeAllElements();
-    }
-
+    ArrayList l = new ArrayList(subtasks);
+    subtasks.removeAllElements();
+    changedSubtasks.clear();
     return l;
   }
 

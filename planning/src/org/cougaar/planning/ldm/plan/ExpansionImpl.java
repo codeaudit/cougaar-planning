@@ -118,10 +118,6 @@ public class ExpansionImpl extends PlanElementImpl
     }
   }
   
-  
-  private transient HashMap staskinfo = new HashMap(11);
-  private static final List _emptylist = Collections.unmodifiableList(new ArrayList());
-
   /** Called by an Expander Plugin to get the latest copy of the allocationresults
    *  for each subtask.
    *  Information is stored in a List which contains a SubTaskResult for each subtask.  
@@ -131,33 +127,17 @@ public class ExpansionImpl extends PlanElementImpl
    *  The boolean indicates whether the AllocationResult changed since the 
    *  last time the collection was cleared by the plugin (which should be
    *  the last time the plugin looked at the list).
-   *  @return List
+   *  @return List of SubTaskResultObjects one for each subtask
    */
-  public List getSubTaskResults() {
-    synchronized (staskinfo) {
-      if (staskinfo.size() == 0) {
-        return _emptylist;
-      } else {
-        List newlist = new ArrayList(staskinfo.values()); // sigh!
-        staskinfo.clear();
-        return newlist;
-      }
-    }
-  }
-  
-  /** WARNING CALLED BY INFRASTRUCTURE ONLY!!! **/
-  public void setSubTaskResults(TaskScoreTable tst, UID changedUID) {
-    if (tst == null) return;
-    synchronized (staskinfo) {
-      tst.fillSubTaskResults(staskinfo, changedUID);
-    }
+  public SubtaskResults getSubTaskResults() {
+    return workflow.getSubtaskResults();
   }
 
   private void writeObject(ObjectOutputStream stream) throws IOException {
-    synchronized (staskinfo) {
+    synchronized (workflow) { // Protect the integrity of the workflow
       stream.defaultWriteObject();
+      stream.writeObject(workflow);
     }
-    stream.writeObject(workflow);
   }
  
 
@@ -165,8 +145,7 @@ public class ExpansionImpl extends PlanElementImpl
                 throws ClassNotFoundException, IOException
   {
     stream.defaultReadObject();
-    staskinfo = new HashMap(11);
-    workflow = (Workflow)stream.readObject();
+    workflow = (Workflow) stream.readObject();
   }
 
   /** Sets the non-null Contexts of the subtasks in the workflow to be

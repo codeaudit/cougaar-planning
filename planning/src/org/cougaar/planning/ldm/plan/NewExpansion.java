@@ -48,6 +48,6 @@ public interface NewExpansion extends Expansion {
    *  slot on the Expansion that the plugin woke up on.
    *  @return List
    */
-  List getSubTaskResults();
+  SubtaskResults getSubTaskResults();
  
 }

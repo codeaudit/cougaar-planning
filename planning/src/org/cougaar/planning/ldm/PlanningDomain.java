@@ -58,10 +58,10 @@ import org.cougaar.planning.service.LDMService;
 public class PlanningDomain extends DomainAdapter {
   public static final String PLANNING_NAME = "planning";
 
-  private AgentIdentificationService agentIdService;
-  private MessageAddress self;
+  protected AgentIdentificationService agentIdService;
+  protected MessageAddress self;
   private LDMService ldmService;
-  private AlarmService alarmService;
+  protected AlarmService alarmService;
 
   public String getDomainName() {
     return PLANNING_NAME;

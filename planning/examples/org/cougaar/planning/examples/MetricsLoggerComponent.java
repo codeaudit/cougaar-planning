@@ -29,7 +29,6 @@ package org.cougaar.planning.examples;
 import java.util.Collection;
 import java.util.Iterator;
 import org.cougaar.core.blackboard.DirectiveMessage;
-import org.cougaar.core.component.BindingSite;
 import org.cougaar.core.component.Component;
 import org.cougaar.core.component.ServiceBroker;
 import org.cougaar.core.logging.LoggingServiceWithPrefix;
@@ -106,7 +105,7 @@ implements Component
   private long delay = 10000;
   private long interval = 1000;
 
-  private ServiceBroker serviceBroker;
+  private ServiceBroker sb;
   private LoggingService rawLogger = LoggingService.NULL;
   private LoggingService logger = rawLogger; // "AGENT: "+logger
   private AgentIdentificationService agentIdService;
@@ -334,8 +333,8 @@ implements Component
     }
   }
 
-  public void setBindingSite(BindingSite bs) {
-    serviceBroker = bs.getServiceBroker();
+  public void setServiceBroker(ServiceBroker sb) {
+    this.sb = sb;
   }
 
   public void setLoggingService(LoggingService s) {
@@ -466,7 +465,6 @@ implements Component
   }
 
   public void unload() {
-    ServiceBroker sb = serviceBroker;
     if (agentIdService != null) {
       sb.releaseService(this, AgentIdentificationService.class, agentIdService);
       agentIdService = null;

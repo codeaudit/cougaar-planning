@@ -132,10 +132,17 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
 
 
   /** Create a ScoringFunction from a set of AspectScorePoints
-   * @param points
-   * @return PointScoringFunction
+   * @param points A set of AspectScorePoints which define the curve of the function.
    */
   public static final ScoringFunction createPiecewiseLinearScoringFunction(Enumeration points) {
+    return new PiecewiseLinearScoringFunction(points);
+  }
+
+  /** Create a ScoringFunction from a set of AspectScorePoints.  The parameter will not be
+   * copied, so the points must never be modified.
+   * @param points A set of AspectScorePoints which define the curve of the function.
+   */
+  public static final ScoringFunction createPiecewiseLinearScoringFunction(AspectScorePoint[] points) {
     return new PiecewiseLinearScoringFunction(points);
   }
 
@@ -230,10 +237,8 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
    * Note : The implementation ignores range, as enumerations have
    * no sense of comparison or continuity.
    * @param points array of AspectScorePoints of allowable points
-   * @return EnumeratedScoringFunction
    */
-  public static final ScoringFunction createEnumerated
-    (AspectScorePoint []points) {
+  public static final ScoringFunction createEnumerated(AspectScorePoint[] points) {
     return new EnumeratedScoringFunction(points);
   }
 
@@ -242,7 +247,6 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
    * @param changepoint
    * @param prescore
    * @param postscore
-   * @return StepScoringFunction
    */
   public static final ScoringFunction createStepScoringFunction(AspectValue changepoint, double prescore, double postscore) {
     return new StepScoringFunction(changepoint, prescore, postscore);
@@ -251,14 +255,26 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
   /** Constant function
    * always has same score
    * @param score - the score for all values
-   * @return ConstantScoringFucntion
-  public static final ScoringFunction createConstantScoringFunction(double score){
-    return new ConstantScoringFunction(score);
+   */
+  public static final ScoringFunction createConstantScoringFunction(double score, int type) {
+    return new ConstantScoringFunction(score, type);
+  }
+
+  /** Constant function
+   * always has same score
+   * @param score - the score for all values
+   */
+  public static final ScoringFunction createConstantScoringFunction(AspectScorePoint score) {
+    return new ConstantScoringFunction(score.getScore(), score.getAspectType());
   }
 
   //
   // helper functions for below
   //
+
+  protected final static AspectScorePoint newASP(double value, double score, int type) {
+    return new AspectScorePoint(AspectValue.newAspectValue(type,value),score);
+  }
 
   /** interpolate a Y given an X and a line segment.  px must be in
    * the range.
@@ -276,7 +292,7 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
   final AspectScorePoint _minY(double minx, double maxx,
                                double x1, double y1, double x2, double y2) {
     if (x1 > maxx || x2 < minx)
-      return new AspectScorePoint(minx, WORST, aspectType);
+      return newASP(minx, WORST, aspectType);
 
     if (x1 < minx) {
       y1 = _interpY(minx, x1, y1, x2, y2);
@@ -293,7 +309,7 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
       x1 = x2;
     }
 
-    return new AspectScorePoint(x1, y1, aspectType);
+    return newASP(x1, y1, aspectType);
   }
 
   /** return an AspectScorePoint for the maximum y of the segment
@@ -303,7 +319,7 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
   final AspectScorePoint _maxY(double minx, double maxx,
                                double x1, double y1, double x2, double y2) {
     if (x1 > maxx || x2 < minx)
-      return new AspectScorePoint(minx, BEST, aspectType);
+      return newASP(minx, BEST, aspectType);
 
     if (x1 < minx) {
       y1 = _interpY(minx, x1, y1, x2, y2);
@@ -321,7 +337,43 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
       x1 = x2;
     }
 
-    return new AspectScorePoint(x1, y1, aspectType);
+    return newASP(x1, y1, aspectType);
+  }
+
+  /** Check a set of AspectScorePoints for validity as the "curve" of
+   * PiecewiseLinearScoringFunction.  Tests used are: must have at least 2 points,
+   * all points must have the AspectType, values must be strictly increasing, scores
+   * may not be negative.
+   * @throw IllegalArgumentException on illegal curve.
+   **/
+  public final static void checkValidCurve(AspectScorePoint[] curve) {
+    int l = curve.length;
+    if (l==0) { throw new IllegalArgumentException("Empty point set"); }
+    int at =  curve[0].getAspectType();
+    double lv = curve[0].getValue();
+
+    for (int i=1; i<l; i++) {
+      int t =  curve[i].getAspectType();
+      if (t != at) {
+        throw new IllegalArgumentException("curve["+i+"].getAspectType() is inconsistent ("+
+                                           t+" != "+at+")");
+      }
+
+      double v = curve[i].getValue();
+      if (v <= lv) { throw new IllegalArgumentException("curve["+i+"].getValue() non-increasing");}
+      if (Double.isNaN(v)) {
+        throw new IllegalArgumentException("curve["+i+"].getValue() is not a number");
+      }
+      lv = v;
+
+      double s = curve[i].getScore();
+      if (Double.isNaN(s)) {
+        throw new IllegalArgumentException("curve["+i+"].getScore() is not a number");
+      }
+      if (s<LOW_THRESHOLD || s>HIGH_THRESHOLD) {
+        throw new IllegalArgumentException("curve["+i+"].getScore() out of range ("+s+")");
+      }
+    }
   }
 
   //
@@ -341,6 +393,14 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
         v.addElement(points.nextElement());
       }
       curve = (AspectScorePoint[]) v.toArray(new AspectScorePoint[v.size()]);
+      checkValidCurve(curve);
+      aspectType = curve[0].getAspectType();
+    }
+
+    public PiecewiseLinearScoringFunction(AspectScorePoint[] points) {
+      super(0);
+      curve = points;
+      checkValidCurve(curve);
       aspectType = curve[0].getAspectType();
     }
 
@@ -582,8 +642,8 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
         }
         
         // add a valid range to clipped vector
-        clipped.addElement(new AspectScoreRange(new AspectScorePoint(x0, y0, aspectType),
-                                                new AspectScorePoint(x1, y1, aspectType)));
+        clipped.addElement(new AspectScoreRange(newASP(x0, y0, aspectType),
+                                                newASP(x1, y1, aspectType)));
       }
 
       return clipped.elements();
@@ -1575,17 +1635,17 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
     }
 
     public AspectScorePoint getBest(){
-      return new AspectScorePoint(0, score, aspectType);
+      return newASP(0, score, aspectType);
     }
 
     public AspectScorePoint getMinInRange(AspectValue lowerbound,
 					  AspectValue upperbound){
-      return new AspectScorePoint(lowerbound.getValue(),score, aspectType);
+      return newASP(lowerbound.getValue(),score, aspectType);
     }
 
     public AspectScorePoint getMaxInRange(AspectValue lowerbound,
 					  AspectValue upperbound){
-      return new AspectScorePoint(upperbound.getValue(),score, aspectType);
+      return newASP(upperbound.getValue(),score, aspectType);
     }
 
     public Enumeration getValidRanges(AspectValue lowerbound,

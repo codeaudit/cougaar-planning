@@ -23,8 +23,8 @@ package org.cougaar.planning.ldm.plan;
 
 import java.io.Serializable;
 
-/*
- * @author  ALPINE <alpine-software@bbn.com>
+/**
+ *
  *
  */
  

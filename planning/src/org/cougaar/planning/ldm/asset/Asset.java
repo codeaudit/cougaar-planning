@@ -159,7 +159,7 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
     Asset a = instanceForCopy();
     
     // bind the new asset to our LDM
-    a.bindToLDM(_ldm);
+    a.bindToLDM(_ldm.getLDM()); // use the real LDM if we have a delegator
 
     a.privatelySetPrototype(getPrototype());
     // set the itemID to a copy of the original
@@ -311,7 +311,7 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
    * bound (e.g. to the current LDM).
    **/
   public final LDMServesPlugin getBoundLDM() {
-    return _ldm;
+    return _ldm.getLDM();
   }
 
   // serialization
@@ -362,7 +362,6 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
       } else {
         out.writeObject(null);
       }
-
     } else {
       // "Network" serialization
 
@@ -470,7 +469,6 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
         System.err.println("Warning! Contextless deserialization of "+this);
         Thread.dumpStack();
       }
-
       initRoleSchedule();
       if (in instanceof org.cougaar.core.persist.PersistenceInputStream) {
         Schedule schedule = (Schedule) in.readObject();

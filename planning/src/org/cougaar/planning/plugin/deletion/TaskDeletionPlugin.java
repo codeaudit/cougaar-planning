@@ -44,7 +44,6 @@ import org.cougaar.planning.ldm.plan.NewWorkflow;
 import org.cougaar.planning.ldm.plan.PlanElement;
 import org.cougaar.planning.ldm.plan.PlanElementSet;
 import org.cougaar.planning.ldm.plan.Task;
-import org.cougaar.planning.ldm.plan.Workflow;
 import org.cougaar.planning.plugin.util.PluginHelper;
 import org.cougaar.util.UnaryPredicate;
 
@@ -322,29 +321,14 @@ public class TaskDeletionPlugin extends DeletionPlugin {
         if (logger.isInfoEnabled())
           logger.info("Deleting root " + task.getUID());
         deleteRootTask(task);
-      } else if (!getAgentIdentifier().equals(task.getSource())) {
-        // Parent is in another cluster
-        // Delete the task
-        if (logger.isDebugEnabled())
-          logger.debug(
-                       "Parent " + ptuid + " is remote, deleting task" + task.getUID());
-        deleteReceivedTask(task);
       } else {
-//         PlanElement ppe = task.getWorkflow().getTask().getPlanElement();
-        PlanElement ppe = null;
-        Workflow wf = task.getWorkflow();
-        if (wf != null) {
-          Task parent = wf.getParentTask();
-          if (parent != null) {
-            ppe = parent.getPlanElement();
-          }
-        }
-        if (ppe == null) {
-          // Can't find parent PE
+        PlanElement ppe = peSet.findPlanElement(ptuid);
+        if (ppe == null) { // Parent is in another cluster
+          // Delete the task
           if (logger.isDebugEnabled())
             logger.debug(
-              "Can't find parent " + ptuid + " PE, deleting task" + task.getUID());
-          deleteOrphanTask(task);
+              "Parent " + ptuid + " is remote, deleting task" + task.getUID());
+          deleteReceivedTask(task);
         } else {
           if (ppe instanceof Expansion) {
             if (logger.isInfoEnabled())
@@ -370,10 +354,6 @@ public class TaskDeletionPlugin extends DeletionPlugin {
   }
 
   private void deleteReceivedTask(Task task) {
-    blackboard.publishRemove(task);
-  }
-
-  private void deleteOrphanTask(Task task) {
     blackboard.publishRemove(task);
   }
 

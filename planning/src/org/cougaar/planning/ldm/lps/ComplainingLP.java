@@ -68,9 +68,6 @@ implements LogicProvider, EnvelopeLogicProvider
 
   public ComplainingLP(RootPlan rootplan, MessageAddress self) 
   {
-    if (!logger.isWarnEnabled()) {
-      logger.error("Logging for ComplainingLP should be at least WARN");
-    }
     if (System.getProperty("org.cougaar.planning.ldm.lps.ComplainingLP.level") != null) {
       logger.error("System Property org.cougaar.planning.ldm.lps.ComplainingLP.level is ignored");
     }

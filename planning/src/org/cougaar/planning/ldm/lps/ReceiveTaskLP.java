@@ -171,6 +171,8 @@ public class ReceiveTaskLP
         } else {
           // Update task from received task
           boolean changedTask = false;
+
+	  // 1: Compare preferences
           Preference[] newPreferences = ((TaskImpl) tsk).getPreferencesAsArray();
           Preference[] existingPreferences = ((TaskImpl) existingTask).getPreferencesAsArray();
           if (logger.isDebugEnabled()) {
@@ -194,6 +196,8 @@ public class ReceiveTaskLP
                            + existingPreferences);
             }
           }
+
+	  // 2: Compare Prep Phrases
           for (Enumeration e = existingTask.getPrepositionalPhrases(); e.hasMoreElements(); ) {
             existingPhrases.add(e.nextElement());
           }
@@ -239,6 +243,8 @@ public class ReceiveTaskLP
             
           existingPhrases.clear();
           newPhrases.clear();
+
+	  // 3: Compare context
           Context existingContext = existingTask.getContext();
           Context tskContext = tsk.getContext();
           if (logger.isWarnEnabled()) {
@@ -260,6 +266,8 @@ public class ReceiveTaskLP
                            + existingContext);
             }
           }
+
+	  // 4: Compare verb (?)
           if (!existingTask.getVerb().equals(tsk.getVerb())) {
             ((NewTask) existingTask).setVerb(tsk.getVerb());
             changedTask = true;
@@ -270,9 +278,15 @@ public class ReceiveTaskLP
                            + existingTask.getVerb());
             }
           } 
+
+	  // If anything differed, we changed it above, so publishChange the local task
           if (changedTask) {
 	    rootplan.change(existingTask, changes);
           } else {
+	    // Nothing changed. Use this opportunity to send back an AR notification if necessary
+	    // FIXME: task.getPE is evil! Bug 3588 means this PE
+	    // might have previously changed, and rehydration will only confirm
+	    // that the task should be there.
             PlanElement pe = existingTask.getPlanElement();
             if (pe != null) {
 	      if (logger.isDebugEnabled()) {

@@ -27,10 +27,12 @@
 package org.cougaar.planning.plugin.deletion;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.plugin.deletion.DeletionPlugin;
@@ -50,6 +52,7 @@ import org.cougaar.planning.ldm.plan.PlanElement;
 import org.cougaar.planning.ldm.plan.PlanElementSet;
 import org.cougaar.planning.ldm.plan.Task;
 import org.cougaar.planning.plugin.util.PluginHelper;
+import org.cougaar.util.Filters;
 import org.cougaar.util.UnaryPredicate;
 
 /**
@@ -95,6 +98,10 @@ public class TaskDeletionPlugin extends DeletionPlugin {
     }
   }
 
+  private List deletablePlanElementFilter(UnaryPredicate deletablePred, Collection planElements) {
+    return new ArrayList(Filters.filter(planElements, deletablePred));
+  }
+
   /**
    * Setup subscriptions. We maintain no standing subscriptions, but
    * we do have parameters to initialize -- the period between
@@ -116,11 +123,28 @@ public class TaskDeletionPlugin extends DeletionPlugin {
     private PlanElementSet planElementSet;
     public PlanElement findPlanElement(UID uid) {
       if (planElementSet == null) {
-        Collection planElements = getBlackboardService().query(deletablePlanElementsPredicate);
-        planElementSet = new PlanElementSet();
-        planElementSet.addAll(planElements);
+        queryBlackBoard();
       }
       return planElementSet.findPlanElement(uid);
+    }
+
+    private void queryBlackBoard() {
+      Collection planElements = getBlackboardService().query(planElementPredicate);
+      planElementSet = new PlanElementSet();
+      planElementSet.addAll(planElements);
+    }
+
+    public Collection toCollection() {
+      List planElementList;
+      if (planElementSet == null) {
+        queryBlackBoard();
+      }
+      if (planElementSet != null) {
+        planElementList = Arrays.asList(planElementSet.toArray());
+      } else {
+        planElementList = new ArrayList();
+      }
+      return planElementList;
     }
 
     public void clear() {
@@ -128,8 +152,21 @@ public class TaskDeletionPlugin extends DeletionPlugin {
     }
   }
 
-  private PESet peSet = new PESet();
+  private Set getDeletablePlanElements() {
+    if (deletablePlanElements == null) {
+      deletablePlanElements = new PlanElementSet();
+      Collection c = deletablePlanElementFilter(deletablePlanElementsPredicate, peSet.toCollection());
+      if (c.size() > 0) {
+        if (logger.isDebugEnabled())
+          logger.debug("Found " + c.size() + " deletable PlanElements");
+        deletablePlanElements.addAll(c);
+      }
+    }
+    return deletablePlanElements;
+  }
 
+  private PESet peSet = new PESet();
+  private PlanElementSet deletablePlanElements = null;
   protected int wakeCount = 0;
   /**
   * Called from execute when the alarm expires.
@@ -150,6 +187,7 @@ public class TaskDeletionPlugin extends DeletionPlugin {
       }
     }
     peSet.clear();
+    deletablePlanElements = null;
     super.checkDeletables();
   }
 
@@ -162,13 +200,9 @@ public class TaskDeletionPlugin extends DeletionPlugin {
    * with "delete" actually delete the objects.
    **/
   private void checkDeletablePlanElements() {
-    Collection c = blackboard.query(deletablePlanElementsPredicate);
-    if (c.size() > 0) {
-      if (logger.isDebugEnabled())
-        logger.debug("Found " + c.size() + " deletable PlanElements");
-      for (Iterator i = c.iterator(); i.hasNext();) {
-        checkPlanElement((PlanElement) i.next());
-      }
+    Set s = getDeletablePlanElements();
+    for (Iterator i = s.iterator(); i.hasNext();) {
+      checkPlanElement((PlanElement) i.next());
     }
   }
 
@@ -292,10 +326,12 @@ public class TaskDeletionPlugin extends DeletionPlugin {
       if (ppe == null) { // Parent is in another cluster
         return true; // It's ok to delete it
       }
-      if (ppe instanceof Expansion)
+      if (ppe instanceof Expansion) {
         return true; // Can always delete a subtask
-      return isDeleteAllowed(pe);
-      // Otherwise, can only delete if the pe can be deleted
+      } else {
+        // Otherwise, can only delete if the pe can be deleted
+        return getDeletablePlanElements().contains(ppe) && isDeleteAllowed(ppe);
+      }
     }
   }
 
@@ -389,6 +425,8 @@ public class TaskDeletionPlugin extends DeletionPlugin {
     if (!wf.getTasks().hasMoreElements() && isTimeToDelete(exp)) {
       checkPlanElement(exp); // Ready to be deleted.
     }
+    if (logger.isDebugEnabled())
+      logger.debug("Deleting subtask " + subtask);
     blackboard.publishRemove(subtask);
   }
 
@@ -421,7 +459,7 @@ public class TaskDeletionPlugin extends DeletionPlugin {
         et = Double.NaN;
       }
     if (Double.isNaN(et))
-      return 0L;
+      return Long.MAX_VALUE; //return 0L;
     for (Iterator i = deletionPolicies.iterator(); i.hasNext();) {
       DeletionPolicy policy = (DeletionPolicy) i.next();
       if (policy.getPredicate().execute(task)) {

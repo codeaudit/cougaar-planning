@@ -1,3 +1,12 @@
+2003-03-31  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* TaskImpl.java:
+	Bug #2718 -- Subscriptions show unchanged tasks as "changed" after restart
+	Don't transmit Workflows to other agents. Aside from being
+	impossible, the rest of the fix for this bug won't work if the
+	SpecialWorkflow marker is transmitted. Workflows are serialized
+	only for persistence.
+
 2003-03-21  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* TaskResponseImpl.java: 

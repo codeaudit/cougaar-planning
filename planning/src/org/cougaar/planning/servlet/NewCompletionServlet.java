@@ -47,9 +47,10 @@ import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.planning.plugin.completion.CompletionCalculator;
 import org.cougaar.core.service.AgentIdentificationService;
 import org.cougaar.core.service.BlackboardQueryService;
-import org.cougaar.core.service.TopologyReaderService;
+import org.cougaar.core.service.wp.WhitePagesService;
 import org.cougaar.core.servlet.BaseServletComponent;
 import org.cougaar.core.util.UID;
+import org.cougaar.core.wp.ListAllAgents;
 import org.cougaar.planning.ldm.plan.Aggregation;
 import org.cougaar.planning.ldm.plan.Allocation;
 import org.cougaar.planning.ldm.plan.AllocationResult;
@@ -106,7 +107,7 @@ extends BaseServletComponent
 
   protected AgentIdentificationService agentIdService;
   protected BlackboardQueryService blackboardQueryService;
-  protected TopologyReaderService topologyService;
+  protected WhitePagesService whitePagesService;
 
   protected CompletionCalculator calc;
   protected final Object lock = new Object();
@@ -156,9 +157,9 @@ extends BaseServletComponent
     this.blackboardQueryService = blackboardQueryService;
   }
 
-  public void setTopologyReaderService(
-      TopologyReaderService topologyService) {
-    this.topologyService = topologyService;
+  public void setWhitePagesService(
+      WhitePagesService whitePagesService) {
+    this.whitePagesService = whitePagesService;
   }
 
   public void load() {
@@ -167,10 +168,10 @@ extends BaseServletComponent
 
   public void unload() {
     super.unload();
-    if (topologyService != null) {
+    if (whitePagesService != null) {
       serviceBroker.releaseService(
-          this, TopologyReaderService.class, topologyService);
-      topologyService = null;
+          this, WhitePagesService.class, whitePagesService);
+      whitePagesService = null;
     }
     if (blackboardQueryService != null) {
       serviceBroker.releaseService(
@@ -185,18 +186,21 @@ extends BaseServletComponent
   }
 
   protected List getAllEncodedAgentNames() {
-    Set s = topologyService.getAll(TopologyReaderService.AGENT);
-    int n = (s != null ? s.size() : 0);
-    if (n <= 0) {
-      return Collections.EMPTY_LIST;
+    try {
+      // do full WP list (deprecated!)
+      Set s = ListAllAgents.listAllAgents(whitePagesService);
+      // URLEncode the names and sort
+      ArrayList l = new ArrayList(s.size());
+      for (Iterator iter = s.iterator(); iter.hasNext(); ) {
+        String tmp = (String) iter.next();
+        l.add(encodeAgentName(tmp));
+      }
+      Collections.sort(l);
+      return l;
+    } catch (Exception e) {
+      throw new RuntimeException(
+          "List all agents failed", e);
     }
-    List l = new ArrayList(n);
-    Iterator iter = s.iterator();
-    for (int i = 0; i < n; i++) {
-      String name = (String) iter.next();
-      l.add(encodeAgentName(name));
-    }
-    return l;
   }
 
   protected Collection queryBlackboard(UnaryPredicate pred) {
@@ -299,6 +303,8 @@ extends BaseServletComponent
       String viewType = request.getParameter("viewType");
       if (viewType == null) {
         viewDefault(); // default
+      } else if ("viewAgentBig".equals(viewType)) {
+        viewAgentBig();
       } else if ("viewAllAgents".equals(viewType)) {
         viewAllAgents();
       } else if ("viewTitle".equals(viewType)) {
@@ -315,6 +321,33 @@ extends BaseServletComponent
     }
 
     private void viewDefault() throws IOException {
+      if (format == FORMAT_HTML) {
+        // generate outer frame page:
+        //   top:    select "/agent"
+        //   bottom: "viewAgentBig" frame
+        response.setContentType("text/html");
+        this.out = response.getWriter();
+        out.print(
+            "<html><head><title>Completion Viewer</title></head>"+
+            "<frameset rows=\"10%,90%\">\n"+
+            "<frame src=\""+
+            "/agents?format=select&suffix="+
+            getEncodedAgentName()+
+            "\" name=\"agentFrame\">\n"+
+            "<frame src=\"/$"+
+            getEncodedAgentName()+getPath()+
+            "?viewType=viewAgentBig\" name=\"viewAgentBig\">\n"+
+            "</frameset>\n"+
+            "<noframes>Please enable frame support</noframes>"+
+            "</html>\n");
+        out.flush();
+      } else {
+        // for other formats, just get the data
+        viewAgentBig();
+      }
+    }
+
+    private void viewAgentBig() throws IOException {
       // get result
       CompletionData result = getCompletionData();
 
@@ -826,60 +859,52 @@ extends BaseServletComponent
           "<script language=\"JavaScript\">\n"+
           "<!--\n"+
           "function mySubmit() {\n"+
-          "  var tidx = document.myForm.formCluster.selectedIndex\n"+
-          "  var cluster = document.myForm.formCluster.options[tidx].text\n"+
-          "  document.myForm.action=\"/$\"+cluster+\"");
-      out.print(getPath());
-      out.print("\"\n"+
+          "  var obj = top.agentFrame.document.agent.name;\n"+
+          "  var encAgent = obj.value;\n"+
+          "  if (encAgent.charAt(0) == '.') {\n"+
+          "    alert(\"Please select an agent name\")\n"+
+          "    return false;\n"+
+          "  }\n"+
+          "  document.myForm.target=\"viewAgentBig\"\n"+
+          "  document.myForm.action=\"/$\"+encAgent+\""+
+          getPath()+"\"\n"+
           "  return true\n"+
           "}\n"+
           "// -->\n"+
           "</script>\n"+
           "<head>\n"+
-          "<title>");
-      out.print(getEncodedAgentName());
-      out.print(
+          "<title>"+
+          getEncodedAgentName()+
           "</title>"+
           "</head>\n"+
           "<body>"+
           "<h2><center>"+
           getTitlePrefix()+
-          "Completion at ");
-      out.print(getEncodedAgentName());
-      out.print(
+          "Completion at "+
+          getEncodedAgentName()+
           "</center></h2>\n"+
           "<form name=\"myForm\" method=\"get\" "+
           "onSubmit=\"return mySubmit()\">\n"+
           getTitlePrefix()+
-          "Completion data at "+
-          "<select name=\"formCluster\">\n");
-      // lookup all known cluster names
-      List names = getAllEncodedAgentNames();
-      int sz = names.size();
-      for (int i = 0; i < sz; i++) {
-        String n = (String) names.get(i);
-        out.print("  <option ");
-        if (n.equals(getEncodedAgentName())) {
-          out.print("selected ");
-        }
-        out.print("value=\"");
-        out.print(n);
-        out.print("\">");
-        out.print(n);
-        out.print("</option>\n");
-      }
-      out.print(
-          "</select>, \n"+
-          "<input type=\"checkbox\" name=\"showTables\" value=\"true\" ");
+          "Select an agent above, "+
+          "<input type=\"hidden\""+
+          " name=\"viewType\""+
+          " value=\"viewAgentBig\" "+
+          "<input type=\"checkbox\""+
+          " name=\"showTables\""+
+          " value=\"true\" ");
       if (showTables) {
         out.print("checked");
       }
-      out.print("> show table, \n"+
-          "<input type=\"submit\" name=\"formSubmit\" value=\"Reload\"><br>\n"+
+      out.print(
+          "> show table, \n"+
+          "<input type=\"submit\""+
+          " name=\"formSubmit\""+
+          " value=\"Reload\"><br>\n"+
           "<a href=\"/$"+
           getEncodedAgentName()+getPath()+
           "?viewType=viewAllAgents"+
-          "\">Show all agents</a>"+
+          "\" target=\"_top\">Show all agents</a>"+
           "</form>\n");
       printCountersAsHTML(result);
       printTablesAsHTML(result);
@@ -1014,7 +1039,7 @@ extends BaseServletComponent
         out.print(getEncodedAgentName());
         out.print(getPath());
         out.print(
-            "?showTables=true\">"+
+            "?showTables=true&viewType=viewAgentBig\" target=\"viewAgentBig\">"+
             "Full Listing of Unplanned/Unestimated/Failed/Unconfident Tasks (");
         out.print(
             (result.getNumberOfTasks() - 
@@ -1031,7 +1056,7 @@ extends BaseServletComponent
         String title, String subTitle) {
       out.print(
           "<table border=1 cellpadding=3 cellspacing=1 width=\"100%\">\n"+
-          "<tr bgcolor=lightgrey><th align=left colspan=5>");
+          "<tr bgcolor=lightgrey><th align=left colspan=6>");
       out.print(title);
       if (subTitle != null) {
         out.print(

@@ -35,6 +35,7 @@ import org.cougaar.core.domain.RootPlan;
 import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.service.AlarmService;
 import org.cougaar.core.util.UID;
+import org.cougaar.planning.ldm.LogPlan;
 import org.cougaar.planning.ldm.PlanningFactory;
 import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.planning.ldm.asset.ClusterPG;
@@ -44,6 +45,7 @@ import org.cougaar.planning.ldm.plan.NewTask;
 import org.cougaar.planning.ldm.plan.PlanElement;
 import org.cougaar.planning.ldm.plan.Task;
 import org.cougaar.planning.plugin.util.PluginHelper;
+import org.cougaar.util.PropertyParser;
 import org.cougaar.util.UnaryPredicate;
 import org.cougaar.util.log.Logger;
 import org.cougaar.util.log.Logging;
@@ -66,18 +68,24 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
   private final PlanningFactory ldmf;
   private final MessageAddress self;
   private final AlarmService alarmService;
+  private final LogPlan logplan;
 //   private final Workflow specialWorkflow = new SpecialWorkflow();
+
+  // Whether to confirm the Task being allocated exists before sending the allocation. Defaults to true.
+  private static final boolean CHECKALLOC = PropertyParser.getBoolean("org.cougaar.planning.ldm.lps.RemoteAllocationLP.checkBadTask", true);
 
   public RemoteAllocationLP(
       RootPlan rootplan,
       PlanningFactory ldmf,
       MessageAddress self,
-      AlarmService alarmService)
+      AlarmService alarmService,
+      LogPlan logplan)
   {
     this.rootplan = rootplan;
     this.ldmf = ldmf;
     this.self = self;
     this.alarmService = alarmService;
+    this.logplan = logplan;
     // logger is static final now
     //logger = new LoggingServiceWithPrefix(logger, self + ": ");
   }
@@ -108,6 +116,19 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
     if (! (obj instanceof Allocation)) return;
     AllocationforCollections all = (AllocationforCollections) obj;
     Task task = all.getTask();
+
+    // Confirm that the Task exists. If it does not, then 
+    // do not send this. 
+    if (CHECKALLOC) {
+      if (logplan.findTask(task) == null) {
+	// The Task being allocated is not on the Blackboard any more. Note that this will INFO about
+	// Allocations to local Assets as well as remote Agents
+	if (logger.isInfoEnabled())
+	  logger.info(self + ": RemoteAllocationLP: Allocation of rescinded Task: " + task + " using new Allocation " + all);
+	return;
+      }
+    }
+
     Asset asset = all.getAsset();
     ClusterPG cpg = asset.getClusterPG();
     if (cpg == null) return;

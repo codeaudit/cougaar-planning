@@ -142,7 +142,7 @@ public class PlanningDomain extends DomainAdapter {
     addLogicProvider(new AssetTransferLP(rootplan, logplan, ldmf, self));    
     addLogicProvider(new NotificationLP(rootplan, logplan, ldmf, self));
     addLogicProvider(new DeletionLP(rootplan, ldmf, self));
-    addLogicProvider(new RemoteAllocationLP(rootplan, ldmf, self, alarmService));
+    addLogicProvider(new RemoteAllocationLP(rootplan, ldmf, self, alarmService, logplan));
     addLogicProvider(new RescindLP(rootplan, logplan, ldmf));
     
     // error detection LP

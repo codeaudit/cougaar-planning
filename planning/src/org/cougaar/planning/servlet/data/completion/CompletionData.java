@@ -53,8 +53,8 @@ public abstract class CompletionData implements XMLable, DeXMLable, Serializable
   protected double ratio;
   protected int numTasks;
   protected int numRootProjectSupplyTasks;
-  private int numRootSupplyTasks;
-  private int numRootTransportTasks;
+  protected int numRootSupplyTasks;
+  protected int numRootTransportTasks;
 
   //Constructors:
   ///////////////

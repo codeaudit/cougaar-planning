@@ -35,14 +35,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.cougaar.core.component.ServiceBroker;
 import org.cougaar.core.component.ServiceRevokedListener;
-import org.cougaar.core.service.AlarmService;
-import org.cougaar.core.service.DemoControlService;
-import org.cougaar.core.service.LoggingService;
+import org.cougaar.core.service.EventService;
 import org.cougaar.core.service.ServletService;
 import org.cougaar.core.service.wp.WhitePagesService;
 import org.cougaar.core.wp.ListAllNodes;
-import org.cougaar.util.CougaarEvent;
-import org.cougaar.util.CougaarEventType;
 
 /**
  * This plugin gathers and integrates completion information from
@@ -80,6 +76,7 @@ public abstract class CompletionSocietyPlugin extends CompletionSourcePlugin {
   private int refreshInterval = 0;
   private boolean persistenceNeeded = false;
   private static final Class[] requiredServices = {
+    EventService.class,
     ServletService.class,
     WhitePagesService.class
   };
@@ -108,6 +105,7 @@ public abstract class CompletionSocietyPlugin extends CompletionSourcePlugin {
 
   private LaggardFilter filter = new LaggardFilter();
 
+  private EventService eventService = null;
   private WhitePagesService wps = null;
   private ServletService servletService = null;
 
@@ -159,6 +157,8 @@ public abstract class CompletionSocietyPlugin extends CompletionSourcePlugin {
   protected boolean haveServices() {
     if (servletService != null && wps != null) return true;
     if (super.haveServices()) {
+      eventService = (EventService)
+        getServiceBroker().getService(this, EventService.class, null);
       wps = (WhitePagesService)
         getServiceBroker().getService(this, WhitePagesService.class, null);
       servletService = (ServletService)
@@ -250,7 +250,9 @@ public abstract class CompletionSocietyPlugin extends CompletionSourcePlugin {
             persistenceNeeded = false;
           }
           if (!isComplete) {
-            CougaarEvent.postEvent(CougaarEventType.STATUS, "Planning Complete");
+            if (eventService.isEventEnabled()) {
+              eventService.event("Planning Complete");
+            }
             isComplete = true;
           }
           return;
@@ -280,7 +282,9 @@ public abstract class CompletionSocietyPlugin extends CompletionSourcePlugin {
       }
     }
     if (isComplete) {
-      CougaarEvent.postEvent(CougaarEventType.STATUS, "Planning Active");
+      if (eventService.isEventEnabled()) {
+        eventService.event("Planning Active");
+      }
       isComplete = false;
     }
   }

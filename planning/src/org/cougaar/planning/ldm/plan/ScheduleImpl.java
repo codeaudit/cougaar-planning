@@ -329,7 +329,9 @@ public class ScheduleImpl
     }
     scheduleElementType = setype;
   }
-                        
+
+  protected static final String EOL = System.getProperty("line.separator");
+
   public String toString() {
     String tstring = "?";
     String setstring = "?";
@@ -337,7 +339,7 @@ public class ScheduleImpl
       tstring = scheduleType;
     if (scheduleElementType != null) 
       setstring = scheduleElementType.toString();
-    return "\n<Schedule "+tstring+"/"+setstring+" "+super.toString()+">";
+    return EOL+"<Schedule "+tstring+"/"+setstring+" "+super.toString()+">";
   }
 
         

@@ -46,20 +46,23 @@ public class AspectRate extends TypedAspectValue {
 
   public static AspectValue create(int type, Object o) {
     if (o instanceof Number) {
-      if (!hack_warnedUser) {
-        // this bug can easily occur in the thousands, so we
-        // only make a fuss this once
-        hack_warnedUser = true;
-        org.cougaar.util.log.LoggerFactory.getInstance().createLogger(AspectRate.class).warn(
-            "BUG 2529: create("+type+", "+o+") with non-rate type "+
-            (o==null?"null":(o.getClass().getName()+": "+o))+
-            "!  This will be the *only* warning!", 
-            new RuntimeException("Trace"));
+      double v = ((Number)o).doubleValue();
+      if (v != 0.0) {
+        if (!hack_warnedUser) {
+          // this bug can easily occur in the thousands, so we
+          // only make a fuss this once
+          hack_warnedUser = true;
+          org.cougaar.util.log.LoggerFactory.getInstance().createLogger(AspectRate.class).warn(
+                                                                                               "BUG 2529: create("+type+", "+o+") with non-rate type "+
+                                                                                               (o==null?"null":(o.getClass().getName()+": "+o))+
+                                                                                               "!  This will be the *only* warning!", 
+                                                                                               new RuntimeException("Trace"));
+        }
       }
       // bogus!
-      o = CountRate.newUnitsPerDay(((Number)o).doubleValue());
+      o = CountRate.newUnitsPerDay(v);
     }
-    long l;
+
     if (o instanceof Rate) {
       return new AspectRate(type, (Rate) o);
     } else {

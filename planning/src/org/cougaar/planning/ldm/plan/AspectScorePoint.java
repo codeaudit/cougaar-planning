@@ -60,10 +60,10 @@ public class AspectScorePoint implements Serializable, Cloneable {
   public int getAspectType() { return value.getAspectType(); }
 
   public static final AspectScorePoint getNEGATIVE_INFINITY(int type) {
-    return new AspectScorePoint(0.0, Double.NEGATIVE_INFINITY, type);
+    return new AspectScorePoint(AspectValue.newAspectValue(type,0.0), Double.NEGATIVE_INFINITY);
   }
   public static final AspectScorePoint getPOSITIVE_INFINITY(int type) {
-    return new AspectScorePoint(0, Double.POSITIVE_INFINITY, type);
+    return new AspectScorePoint(AspectValue.newAspectValue(type,0.0), Double.POSITIVE_INFINITY);
   }
 
 }

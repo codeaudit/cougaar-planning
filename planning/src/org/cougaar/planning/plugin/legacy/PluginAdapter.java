@@ -32,7 +32,6 @@ import java.util.Enumeration;
 import java.util.Vector;
 import java.util.List;
 
-import org.cougaar.core.agent.MetricsSnapshot;
 import org.cougaar.core.agent.service.alarm.Alarm;
 import org.cougaar.core.agent.service.alarm.ExecutionTimer;
 import org.cougaar.core.blackboard.BlackboardClient;
@@ -135,34 +134,6 @@ public abstract class PluginAdapter
   }
   protected final LDMService getLDMService() {
     return ldmService;
-  }
-
-  /**
-   * @deprecated use various metrics services - throws a runtime exception
-   * @see org.cougaar.core.service.BlackboardMetricsService
-   * @see org.cougaar.core.service.MessageStatisticsService
-   * @see org.cougaar.core.service.MessageWatcherService
-   * @see org.cougaar.core.service.NodeMetricsService
-   * @see org.cougaar.planning.service.PrototypeRegistryService
-   */
-  protected final MetricsSnapshot getMetricsSnapshot() {
-    throw new RuntimeException("\n GetMetricsSnapshot is no longer supported.  Please use the various node level and agent level metrics services.");
-    //return new MetricsSnapshot();
-  }
-
-  /**
-   * @deprecated use various metrics services - throws a runtime exception
-   * @see org.cougaar.core.service.BlackboardMetricsService
-   * @see org.cougaar.core.service.MessageStatisticsService
-   * @see org.cougaar.core.service.MessageWatcherService
-   * @see org.cougaar.core.service.NodeMetricsService
-   * @see org.cougaar.planning.service.PrototypeRegistryService
-   */
-  protected final MetricsSnapshot getMetricsSnapshot(MetricsSnapshot ms, boolean resetMsgStats) {
-    throw new RuntimeException("\n GetMetricsSnapshot is no longer supported.  Please use the various node level and agent level metrics services.");
- //    if (ms == null)
-//       ms = new MetricsSnapshot();
-//     return ms;
   }
 
   // alarm service
@@ -454,10 +425,6 @@ public abstract class PluginAdapter
       public long currentTimeMillis() { return getAlarmService().currentTimeMillis(); }
       public void addAlarm(Alarm alarm) {getAlarmService().addAlarm(alarm);}
       public void addRealTimeAlarm(Alarm a) {getAlarmService().addRealTimeAlarm(a);}
-
-      // metrics service
-      public MetricsSnapshot getMetricsSnapshot() { return PluginAdapter.this.getMetricsSnapshot(); }
-      public MetricsSnapshot getMetricsSnapshot(MetricsSnapshot ms, boolean resetMsgStats) { return PluginAdapter.this.getMetricsSnapshot(ms, resetMsgStats); }
 
       // ??
       public java.sql.Connection getDatabaseConnection(Object locker) {throw new RuntimeException("Should not be called");}
@@ -790,12 +757,6 @@ public abstract class PluginAdapter
     }
     public MessageAddress getMessageAddress() {
       return PluginAdapter.this.getAgentIdentifier();
-    }
-    public MetricsSnapshot getMetricsSnapshot() {
-      return PluginAdapter.this.getMetricsSnapshot();
-    }
-    public MetricsSnapshot getMetricsSnapshot(MetricsSnapshot ms, boolean resetMsgStats) {
-      return PluginAdapter.this.getMetricsSnapshot(ms, resetMsgStats);
     }
     public void openTransaction() {
       getBlackboardService().openTransaction();

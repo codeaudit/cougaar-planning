@@ -29,7 +29,6 @@ package org.cougaar.planning.plugin.legacy;
 import java.util.Collection;
 import java.util.Date;
 
-import org.cougaar.core.agent.MetricsSnapshot;
 import org.cougaar.core.blackboard.SubscriberException;
 import org.cougaar.core.blackboard.Subscription;
 import org.cougaar.core.component.ServiceBroker;
@@ -58,9 +57,6 @@ public interface PluginDelegate {
   PlanningFactory getFactory();
   Factory getFactory(String domainname);
   MessageAddress getMessageAddress();
-  /** @deprecated use getMetricsSnapshot(MetricsSnapshot ms, boolean resetMsgStats) **/
-  MetricsSnapshot getMetricsSnapshot();
-  MetricsSnapshot getMetricsSnapshot(MetricsSnapshot ms, boolean resetMsgStats);
   void openTransaction();
   boolean tryOpenTransaction();
   void closeTransaction() throws SubscriberException;

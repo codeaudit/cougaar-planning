@@ -1,3 +1,59 @@
+2003-02-12  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* WorkflowImpl.java: 
+	Bug #1296 -- Removing subtasks from a workflow
+	The Workflow now manages the subtask result information. When a
+	new aggregated AllocationResult is computed, an associated set of
+	UIDs of subtasks contributing to the new result is updated. This
+	allows a plug to ask for a list of subtasks whose changed results
+	have caused the expansion result to change.
+	Also cleaned up a really messy synchronization pattern. Half the
+	code was synchronized on the workflow and the other half on the
+	subtask vector. Since the subtasks are the essence of the
+	workflow, it seems pointless to make the distinction. With these
+	changes, workflows should now maintain internal consistency
+	whereas before this was somewhat haphazard. The only known
+	loophole is the getTasks method that returns an Enumeration of the
+	subtasks Vector and cannot be protected from subsequent changes to
+	that Vector by, for example, a rescind. The javadoc warns of this
+	and suggests synchronization on the workflow while enumerating the
+	subtasks.
+
+	* Workflow.java:
+	Bug #1296 -- Removing subtasks from a workflow
+	Make getSubtaskResults an official part of the Workflow interface
+	instead of a kludge accessor in ExpansionImpl requiring a plugin
+	to cast the Expansion to ExpansionImpl.
+
+	* TaskScoreTable.java: 
+	Bug #1296 -- Removing subtasks from a workflow
+	Rationalize the interface so it can be updated directly instead of
+	constructing a new copy having the same data.
+
+	* SubtaskResults.java: 
+	Bug #1296 -- Removing subtasks from a workflow
+	New class holds and allocation result in addition to the list of
+	subtask information objects. This allows the state of the workflow
+	and subtasks to advance beyond the last aggregation of the subtask
+	results without introducing a disagreement between the subtasks
+	and the computed allocation result.
+
+	* NewExpansion.java: 
+	Bug #1296 -- Removing subtasks from a workflow
+	Change return type of getSubtaskResults to an extension of List
+	holding the allocation result aggregated from the subtasks held in
+	the list.
+
+	* ExpansionImpl.java:
+	Bug #1296 -- Removing subtasks from a workflow
+	Review of this code shows an accretion of various fixes and
+	patches to a number problems that have been found over time. Bug
+	#1296 reports a memory problem with expansions holding onto tasks
+	after they have been removed from the workflow. Variables
+	retaining this information have been removed from ExpansionImpl
+	and the responsibility for creating subtask info moved into
+	WorkFlowImpl.
+
 2003-01-23  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* ScoringFunction.java:

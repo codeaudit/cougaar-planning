@@ -1,3 +1,14 @@
+2003-02-12  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/planning/ldm/lps/ReceiveNotificationLP.java:
+	Bug #1296 -- Removing subtasks from a workflow
+	Review of this code shows an accretion of various fixes and
+	patches to a number problems that have been found over time. Bug
+	#1296 reports a memory problem with expansions holding onto tasks
+	after they have been removed from the workflow. Changes here were
+	to use a simplified interface to the workflow for aggregating the
+	allocation results of subtasks and recording which tasks.
+
 2002-12-05  Todd Wright  <twright@bbn.com>
 
 	* *

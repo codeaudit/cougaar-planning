@@ -404,10 +404,10 @@ public class WorkflowImpl
     ConstraintEvent ce2 = c.getConstrainedEventObject();
 
     double constrainingValue = ce1.getValue();
-    if (constrainingValue == ConstraintEvent.NOVALUE) return false;
+    if (Double.isNaN(constrainingValue)) return false;
 
     double constrainedValue = ce2.getValue();
-    if (constrainedValue == ConstraintEvent.NOVALUE) return true;
+    if (Double.isNaN(constrainedValue)) return true;
 
     double diff = constrainedValue - constrainingValue + c.getOffsetOfConstraint();
     switch (c.getConstraintOrder()) {
@@ -433,10 +433,10 @@ public class WorkflowImpl
     ConstraintEvent ce2 = c.getConstrainedEventObject();
 
     double constrainingValue = ce1.getValue();
-    if (constrainingValue == ConstraintEvent.NOVALUE) return false;
+    if (Double.isNaN(constrainingValue)) return false;
 
     double constrainedValue = ce2.getResultValue();
-    if (constrainedValue == ConstraintEvent.NOVALUE) return false;
+    if (Double.isNaN(constrainedValue)) return false;
 
     double diff = constrainedValue - constrainingValue + c.getOffsetOfConstraint();
     switch (c.getConstraintOrder()) {

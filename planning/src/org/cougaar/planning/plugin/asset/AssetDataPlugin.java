@@ -336,9 +336,19 @@ public class AssetDataPlugin extends SimplePlugin {
                                    (HasRelationships) otherAsset,
                                    start,
                                    end);
-            
     myRelationships.add(relationship);
-  }
+
+    if (roleName.equals("AdministrativeSubordinate")) {
+      relationship = 
+        myPlanningFactory.newRelationship(Role.getRole("OperationalSubordinate"),
+                                          (HasRelationships) myLocalAsset,
+                                          (HasRelationships) otherAsset,
+                                          start,
+                                          end);      
+      myRelationships.add(relationship);
+    }
+            
+ }
 
   //create the Report task to be sent to myself which will result in an asset 
   //transfer of the copyOfMyself being sent to the cluster I am supporting.

@@ -110,6 +110,9 @@ public class TaskImpl extends PlanningDirectiveImpl
 
   /** @param aVerb set the verb or action of a task*/
   public void setVerb( Verb aVerb ) {
+    if (aVerb == null) {
+      throw new IllegalArgumentException("Verb must be non-null");
+    }
     verb = aVerb;
     decacheTS();
   }
@@ -835,7 +838,15 @@ public class TaskImpl extends PlanningDirectiveImpl
   }
 
   // ActiveSubscriptionObject
-  public void addingToBlackboard(Subscriber s, boolean commit) { }
+  public void addingToBlackboard(Subscriber s, boolean commit) {
+    if (!commit) {
+      return;
+    }
+    if (verb == null) {
+      throw new IllegalArgumentException(
+          "publishAdd of "+this+" with null verb");
+    }
+  }
   public void changingInBlackboard(Subscriber s, boolean commit) {
     if (!commit) {
       return;

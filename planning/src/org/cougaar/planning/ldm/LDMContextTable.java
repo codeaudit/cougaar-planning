@@ -27,8 +27,9 @@
 package org.cougaar.planning.ldm;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
-
+import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.core.mts.MessageAddress;
 
 /**
@@ -59,7 +60,16 @@ public final class LDMContextTable {
       Object o = table.get(agentAddr);
       if (o instanceof LDMServesPlugin.Delegator) {
         LDMServesPlugin.Delegator delegator = (LDMServesPlugin.Delegator) o;
-        delegator.setLDM(ldm);
+        synchronized (delegator) { /*prevent anyone else from mutating it while we're cutting over*/
+          delegator.setLDM(ldm);
+          HashMap oc = delegator.flushTemporaryPrototypeCache();
+          if (oc != null) {
+            for (Iterator i = oc.entrySet().iterator(); i.hasNext(); ) {
+              Map.Entry entry = (Map.Entry) i.next();
+              ldm.cachePrototype((String) entry.getKey(), (Asset) entry.getValue());
+            }
+          }
+        }
       }
       table.put(agentAddr, ldm);
     }

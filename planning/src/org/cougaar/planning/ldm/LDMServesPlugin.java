@@ -32,6 +32,8 @@ import org.cougaar.core.service.UIDServer;
 import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.planning.ldm.asset.PropertyGroup;
 import org.cougaar.planning.service.PrototypeRegistryService;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Plugins primary interface to the LDM.
@@ -72,10 +74,9 @@ public interface LDMServesPlugin extends PrototypeRegistryService {
 
   class Delegator implements LDMServesPlugin {
     private LDMServesPlugin ldm;
-    Delegator() {
-    }
+    Delegator() { }
 
-    void setLDM(LDMServesPlugin ldm) {
+    synchronized void setLDM(LDMServesPlugin ldm) {
       this.ldm = ldm;
     }
 
@@ -91,18 +92,6 @@ public interface LDMServesPlugin extends PrototypeRegistryService {
     public void addLatePropertyProvider(LatePropertyProvider lpp) {
       ldm.addLatePropertyProvider(lpp);
     }
-    public void cachePrototype(String aTypeName, Asset aPrototype) {
-      ldm.cachePrototype(aTypeName, aPrototype);
-    }
-    public boolean isPrototypeCached(String aTypeName) {
-      return ldm.isPrototypeCached(aTypeName);
-    }
-    public Asset getPrototype(String aTypeName, Class anAssetClass) {
-      return ldm.getPrototype(aTypeName, anAssetClass);
-    }
-    public Asset getPrototype(String aTypeName) {
-      return ldm.getPrototype(aTypeName);
-    }
     public void fillProperties(Asset anAsset) {
       ldm.fillProperties(anAsset);
     }
@@ -115,10 +104,6 @@ public interface LDMServesPlugin extends PrototypeRegistryService {
     public int getPropertyProviderCount() {
       return ldm.getPropertyProviderCount();
     }
-    public int getCachedPrototypeCount() {
-      return ldm.getCachedPrototypeCount();
-    }
-
     public PlanningFactory getFactory() {
       return ldm.getFactory();
     }
@@ -136,6 +121,61 @@ public interface LDMServesPlugin extends PrototypeRegistryService {
     }
     public UIDServer getUIDServer() {
       return ldm.getUIDServer();
+    }
+
+    //
+    // set up a temporary prototype cache while bootstrapping
+    //
+
+    private HashMap _pcache;
+    private HashMap pc() {      /* must be called within synchronized */
+      if (_pcache == null) {
+        _pcache = new HashMap(13);
+      }
+      return _pcache;
+    }
+
+    // called by LDMContextTable to read out any cached prototypes into the real one
+    synchronized HashMap flushTemporaryPrototypeCache() {
+      HashMap c = _pcache;
+      _pcache = null;
+      return c;
+    }
+
+    public synchronized void cachePrototype(String aTypeName, Asset aPrototype) {
+      if (ldm != null) {
+        ldm.cachePrototype(aTypeName, aPrototype);
+      } else {
+        pc().put(aTypeName, aPrototype);
+      }
+    }
+    public synchronized boolean isPrototypeCached(String aTypeName) {
+      if (ldm != null) {
+        return ldm.isPrototypeCached(aTypeName);
+      } else {
+        return (_pcache==null?false:_pcache.get(aTypeName)!=null);
+      }
+    }
+    public synchronized Asset getPrototype(String aTypeName, Class anAssetClass) {
+      if (ldm != null) {
+        return ldm.getPrototype(aTypeName, anAssetClass);
+      } else {
+        return (Asset) (_pcache==null?null:_pcache.get(aTypeName)); /*no hint passed, since we've got no actual providers*/
+      }
+    }
+    public synchronized Asset getPrototype(String aTypeName) {
+      if (ldm != null) {
+        return ldm.getPrototype(aTypeName);
+      } else {
+        return (Asset) (_pcache == null?null:_pcache.get(aTypeName));
+      }        
+    }
+    public synchronized int getCachedPrototypeCount() {
+      if (ldm != null) {
+        return ldm.getCachedPrototypeCount();
+      } else {
+        return (_pcache == null)?0:pc().size();
+      }
     }
   }
 }

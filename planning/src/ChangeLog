@@ -1,3 +1,41 @@
+2003-03-21  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* org/cougaar/planning/plugin/legacy/DeletionPlugin.java: 
+	Bug #1096 -- Received tasks are deleted without deleting the remote Allocation
+	Cosmetic and logging changes.
+
+	* org/cougaar/planning/ldm/lps/RescindLP.java: 
+	Bug #1096 -- Received tasks are deleted without deleting the remote Allocation
+	Don't ignore deleted tasks, they must be rescinded, too, in order
+	to complete their deletion.
+
+	* org/cougaar/planning/ldm/lps/RemoteClusterAllocationLP.java: 
+	Bug #1096 -- Received tasks are deleted without deleting the remote Allocation
+	Don't send tasks from the past. This is crucial to avoiding the
+	problems that ensue from not having deleted the remote Allocation.
+	By not sending such tasks, they will not be accidentally
+	resuscitated after being deleted.
+
+	* org/cougaar/planning/ldm/lps/ReceiveTaskLP.java: 
+	Bug #1096 -- Received tasks are deleted without deleting the remote Allocation
+	Handle receiving a deleted task. This happens only rarely, but
+	when it does, remove the task on the blackboard if it is also deleted.
+
+	* org/cougaar/planning/ldm/lps/ReceiveDeletionLP.java: 
+	Bug #1096 -- Received tasks are deleted without deleting the remote Allocation
+	Handle case of receiving a Deletion message for a task that has
+	already been rescinded by sending a Rescind marked "deleted".
+	Add some logging.
+
+	* org/cougaar/planning/ldm/lps/DeletionLP.java: 
+	Bug #1096 -- Received tasks are deleted without deleting the remote Allocation
+	Minor cosmetic changes in logging message and comments.
+
+	* org/cougaar/planning/ldm/PlanningDomain.java:
+	Bug #1096 -- Received tasks are deleted without deleting the remote Allocation
+	Construct DeletionLP and ReceiveDeletionLP with different
+	arguments to match new signature.
+
 2003-03-17  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* org/cougaar/planning/ldm/lps/ReceiveAssetLP.java:

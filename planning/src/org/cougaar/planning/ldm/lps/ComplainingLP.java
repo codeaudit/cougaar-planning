@@ -39,7 +39,7 @@ import org.cougaar.core.util.UniqueObject;
 import org.cougaar.util.log.Logger;
 import org.cougaar.util.log.Logging;
 
-/** Watch the LogPlan and complain when obvious errors and 
+/** Watch the LogPlan and complain via logging messages when obvious errors and 
  * other suspicious patterns are detected.  
  * <p>
  * This particular
@@ -50,43 +50,36 @@ import org.cougaar.util.log.Logging;
  * The specific tests that are performed are described by the
  * execute method.
  * <p>
- * Properties:
- * org.cougaar.planning.ldm.lps.ComplainingLP.level may
- * be set to an integer. Valid values are 0 (silent), 1 (report 
- * only definite errors), and 2 (report anything suspicious).
- * The default value is 2.
+ * @note Cougaar prior to 11.2 used the system property
+ * org.cougaar.planning.ldm.lps.ComplainingLP.level to control
+ * the verbosity. The default levels, however led to people
+ * just turning it off completely. Current tests are logged
+ * at INFO or lower, but warn level messages may be used
+ * in the future.
  **/
+
 public class ComplainingLP
 implements LogicProvider, EnvelopeLogicProvider
 {
   private static final Logger logger = Logging.getLogger(ComplainingLP.class);
 
-  private final static String levelPROP = "org.cougaar.planning.ldm.lps.ComplainingLP.level";
-
-  private static int level = 1;
-
-  private final static int levelQUIET = 0;
-  private final static int levelERROR = 1;
-  private final static int levelWARN = 2;
-  
-  static {
-    level = (Integer.valueOf(System.getProperty(levelPROP, String.valueOf(level)))).intValue();
-    if (level < levelQUIET) level = levelQUIET;
-    if (level > levelWARN) level = levelWARN;
-  }
-
   private final RootPlan rootplan;
   private final MessageAddress self;
 
-  public ComplainingLP(
-      RootPlan rootplan,
-      MessageAddress self) {
+  public ComplainingLP(RootPlan rootplan, MessageAddress self) 
+  {
+    if (!logger.isWarnEnabled()) {
+      logger.error("Logging for ComplainingLP should be at least WARN");
+    }
+    if (System.getProperty("org.cougaar.planning.ldm.lps.ComplainingLP.level") != null) {
+      logger.error("System Property org.cougaar.planning.ldm.lps.ComplainingLP.level is ignored");
+    }
+
     this.rootplan = rootplan;
     this.self = self;
   }
 
-  public void init() {
-  }
+  public void init() { }
 
   /**
    * Complain in any of the following cases:
@@ -95,31 +88,44 @@ implements LogicProvider, EnvelopeLogicProvider
    * but that is not identical (warning).
    **/
   public void execute(EnvelopeTuple o, Collection changes) {
-    if (level <= 0) return;     // quiet.  better would be to refuse to plug-in.
+    if (logger.isWarnEnabled()) { //skip if not at least at WARN
+      Object obj = o.getObject();
+      if (obj instanceof UniqueObject) {
+        UID objuid = ((UniqueObject)obj).getUID();
+        Object found = rootplan.findUniqueObject(objuid);
+        boolean thereP = (found != null);
 
-    Object obj = o.getObject();
-    if (obj instanceof UniqueObject) {
-      UID objuid = ((UniqueObject)obj).getUID();
-      Object found = rootplan.findUniqueObject(objuid);
-      boolean thereP = (found != null);
-      if ((! thereP) && o.isChange() && level >= levelERROR)
-        complain("change of non-existent object "+obj, obj);
+        if ((! thereP) && o.isChange()) {
+          if (logger.isInfoEnabled()) {
+            logger.info("change of non-existent object "+obj);
+            dumpStacks(obj);
+          }
+        }
 
-      /*
+      
         // cannot do these because LPs are applied after subscription updates.
-      if ((! thereP) && o.isRemove() && level >= levelWARN)
-        complain("redundant remove of object "+obj);
+        //        if ((! thereP) && o.isRemove()) {
+        //          if (logger.isInfoEnabled()) {
+        //            logger.info("redundant remove of object "+obj);
+        //          }
+        //        }
+        //        if ((thereP) && o.isAdd()) {
+        //          if (logger.isInfoEnabled()) {
+        //            logger.info("redundant add of object "+obj);
+        //          }
+        //        }
 
-      if ((thereP) && o.isAdd() && level >= levelWARN)
-        complain("redundant add of object "+obj);
-      */
-      if (thereP && found != obj && level >= levelWARN)
-        complain("action="+o.getAction()+" on "+obj+" which is not == "+found, obj);
-
+        if (thereP && found != obj) {
+          if (logger.isInfoEnabled()) {
+            logger.info("action="+o.getAction()+" on "+obj+" which is not == "+found);
+            dumpStacks(obj);
+          }
+        }
+      }
     }
   }
-  private void complain(String complaint, Object obj) {
-    logger.warn("Warning: "+self+" ComplainingLP observed "+complaint);
+
+  private void dumpStacks(Object obj) {
     PublishHistory history = rootplan.getHistory();
     if (history != null) history.dumpStacks(obj);
   }

@@ -28,6 +28,7 @@ import java.util.Vector;
 
 import org.cougaar.util.Empty;
 import org.cougaar.util.SingleElementEnumeration;
+import org.cougaar.util.log.Logging;
 
 
 /**
@@ -347,10 +348,12 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
    * @throw IllegalArgumentException on illegal curve.
    **/
   public final static void checkValidCurve(AspectScorePoint[] curve) {
+    try {
     int l = curve.length;
     if (l==0) { throw new IllegalArgumentException("Empty point set"); }
     int at =  curve[0].getAspectType();
     double lv = curve[0].getValue();
+    double ls = curve[0].getScore();
 
     for (int i=1; i<l; i++) {
       int t =  curve[i].getAspectType();
@@ -360,19 +363,20 @@ public abstract class ScoringFunction implements Serializable, Cloneable {
       }
 
       double v = curve[i].getValue();
-      if (v <= lv) { throw new IllegalArgumentException("curve["+i+"].getValue() non-increasing");}
-      if (Double.isNaN(v)) {
-        throw new IllegalArgumentException("curve["+i+"].getValue() is not a number");
-      }
-      lv = v;
-
       double s = curve[i].getScore();
-      if (Double.isNaN(s)) {
-        throw new IllegalArgumentException("curve["+i+"].getScore() is not a number");
-      }
+      if (Double.isNaN(v)) { throw new IllegalArgumentException("curve["+i+"].getValue() is not a number"); }
+      if (v < lv) { throw new IllegalArgumentException("curve["+i+"].getValue() decreases ("+v+"<"+lv+")"); }
+      if (v == lv && s == ls) { throw new IllegalArgumentException("curve["+i+"] == curve["+(i-1)+"]"); }
+      lv = v;
+      ls = s;
+
+      if (Double.isNaN(s)) { throw new IllegalArgumentException("curve["+i+"].getScore() is not a number"); }
       if (s<LOW_THRESHOLD || s>HIGH_THRESHOLD) {
         throw new IllegalArgumentException("curve["+i+"].getScore() out of range ("+s+")");
       }
+    }
+    } catch (IllegalArgumentException e) {
+      Logging.getLogger(ScoringFunction.class).error("Bad ScoringFunction curve", e);
     }
   }
 

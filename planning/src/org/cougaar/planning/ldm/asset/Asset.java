@@ -807,7 +807,7 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
     return myKey;
   }
 
-  private static class TypeItemKey {
+  private static class TypeItemKey implements java.io.Serializable {
     private String myTypeString = null;
     private String myItemString = null;
     private int myHashCode;

@@ -50,6 +50,11 @@ public final class LDMContextTable {
   /** @see org.cougaar.planning.ldm.PlanningDomain */
   static void setLDM(MessageAddress agentAddr, LDMServesPlugin ldm) {
     synchronized (table) {
+      Object o = table.get(agentAddr);
+      if (o instanceof LDMServesPlugin.Delegator) {
+        LDMServesPlugin.Delegator delegator = (LDMServesPlugin.Delegator) o;
+        delegator.setLDM(ldm);
+      }
       table.put(agentAddr, ldm);
     }
   }
@@ -57,7 +62,12 @@ public final class LDMContextTable {
   /** @see org.cougaar.planning.asset.Asset */
   public static LDMServesPlugin getLDM(MessageAddress agentAddr) {
     synchronized (table) {
-      return (LDMServesPlugin) table.get(agentAddr);
+      LDMServesPlugin result = (LDMServesPlugin) table.get(agentAddr);
+      if (result == null) {
+        result = new LDMServesPlugin.Delegator();
+        table.put(agentAddr, result);
+      }
+      return result;
     }
   }
 

@@ -257,7 +257,10 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
     boolean shouldSend = ((long) et) >= minValidTaskTime;
 
     if (!shouldSend && logger.isInfoEnabled()) {
-      logger.info(self + ": " + task + " has end time pref earlier than minValidTime (now - 1 day) of " + minValidTaskTime + ". Will not Allocate task due more than 1 day ago!");
+      Date thePref = new Date((long)et);
+      long myCurrentTime = currentTimeMillis();
+      Date myCurrentTimeDate = new Date(myCurrentTime);
+      logger.info(self + ": " + task + " has end time pref earlier than minValidTime (now - 1 day) of " + thePref + ". Will not Allocate task due more than 1 day ago! Now is: " + myCurrentTimeDate);
     }
 
     return shouldSend;

@@ -141,7 +141,7 @@ public class PlanningDomain extends DomainAdapter {
 
 
   protected void loadLPs() {
-    RootPlan rootplan = (RootPlan) getXPlanForDomain("root");
+    rootplan = (RootPlan) getXPlanForDomain("root");
     if (rootplan == null) {
       throw new RuntimeException("Missing \"root\" plan!");
     }

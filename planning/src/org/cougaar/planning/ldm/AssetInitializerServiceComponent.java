@@ -66,9 +66,12 @@ implements Component
     }
   }
 
+  /*
+    // not available in nodeagent early on
   public void setDBInitializerService(DBInitializerService dbInit) {
     this.dbInit = dbInit;
   }
+  */
 
   public void load() {
     super.load();
@@ -78,6 +81,8 @@ implements Component
     if (log == null) {
       log = LoggingService.NULL;
     }
+
+    dbInit = (DBInitializerService) sb.getService(this, DBInitializerService.class, null);
 
     // Do not provide this service if there is already one there.
     // This allows someone to provide their own component to provide

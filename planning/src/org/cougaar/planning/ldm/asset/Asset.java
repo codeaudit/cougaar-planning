@@ -390,6 +390,9 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
     initRoleSchedule();
   }
 
+  /** Figure out how to interpret an object which was supplied as the prototype
+   * of a deserialized Asset.
+   **/
   private static Asset grokPrototype(LDMServesPlugin ldm, Object po) {
     if (po == null) {
       return null;
@@ -405,6 +408,9 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
     }
   }
 
+  /** Figure out how to handle an asset's prototype when deserialized as 
+   * a real (whole) asset.
+   **/
   private static Asset grokPrototypeAsAsset(LDMServesPlugin ldm, Asset pa) {
     if (ldm != null) {      // if we've got an LDM, check the prototype cache
       TypeIdentificationPG ptip = pa.getTypeIdentificationPG();
@@ -438,6 +444,9 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
     return pa;
   }
 
+  /** Figure out how to handle an asset's prototype when deserialized as
+   * a raw TypeIdentification string.
+   **/
   private static Asset grokPrototypeAsTID(LDMServesPlugin ldm, String tid) {
     Asset pa = null;
     if (ldm != null) {

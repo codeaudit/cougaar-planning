@@ -27,8 +27,9 @@ import java.util.Iterator;
 
 import org.cougaar.core.blackboard.AnonymousChangeReport;
 import org.cougaar.core.blackboard.ChangeReport;
-import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.blackboard.IncrementalSubscription;
+import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.core.service.LoggingService;
 
 import org.cougaar.planning.Constants;
 import org.cougaar.planning.ldm.PlanningFactory;
@@ -66,17 +67,25 @@ import org.cougaar.util.UnaryPredicate;
 
 public class AssetReportPlugin extends SimplePlugin
 {
-  protected PlanningFactory ldmf;
+  protected PlanningFactory myPlanningFactory;
   private IncrementalSubscription myTasks;
   private IncrementalSubscription myAssetTransfers;
 
   private IncrementalSubscription myLocalAssets;
 
+  protected LoggingService myLogger;
+
   //Override the setupSubscriptions() in the SimplifiedPlugin.
   protected void setupSubscriptions() {
-    ldmf = (PlanningFactory) getFactory("planning");
-    if (ldmf == null) {
+    myPlanningFactory = (PlanningFactory) getFactory("planning");
+    if (myPlanningFactory == null) {
       throw new RuntimeException("Missing \"planning\" factory");
+    }
+
+    myLogger = (LoggingService)
+      getBindingSite().getServiceBroker().getService(this, LoggingService.class, null);
+    if (myLogger == null) {
+      myLogger = LoggingService.NULL;
     }
 
     // subscribe for incoming Report Tasks 
@@ -153,12 +162,12 @@ public class AssetReportPlugin extends SimplePlugin
     if ((localReportingAsset == null) ||
         (!((HasRelationships )localReportingAsset).isLocal())) {
         //(!localReportingAsset.getClusterPG().getMessageAddress().equals(getMessageAddress()))) {
-      System.err.println(getMessageAddress().toString()+
-                         "/AssetReportPlugin: unable to process " + 
-                         task.getVerb() + " task - " + 
-                         reportingAsset + " reporting to " + reportee + ".\n" +
-                         reportingAsset + " not local to this cluster."
-                         );
+      myLogger.error(getMessageAddress().toString()+
+		     "/AssetReportPlugin: unable to process " + 
+		     task.getVerb() + " task - " + 
+		     reportingAsset + " reporting to " + reportee + ".\n" +
+		     reportingAsset + " not local to this cluster."
+		     );
       return;
     }
     
@@ -170,22 +179,22 @@ public class AssetReportPlugin extends SimplePlugin
     Collection roles = 
       (Collection) findIndirectObject(task, Constants.Preposition.AS);
     RelationshipSchedule schedule = 
-      ldmf.newRelationshipSchedule((HasRelationships) reportingAsset);
+      myPlanningFactory.newRelationshipSchedule((HasRelationships) reportingAsset);
     for (Iterator iterator = roles.iterator(); iterator.hasNext();) {
       Relationship relationship = 
-        ldmf.newRelationship((Role) iterator.next(),
-                                     (HasRelationships) reportingAsset,
-                                     (HasRelationships) reportee,
-                                     startTime,
-                                     endTime);
+        myPlanningFactory.newRelationship((Role) iterator.next(),
+					  (HasRelationships) reportingAsset,
+					  (HasRelationships) reportee,
+					  startTime,
+					  endTime);
       schedule.add(relationship);
     }
     ((HasRelationships) reportingAsset).setRelationshipSchedule(schedule);
-
+    
     // create the transfer
     NewSchedule availSchedule = 
-      ldmf.newSimpleSchedule(startTime,
-                                     endTime);
+      myPlanningFactory.newSimpleSchedule(startTime,
+					  endTime);
 
     AllocationResult newEstimatedResult = 
       PluginHelper.createEstimatedAllocationResult(task,
@@ -194,12 +203,12 @@ public class AssetReportPlugin extends SimplePlugin
                                                    true);
 
     AssetTransfer assetTransfer = 
-      ldmf.createAssetTransfer(task.getPlan(), task, 
-                                       reportingAsset,
-                                       availSchedule, 
-                                       reportee,
-                                       newEstimatedResult, 
-                                       Role.ASSIGNED);
+      myPlanningFactory.createAssetTransfer(task.getPlan(), task, 
+					    reportingAsset,
+					    availSchedule, 
+					    reportee,
+					    newEstimatedResult, 
+					    Role.ASSIGNED);
     publishAdd(assetTransfer);
   }
 
@@ -213,10 +222,10 @@ public class AssetReportPlugin extends SimplePlugin
                                                    true);
     
     Allocation allocation = 
-      ldmf.createAllocation(task.getPlan(), task, 
-                                    reportingAsset,
-                                    newEstimatedResult, 
-                                    Role.ASSIGNED);
+      myPlanningFactory.createAllocation(task.getPlan(), task, 
+					 reportingAsset,
+					 newEstimatedResult, 
+					 Role.ASSIGNED);
     publishAdd(allocation);
     return;
   }
@@ -224,7 +233,7 @@ public class AssetReportPlugin extends SimplePlugin
   protected Asset findLocalAsset(Asset asset) {
     final Object key = asset.getKey();
     Asset localAsset = null;
-
+    
     // Query subscription to see if clientAsset already exists
     Collection collection = query(new UnaryPredicate() {
       
@@ -317,7 +326,10 @@ public class AssetReportPlugin extends SimplePlugin
       AssetTransfer at = (AssetTransfer) i.next();
       if (at.getAsset().equals(localAsset)) {
         if (at.getAssignee().equals(localAsset)) {
-          // System.out.println("Not resending " + at);
+	  if (myLogger.isDebugEnabled()) {
+	    myLogger.debug(getAgentIdentifier() + 
+			   " resendAssetTransfers: not resending " + at);
+	  }
         } else {
           at.indicateAssetChange();
           publishChange(at, changeReports);

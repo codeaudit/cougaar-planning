@@ -29,11 +29,15 @@ import java.util.Arrays;
 import org.cougaar.core.component.ServiceBroker;
 import org.cougaar.planning.service.AssetInitializerService;
 import org.cougaar.planning.ldm.asset.NewPropertyGroup;
+import org.cougaar.util.log.Logger;
+import org.cougaar.util.log.Logging;
 
 /**
  * Populates an "Asset" from the config database.
  **/
 public class AssetDataDBReader implements AssetDataReader {
+  private static Logger logger = Logging.getLogger(AssetDataDBReader.class);
+
   private AssetDataCallback cb;
   private String clusterId;
   AssetInitializerService assetInitService;
@@ -47,14 +51,20 @@ public class AssetDataDBReader implements AssetDataReader {
    */
   public void readAsset(String cId, AssetDataCallback cb) {
     this.cb = cb;
+
+    if (assetInitService == null) {
+      logger.fatal("AssetInitializerService is null." +
+		   " Unable to create local asset for " + cId);
+      return;
+    }
     try {
       clusterId = cId;
       cb.createMyLocalAsset(assetInitService.getAgentPrototype(cId));
       String[] pgNames = assetInitService.getAgentPropertyGroupNames(cId);
       for (int i = 0; i < pgNames.length; i++) {
         String pgName = pgNames[i];
-        cb.createPropertyGroup(pgName);
-        cb.addPropertyToAsset();
+        NewPropertyGroup pg = cb.createPropertyGroup(pgName);
+        cb.addPropertyToAsset(pg);
         Object[][] props = assetInitService.getAgentProperties(cId, pgName);
         for (int j = 0; j < props.length; j++) {
           Object[] prop = props[j];
@@ -83,10 +93,10 @@ public class AssetDataDBReader implements AssetDataReader {
                 pv[k] = cb.parseExpr(attributeType, rv[k]);
               }
               Object[] args = {Arrays.asList(pv)};
-              cb.callSetter("set" + attributeName, "Collection", args);
+              cb.callSetter(pg, "set" + attributeName, "Collection", args);
             } else {
               Object[] args = {cb.parseExpr(attributeType, (String) attributeValue)};
-              cb.callSetter("set" + attributeName, cb.getType(attributeType), args);
+              cb.callSetter(pg, "set" + attributeName, cb.getType(attributeType), args);
             }
           }
         }
@@ -99,20 +109,17 @@ public class AssetDataDBReader implements AssetDataReader {
         try {
           start = cb.parseDate(r[4]);
         } catch (java.text.ParseException pe) {
-          System.err.println("Unable to parse: "
-                             + r[4]
-                             + ". Start time defaulting to "
-                             + start);
+          logger.error("Unable to parse: " + r[4] +
+		       ". Start time defaulting to " +
+                       start);
         }
         try {
           if (r[5] != null) {
             end = cb.parseDate(r[5]);
           }
         } catch (java.text.ParseException pe) {
-          System.err.println("Unable to parse: "
-                             + r[5]
-                             + ". End time defaulted to "
-                             + end);
+          logger.error("Unable to parse: " + r[5] +
+		       ". End time defaulted to " + end);
         }
         cb.addRelationship(r[2],     // Type id
                            r[1],     // Item id

@@ -26,7 +26,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StreamTokenizer;
+
 import org.cougaar.planning.ldm.asset.NewPropertyGroup;
+import org.cougaar.util.log.Logger;
+import org.cougaar.util.log.Logging;
+
 
 /**
  * Parses local asset prototype-ini.dat to create local asset and the
@@ -84,7 +88,8 @@ import org.cougaar.planning.ldm.asset.NewPropertyGroup;
 public class AssetDataFileReader implements AssetDataReader {
   private AssetDataCallback cb;
   private String clusterId;
-
+  private static Logger logger = Logging.getLogger(AssetDataFileReader.class);
+  
   public String getFileName() {
     return clusterId + "-prototype-ini.dat";
   }
@@ -181,11 +186,13 @@ public class AssetDataFileReader implements AssetDataReader {
     throws IOException
   {
     String propertyName = prop.substring(1, prop.length()-1).trim();
+    NewPropertyGroup propertyGroup = null;
     try {
-      cb.createPropertyGroup(propertyName);
+      propertyGroup = cb.createPropertyGroup(propertyName);
     } catch (Exception e) {
       formatError("Unrecognized keyword for a prototype-ini file: ["
                   + propertyName + "]");
+      return StreamTokenizer.TT_EOF;
     }
     try {
       newVal = tokens.nextToken();
@@ -199,7 +206,8 @@ public class AssetDataFileReader implements AssetDataReader {
           newVal = tokens.nextToken();
           // Call appropriate setters for the slots of the property
           Object[] args = new Object[] {cb.parseExpr(dataType, tokens.sval)};
-          cb.callSetter("set" + member, cb.getType(dataType), args);
+          cb.callSetter(propertyGroup, "set" + member, 
+			cb.getType(dataType), args);
           newVal = tokens.nextToken();
           member = tokens.sval;
         } else {
@@ -209,7 +217,7 @@ public class AssetDataFileReader implements AssetDataReader {
       } //while
 
       // Add the property to the asset
-      cb.addPropertyToAsset();
+      cb.addPropertyToAsset(propertyGroup);
     } catch (IOException e) {
       throw e;
     } catch (Exception e) {
@@ -263,7 +271,7 @@ public class AssetDataFileReader implements AssetDataReader {
 
     // skip "FixedLocation " string
     if (!(firstStr.equals("FixedLocation"))) {
-      System.err.println(
+      logger.error(
           "Expecting: FixedLocation \"(LAT, LON)\"\n"+
           "Not: "+firstStr+" .. ");
       return newVal;
@@ -273,11 +281,11 @@ public class AssetDataFileReader implements AssetDataReader {
     org.cougaar.planning.ldm.plan.Location loc;
     if ((!(secondStr.startsWith("("))) ||
         (!(secondStr.endsWith(")"))))  {
-      System.err.println(
+      logger.error(
           "Expecting: FixedLocation \"(LAT, LON)\"\n"+
           "Not: FixedLocation "+secondStr+" ..");
-      System.err.println("SWith(: "+secondStr.startsWith("("));
-      System.err.println("EWith): "+secondStr.endsWith(")"));
+      logger.error("SWith(: "+secondStr.startsWith("("));
+      logger.error("EWith): "+secondStr.endsWith(")"));
       return newVal;
     }
     String locStr = 
@@ -336,9 +344,9 @@ public class AssetDataFileReader implements AssetDataReader {
             try {
               start = cb.parseDate(tokens.sval);
             } catch (java.text.ParseException pe) {
-              System.out.println("Unable to parse: " + tokens.sval + 
-                                 ". Start time defaulting to " + 
-                                 cb.getDefaultStartTime());
+              logger.error("Unable to parse: " + tokens.sval + 
+			   ". Start time defaulting to " + 
+			   cb.getDefaultStartTime());
             }
           }
           break;
@@ -348,9 +356,9 @@ public class AssetDataFileReader implements AssetDataReader {
             try {
               end = cb.parseDate(tokens.sval);
             } catch (java.text.ParseException pe) {
-              System.out.println("Unable to parse: " + tokens.sval + 
-                                 ". End time defaulting to " + 
-                                 cb.getDefaultEndTime());
+              logger.error("Unable to parse: " + tokens.sval + 
+			   ". End time defaulting to " + 
+			   cb.getDefaultEndTime());
             }
           }
           break;

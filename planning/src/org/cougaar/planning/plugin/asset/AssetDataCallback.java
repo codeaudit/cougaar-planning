@@ -22,6 +22,8 @@
 package org.cougaar.planning.plugin.asset;
 
 import org.cougaar.planning.ldm.asset.Asset;
+import org.cougaar.planning.ldm.asset.NewPropertyGroup;
+import org.cougaar.planning.ldm.asset.PropertyGroup;
 import org.cougaar.util.ConfigFinder;
 import java.text.ParseException;
 
@@ -29,15 +31,16 @@ public interface AssetDataCallback {
     ConfigFinder getConfigFinder();
     void createMyLocalAsset(String assetClassName);
     boolean hasMyLocalAsset();
-  void createPropertyGroup(String propertyName) throws Exception;
+    NewPropertyGroup createPropertyGroup(String propertyName) throws Exception;
     Object parseExpr(String dataType, String value);
     long parseDate(String dateString) throws ParseException;
     String getType(String type);
-    void callSetter(String setterName, String type, Object[] arguments);
+    void callSetter(NewPropertyGroup propertyGroup, String setterName, 
+		    String type, Object[] arguments);
     void setLocationSchedule(String latStr, String lonStr);
     long getDefaultStartTime();
     long getDefaultEndTime();
-  void addPropertyToAsset();
+    void addPropertyToAsset(PropertyGroup propertyGroup);
     void addRelationship(String typeId, String itemId,
                          String otherClusterId, String roleName,
                          long start, long end);

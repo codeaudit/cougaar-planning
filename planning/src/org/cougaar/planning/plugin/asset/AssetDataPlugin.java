@@ -34,10 +34,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+
 import org.cougaar.core.mts.MessageAddress;
-import org.cougaar.planning.service.AssetInitializerService;
-import org.cougaar.planning.plugin.legacy.SimplePlugin;
 import org.cougaar.core.service.DomainService;
+import org.cougaar.core.service.LoggingService;
 
 import org.cougaar.planning.Constants;
 import org.cougaar.planning.ldm.PlanningFactory;
@@ -78,6 +78,9 @@ import org.cougaar.planning.ldm.plan.ScoringFunction;
 import org.cougaar.planning.ldm.plan.TimeAspectValue;
 import org.cougaar.planning.ldm.plan.AspectValue;
 import org.cougaar.planning.ldm.plan.Verb;
+import org.cougaar.planning.service.AssetInitializerService;
+import org.cougaar.planning.plugin.legacy.SimplePlugin;
+
 import org.cougaar.util.ConfigFinder;
 import org.cougaar.util.Reflect;
 import org.cougaar.util.StateModelException;
@@ -99,11 +102,48 @@ public class AssetDataPlugin extends SimplePlugin {
     new TrivialTimeSpan(TimeSpan.MIN_VALUE,
                         TimeSpan.MAX_VALUE);
 
-  protected AssetInitializerService assetInitService;
+  protected DateFormat myDateFormat = DateFormat.getInstance(); 
 
-  public void setAssetInitializerService(AssetInitializerService ais) {
-    assetInitService = ais;
+  protected String myAssetClassName = null;
+  protected List myRelationships = new ArrayList();
+  protected Map myOtherAssets = new HashMap();
+  protected Asset myLocalAsset = null;
+  protected PlanningFactory myPlanningFactory;
+  protected AssetInitializerService myAssetInitializerService;
+  protected LoggingService myLogger;
+
+  public void load(Object object) throws StateModelException {
+    super.load(object);
+    myPlanningFactory = (PlanningFactory) getFactory("planning");
+    if (myPlanningFactory == null) {
+      throw new RuntimeException("Missing \"planning\" factory");
+    }
+
+    myLogger = (LoggingService)
+      getBindingSite().getServiceBroker().getService(this, LoggingService.class, null);
+    if (myLogger == null) {
+      myLogger = LoggingService.NULL;
+    }
+
+    
+    if (!didRehydrate()) {
+      try {
+        openTransaction();
+        processAssets();
+      } catch (Exception e) {
+        synchronized (System.err) {
+          myLogger.error(getMessageAddress().toString()+"/"+this+" caught "+e);
+          e.printStackTrace();
+        }
+      } finally {
+        closeTransactionDontReset();
+      }
+    }
   }
+
+  public void execute() {
+  }
+
 
   public long getDefaultStartTime() {
     return TimeSpan.MIN_VALUE;
@@ -113,36 +153,11 @@ public class AssetDataPlugin extends SimplePlugin {
     return TimeSpan.MAX_VALUE;
   }
 
-  protected DateFormat myDateFormat = DateFormat.getInstance(); 
 
-  protected String myAssetClassName = null;
-  protected List myRelationships = new ArrayList();
-  protected Map myOtherAssets = new HashMap();
-  protected Asset myLocalAsset = null;
-  protected NewPropertyGroup property = null;
-  protected PlanningFactory ldmf;
-
-  public void load(Object object) throws StateModelException {
-    super.load(object);
-    ldmf = (PlanningFactory) getFactory("planning");
-    if (ldmf == null) {
-      throw new RuntimeException("Missing \"planning\" factory");
-    }
-    if (!didRehydrate()) {
-      try {
-        openTransaction();
-        processAssets();
-      } catch (Exception e) {
-        synchronized (System.err) {
-          System.err.println(getMessageAddress().toString()+"/"+this+" caught "+e);
-          e.printStackTrace();
-        }
-      } finally {
-        closeTransactionDontReset();
-      }
-    }
+  public void setAssetInitializerService(AssetInitializerService ais) {
+    myAssetInitializerService= ais;
   }
-
+                       
   protected void setupSubscriptions() {
     getSubscriber().setShouldBePersisted(false);
 
@@ -152,9 +167,6 @@ public class AssetDataPlugin extends SimplePlugin {
       } */
   }
 
-  public void execute() {
-  }
-                       
 
   /**
    * Parses the prototype-ini file and in the process sets up
@@ -164,29 +176,43 @@ public class AssetDataPlugin extends SimplePlugin {
   protected void processAssets() {
     try {
       String cId = getMessageAddress().getAddress();
-      AssetDataReader assetDataReader = assetInitService.getAssetDataReader();
+      
+      if (myAssetInitializerService == null) {
+	myLogger.fatal(getAgentIdentifier() + 
+		       ": AssetInitializerService is null." +
+		       " Unable to create local asset.");
+	return;
+      }
+	
+      AssetDataReader assetDataReader = 
+	myAssetInitializerService.getAssetDataReader();
       assetDataReader.readAsset(cId, new AssetDataCallbackImpl());
-//        System.out.println("Property Groups: ");
-//        Vector all = myLocalAsset.fetchAllProperties();
-//        try {
-//          for (Iterator i = all.iterator(); i.hasNext(); ) {
-//            Object o = i.next();
-//            if (!(o instanceof PropertyGroup)) continue;
-//            PropertyGroup pg = (PropertyGroup) o;
-//            Class pgc = pg.getClass();
-//            System.out.println(pgc.getName());
-//            Method[] methods = pgc.getMethods();
-//            for (int j = 0; j < methods.length; j++) {
-//              Method method = methods[j];
-//              if (method.getName().startsWith("get") && method.getParameterTypes().length == 0) {
-//                Object value = methods[j].invoke(pg, new Object[0]);
-//                System.out.println("  " + method.getName() + " = " + value);
-//              }
-//            }
-//          }
-//        } catch (Exception e) {
-//          e.printStackTrace();
-//        }
+      
+      if (myLogger.isDebugEnabled()) {
+	myLogger.debug(getAgentIdentifier() + 
+		       ": property groups for local asset: ");
+        Vector all = myLocalAsset.fetchAllProperties();
+        try {
+          for (Iterator i = all.iterator(); i.hasNext(); ) {
+            Object o = i.next();
+            if (!(o instanceof PropertyGroup)) continue;
+            PropertyGroup pg = (PropertyGroup) o;
+            Class pgc = pg.getClass();
+            myLogger.debug(pgc.getName());
+            Method[] methods = pgc.getMethods();
+            for (int j = 0; j < methods.length; j++) {
+              Method method = methods[j];
+              if (method.getName().startsWith("get") && method.getParameterTypes().length == 0) {
+                Object value = methods[j].invoke(pg, new Object[0]);
+                myLogger.debug("  " + method.getName() + " = " + value);
+              }
+            }
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+
       publishAdd(myLocalAsset);
 
       // Put the assets for this cluster into array
@@ -202,10 +228,10 @@ public class AssetDataPlugin extends SimplePlugin {
 
   protected void createMyLocalAsset(String assetClassName) {
     myAssetClassName = assetClassName;
-    myLocalAsset = ldmf.createAsset(myAssetClassName);
+    myLocalAsset = myPlanningFactory.createAsset(myAssetClassName);
     // set up this asset's available schedule
     NewSchedule availsched = 
-      ldmf.newSimpleSchedule(getDefaultStartTime(), 
+      myPlanningFactory.newSimpleSchedule(getDefaultStartTime(), 
                                      getDefaultEndTime());
     // set the available schedule
     ((NewRoleSchedule)myLocalAsset.getRoleSchedule()).setAvailableSchedule(availsched);
@@ -222,10 +248,10 @@ public class AssetDataPlugin extends SimplePlugin {
   protected void report(Relationship relationship) {
     Asset sendTo = 
       (((Asset) relationship.getA()).getKey().equals(myLocalAsset.getKey())) ?
-      ldmf.cloneInstance((Asset) relationship.getB()) :
-      ldmf.cloneInstance((Asset) relationship.getA());
+      myPlanningFactory.cloneInstance((Asset) relationship.getB()) :
+      myPlanningFactory.cloneInstance((Asset) relationship.getA());
     
-    Asset localClone = ldmf.cloneInstance(myLocalAsset);
+    Asset localClone = myPlanningFactory.cloneInstance(myLocalAsset);
 
     List roles = new ArrayList(1);
     Role role = 
@@ -241,13 +267,13 @@ public class AssetDataPlugin extends SimplePlugin {
   
   }
 
-  protected void createPropertyGroup(String propertyName) throws Exception {
-    property = 
-      (NewPropertyGroup) ldmf.createPropertyGroup(propertyName);
+  protected NewPropertyGroup createPropertyGroup(String propertyName) 
+       throws Exception {
+    return (NewPropertyGroup) myPlanningFactory.createPropertyGroup(propertyName);
   }
 
-  protected void addPropertyToAsset() {
-    myLocalAsset.addOtherPropertyGroup(property);
+  protected void addPropertyToAsset(PropertyGroup pg) {
+    myLocalAsset.addOtherPropertyGroup(pg);
   }
 
   protected void setLocationSchedule(String latStr, String lonStr) {
@@ -282,7 +308,7 @@ public class AssetDataPlugin extends SimplePlugin {
     Asset otherAsset =
       getAsset(myAssetClassName, itemId, typeId, otherClusterId);
     Relationship relationship = 
-      ldmf.newRelationship(Role.getRole(roleName),
+      myPlanningFactory.newRelationship(Role.getRole(roleName),
                                    (HasRelationships) myLocalAsset,
                                    (HasRelationships) otherAsset,
                                    start,
@@ -298,22 +324,22 @@ public class AssetDataPlugin extends SimplePlugin {
                                      Collection roles,
                                      long startTime,
                                      long endTime) {
-    NewTask reportTask = ldmf.newTask();
+    NewTask reportTask = myPlanningFactory.newTask();
     reportTask.setDirectObject(reportingAsset);
 
     Vector prepPhrases = new Vector(2);
-    NewPrepositionalPhrase newpp = ldmf.newPrepositionalPhrase();
+    NewPrepositionalPhrase newpp = myPlanningFactory.newPrepositionalPhrase();
     newpp.setPreposition(Constants.Preposition.FOR);
     newpp.setIndirectObject(sendto);
     prepPhrases.add(newpp);
 
-    newpp = ldmf.newPrepositionalPhrase();
+    newpp = myPlanningFactory.newPrepositionalPhrase();
     newpp.setPreposition(Constants.Preposition.AS);
     newpp.setIndirectObject(roles);
     prepPhrases.add(newpp);
     reportTask.setPrepositionalPhrases(prepPhrases.elements());
 
-    reportTask.setPlan(ldmf.getRealityPlan());
+    reportTask.setPlan(myPlanningFactory.getRealityPlan());
     reportTask.setSource(getMessageAddress());
 
     AspectValue startTAV = 
@@ -321,14 +347,14 @@ public class AssetDataPlugin extends SimplePlugin {
     ScoringFunction startScoreFunc = 
       ScoringFunction.createStrictlyAtValue(startTAV);
     Preference startPreference = 
-      ldmf.newPreference(AspectType.START_TIME, startScoreFunc);
+      myPlanningFactory.newPreference(AspectType.START_TIME, startScoreFunc);
 
     AspectValue endTAV = 
       TimeAspectValue.create(AspectType.END_TIME, endTime);
     ScoringFunction endScoreFunc = 
       ScoringFunction.createStrictlyAtValue(endTAV);    
     Preference endPreference = 
-      ldmf.newPreference(AspectType.END_TIME, endScoreFunc );
+      myPlanningFactory.newPreference(AspectType.END_TIME, endScoreFunc );
 
     Vector preferenceVector = new Vector(2);
     preferenceVector.addElement(startPreference);
@@ -348,7 +374,7 @@ public class AssetDataPlugin extends SimplePlugin {
   protected Asset getAsset(String className, String itemIdentification,
                            String typeIdentification, String clusterName) {
 
-    Asset asset = ldmf.createAsset(className);
+    Asset asset = myPlanningFactory.createAsset(className);
   	
     ((NewTypeIdentificationPG)asset.getTypeIdentificationPG()).setTypeIdentification(typeIdentification);
 
@@ -453,7 +479,7 @@ public class AssetDataPlugin extends SimplePlugin {
           }
         }
       } catch (Exception e) {
-        System.err.println("AssetDataPlugin: Exception constructing "+type+" from \""+arg+"\":");
+	myLogger.error(getAgentIdentifier() + ": Exception constructing "+type+" from \""+arg+"\":");
         e.printStackTrace();
         throw new RuntimeException("Construction problem "+e);
       }
@@ -547,19 +573,19 @@ public class AssetDataPlugin extends SimplePlugin {
       try {
         Class ldmfc = i.next().getClass();
         Method fm = ldmfc.getMethod(newname, nullClassList);
-        return fm.invoke(ldmf, nullArgList);
+        return fm.invoke(myPlanningFactory, nullArgList);
       } catch (NoSuchMethodException nsme) {
         // This is okay - just try the next factory
       } catch (Exception e) { 
-        synchronized (System.err) {
-          System.err.println("Problem loading Domain Factory");
-          e.printStackTrace(); 
-        }
+	myLogger.error(getAgentIdentifier() + 
+		       " Problem loading Domain Factory");
+	e.printStackTrace(); 
       }
     }
       
     throw new RuntimeException ("Couldn't find a factory method for "+ifcname);
   }
+
   private static final Class nullClassList[] = {};
   private static final Object nullArgList[] = {};
 
@@ -599,8 +625,8 @@ public class AssetDataPlugin extends SimplePlugin {
       Field f = Class.forName(fullClassName).getField(unitOfMeasure);
       return f.getInt(null);
     } catch (Exception e) {
-      System.err.println("AssetDataPlugin Exception: for measure unit: " + 
-                         unitOfMeasure);
+      myLogger.error("Exception " + e + 
+		     ": for measure unit: " + unitOfMeasure);
       e.printStackTrace();
     }
     return -1;
@@ -685,15 +711,17 @@ public class AssetDataPlugin extends SimplePlugin {
    * Creates and calls the appropriate "setter" method for the property
    * which is of type className.
    */
-  protected void callSetter(String setterName, String type, Object []arguments) {
+  protected void callSetter(NewPropertyGroup pg, 
+			    String setterName, String type, 
+			    Object []arguments) {
     Class parameters[] = new Class[1];
     
     try {
       parameters[0] = findClass(type);
-      Method meth = findMethod(property.getClass(), setterName, parameters);
+      Method meth = findMethod(pg.getClass(), setterName, parameters);
       if (meth == null) {
         StringBuffer msg = new StringBuffer();
-        msg.append("AssetDataPlugin method not found: ");
+        msg.append("Method not found: ");
         msg.append(setterName);
         msg.append("(");
         for (int i = 0; i < parameters.length; i++) {
@@ -701,12 +729,12 @@ public class AssetDataPlugin extends SimplePlugin {
           msg.append(parameters[i].getName());
         }
         msg.append(")");
-        System.err.println(msg);
+        myLogger.error(msg.toString());
         return;
       }
-      meth.invoke(property, arguments);
+      meth.invoke(pg, arguments);
     } catch (Exception e) {
-      System.err.println("AssetDataPlugin Exception: callSetter("+property.getClass().getName()+", "+setterName+", "+type+", "+arguments+" : " + e);
+      myLogger.error(getAgentIdentifier() + " Exception: callSetter("+pg.getClass().getName()+", "+setterName+", "+type+", "+arguments+" : " + e);
       e.printStackTrace();
     }
   }
@@ -760,8 +788,8 @@ public class AssetDataPlugin extends SimplePlugin {
     public boolean hasMyLocalAsset() {
       return (myLocalAsset != null);
     }
-    public void createPropertyGroup(String propertyName) throws Exception {
-      AssetDataPlugin.this.createPropertyGroup(propertyName);
+    public NewPropertyGroup createPropertyGroup(String propertyName) throws Exception {
+      return AssetDataPlugin.this.createPropertyGroup(propertyName);
     }
     public Object parseExpr(String dataType, String value) {
       return AssetDataPlugin.this.parseExpr(dataType, value);
@@ -772,10 +800,10 @@ public class AssetDataPlugin extends SimplePlugin {
     public String getType(String type) {
       return AssetDataPlugin.this.getType(type);
     }
-    public void callSetter(String setterName,
+    public void callSetter(NewPropertyGroup pg, String setterName,
                            String type, Object[] arguments)
     {
-      AssetDataPlugin.this.callSetter(setterName, type, arguments);
+      AssetDataPlugin.this.callSetter(pg, setterName, type, arguments);
     }
     public void setLocationSchedule(String latStr, String lonStr) {
       AssetDataPlugin.this.setLocationSchedule(latStr, lonStr);
@@ -786,8 +814,8 @@ public class AssetDataPlugin extends SimplePlugin {
     public long getDefaultEndTime() {
       return AssetDataPlugin.this.getDefaultEndTime();
     }
-    public void addPropertyToAsset() {
-      AssetDataPlugin.this.addPropertyToAsset();
+    public void addPropertyToAsset(PropertyGroup pg) {
+      AssetDataPlugin.this.addPropertyToAsset(pg);
     }
     public void addRelationship(String typeId, String itemId,
                                 String otherClusterId, String roleName,

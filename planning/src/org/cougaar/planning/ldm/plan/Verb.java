@@ -30,19 +30,15 @@ import java.util.*;
  */
 
 public class Verb implements Serializable {
-  // verb cache - needs to be declared before the statics below
-  private static HashMap verbs = new HashMap(29);
-  	
   private String name;
 	
-  /** Constructor takes a String that represents the verb
-   * @note better to use getVerb than new Verb, as they'll be static
-   * cached.
+  /** Constructor takes a String that represents the verb.
+   * @deprecated Use Verb.get(String) instead of new Verb(String).  A future release
+   * will make the constructor non-public.
    */
   public Verb(String v) {
     if (v == null) throw new IllegalArgumentException();
     name = v.intern();
-    cacheVerb(this);
   }
 	
   /** @return String toString returns the String that represents the verb */
@@ -65,18 +61,9 @@ public class Verb implements Serializable {
     return ( name==v || name.equals(v));
   }
 
-  private transient int _hc = 0;
   public final int hashCode()
   {
-    if (_hc == 0) _hc = name.hashCode();
-    return _hc;
-  }
-
-  private void readObject(ObjectInputStream stream)
-                throws ClassNotFoundException, IOException
-  {
-    stream.defaultReadObject();
-    //if (name != null) name = name.intern();
+    return name.hashCode();
   }
 
   // replace with an interned variation
@@ -84,9 +71,22 @@ public class Verb implements Serializable {
     return getVerb(name);
   }
 
-  // verb hash
+  // 
+  // verb cache
+  //
 
+  private static final HashMap verbs = new HashMap(29);
+  	
+  /** older alias for Verb.get() **/
   public static Verb getVerb(String vs) {
+    return get(vs);
+  }
+  /** Verb factory method.  Constructs or returns cached verb instances
+   * matching the requested paramater.
+   * Note that this will only construct and/or return direct instances of
+   * Verb and never any subclass.
+   **/
+  public static Verb get(String vs) {
     vs = vs.intern();
     synchronized (verbs) {
       Verb v = (Verb) verbs.get(vs);
@@ -94,14 +94,6 @@ public class Verb implements Serializable {
         return v;
       else
         return new Verb(vs);    // calls cacheVerb
-    }
-  }
-
-  /** use getVerb rather than cacheVerb(new Verb()) **/
-  public static void cacheVerb(Verb v) {
-    String vs = v.toString();
-    synchronized (verbs) {
-      verbs.put(vs, v);
     }
   }
 }

@@ -341,9 +341,9 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
                          at.getAssignee()+ " - is not local to this agent.");
       return false;
     } else if (localTransferringAsset == at.getAsset()) {
-      logger.error("AssetTransferLP: Assets in AssetTransfer must be " +
-                         " clones. AssetTransfer - " + at.getUID() + 
-                         " - references assets in the log plan.");
+      logger.error("AssetTransferLP: Transferring Assets in AssetTransfer are == but should be " +
+                   " copies. AssetTransfer is " + at.getUID() + 
+                   " Asset is "+ localTransferringAsset);
     }
     
     Asset receivingAsset = at.getAssignee();
@@ -355,12 +355,12 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
         ((HasRelationships)receivingAsset).setRelationshipSchedule(ldmf.newRelationshipSchedule((HasRelationships)receivingAsset));
       }
     } else {
-        receivingAsset = localReceivingAsset;
+      receivingAsset = localReceivingAsset;
 
       if (localReceivingAsset == at.getAssignee()) {
-        logger.error("AssetTransferLP: Assets in AssetTransfer must be " +
-                           " clones. AssetTransfer - " + at.getUID() + 
-                           " - references assets in the log plan.");
+        logger.error("AssetTransferLP: Assignee Assets in AssetTransfer are == but should be " +
+                     " copies. AssetTransfer is " + at.getUID() + 
+                     " Asset is "+localReceivingAsset);
       }
     }
 

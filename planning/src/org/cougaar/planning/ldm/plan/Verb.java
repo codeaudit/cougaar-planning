@@ -33,10 +33,9 @@ public class Verb implements Serializable {
   private String name;
 	
   /** Constructor takes a String that represents the verb.
-   * @deprecated Use Verb.get(String) instead of new Verb(String).  A future release
-   * will make the constructor non-public.
+   * @note pre-11.0 this was deprecated and public - now Verb.get(String) should be used.
    */
-  public Verb(String v) {
+  protected Verb(String v) {
     if (v == null) throw new IllegalArgumentException();
     name = v.intern();
   }
@@ -77,7 +76,9 @@ public class Verb implements Serializable {
 
   private static final HashMap verbs = new HashMap(29);
   	
-  /** older alias for Verb.get() **/
+  /** older alias for Verb.get() 
+   * @deprecated Use Verb.get(String)
+   **/
   public static Verb getVerb(String vs) {
     return get(vs);
   }
@@ -87,13 +88,16 @@ public class Verb implements Serializable {
    * Verb and never any subclass.
    **/
   public static Verb get(String vs) {
-    vs = vs.intern();
     synchronized (verbs) {
       Verb v = (Verb) verbs.get(vs);
       if (v != null) 
         return v;
-      else
-        return new Verb(vs);    // calls cacheVerb
+      else {
+        vs = vs.intern();
+        v = new Verb(vs);
+        verbs.put(vs, v);
+        return v;
+      }
     }
   }
 }

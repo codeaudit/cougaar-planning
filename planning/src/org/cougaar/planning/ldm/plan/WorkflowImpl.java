@@ -61,7 +61,7 @@ public class WorkflowImpl
   private transient AllocationResultAggregator currentARA = AllocationResultAggregator.DEFAULT;
   private transient AllocationResult cachedar = null;
   private transient int walkingSubtasks = 0;
-  private Set changedSubtasks = new HashSet(3);
+  private transient Set changedSubtasks = new HashSet(3);
 
   public void setWalkingSubtasks(boolean walking) {
     if (walking) {

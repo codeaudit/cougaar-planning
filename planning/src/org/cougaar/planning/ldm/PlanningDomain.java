@@ -32,7 +32,6 @@ import org.cougaar.planning.ldm.lps.AssetTransferLP;
 import org.cougaar.planning.ldm.lps.ComplainingLP;
 import org.cougaar.planning.ldm.lps.DeletionLP;
 import org.cougaar.planning.ldm.lps.NotificationLP;
-import org.cougaar.planning.ldm.lps.PreferenceChangeLP;
 import org.cougaar.planning.ldm.lps.ReceiveAssetLP;
 import org.cougaar.planning.ldm.lps.ReceiveAssetRescindLP;
 import org.cougaar.planning.ldm.lps.ReceiveAssetVerificationLP;
@@ -40,7 +39,7 @@ import org.cougaar.planning.ldm.lps.ReceiveDeletionLP;
 import org.cougaar.planning.ldm.lps.ReceiveNotificationLP;
 import org.cougaar.planning.ldm.lps.ReceiveRescindLP;
 import org.cougaar.planning.ldm.lps.ReceiveTaskLP;
-import org.cougaar.planning.ldm.lps.RemoteClusterAllocationLP;
+import org.cougaar.planning.ldm.lps.RemoteAllocationLP;
 import org.cougaar.planning.ldm.lps.RescindLP;
 import org.cougaar.planning.service.LDMService;
 import org.cougaar.core.service.AlarmService;
@@ -135,14 +134,13 @@ public class PlanningDomain extends DomainAdapter {
     addLogicProvider(new ReceiveNotificationLP(rootplan, logplan, ldmf));
     addLogicProvider(new ReceiveDeletionLP(rootplan, logplan, ldmf, self));
     addLogicProvider(new ReceiveRescindLP(rootplan, logplan));
-    addLogicProvider(new ReceiveTaskLP(rootplan, logplan));
+    addLogicProvider(new ReceiveTaskLP(rootplan, logplan, self));
     
     // output LPs (+ some input)
     addLogicProvider(new AssetTransferLP(rootplan, logplan, ldmf, self));    
     addLogicProvider(new NotificationLP(rootplan, logplan, ldmf, self));
     addLogicProvider(new DeletionLP(rootplan, ldmf, self));
-    addLogicProvider(new RemoteClusterAllocationLP(rootplan, ldmf, self, alarmService));
-    addLogicProvider(new PreferenceChangeLP(rootplan));
+    addLogicProvider(new RemoteAllocationLP(rootplan, ldmf, self, alarmService));
     addLogicProvider(new RescindLP(rootplan, logplan, ldmf));
     
     // error detection LP

@@ -111,9 +111,14 @@ public abstract class PluginAdapter
   //
 
   private MessageAddress agentId = null;
+
   public final void setAgentIdentificationService(
       AgentIdentificationService ais) {
-    this.agentId = ais.getMessageAddress();
+    if (ais == null) {
+      // Revocation
+    } else {
+      this.agentId = ais.getMessageAddress();
+    }
   }
 
   private LDMService ldmService = null;

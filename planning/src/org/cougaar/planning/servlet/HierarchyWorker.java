@@ -37,6 +37,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -105,12 +106,12 @@ public class HierarchyWorker
   }
   // These constants are from GLM -- they permit us to put this servlet into core
   // At some future time we may want to have them be parameters to the servlet
-  public static Role SUBORD_ROLE = Role.getRole ("Subordinate");
-  public static Role ADMIN_SUBORD_ROLE = Role.getRole ("AdministrativeSubordinate");
-  public static String SUPERIOR_SUFFIX = "Superior";
-  public static String PROVIDER_SUFFIX = "Provider";
+  public static final Role SUBORD_ROLE = Role.getRole ("Subordinate");
+  public static final Role ADMIN_SUBORD_ROLE = Role.getRole ("AdministrativeSubordinate");
+  public static final String SUPERIOR_SUFFIX = "Superior";
+  public static final String PROVIDER_SUFFIX = "Provider";
 
-  public static String CONVERSE_OF_PREFIX = "ConverseOf";
+  public static final String CONVERSE_OF_PREFIX = "ConverseOf";
 
   protected boolean recurse;
   protected boolean allRelationships;
@@ -193,7 +194,7 @@ public class HierarchyWorker
 	visitedOrgs.add (tokenizer.nextToken ());
 
       if (VERBOSE)
-	System.out.println ("Visited Org List is " + visitedOrgs);
+	System.out.println ("getParams - Visited Org List is " + visitedOrgs);
     } else {
       if (VERBOSE)
 	System.out.println ("NOTE : Ignoring parameter named " + name);
@@ -221,9 +222,14 @@ public class HierarchyWorker
     }
 
     // get hierarchy data
-    HierarchyData hd = getHierarchyData(request, support, selfOrg, recurse, allRelationships, visitedOrgs);
+    try {
+      HierarchyData hd = getHierarchyData(request, support, selfOrg, recurse, allRelationships, visitedOrgs);
 
-    writeResponse (hd, out, request, support, format, allRelationships);
+      writeResponse (hd, out, request, support, format, allRelationships);
+    } catch (Exception e) {
+      System.err.println ("Got exception " + e + " getting hierarchy data for " + support.getAgentIdentifier());
+      e.printStackTrace();
+    }
   }
 
   /**
@@ -370,7 +376,34 @@ public class HierarchyWorker
       String subOrgName = (String)iter.next();
       // fetch the sub's data
 
-      HierarchyData subHD = fetchForSubordinate(request, support, subOrgName, allRelationships, visitedOrgs);
+      HierarchyData subHD = null;
+      int tries = 5;
+      long [] timeToWait = new long [] { 32000, 16000, 8000, 4000, 2000 };
+      while (subHD == null && tries-- > 0) {
+	subHD = fetchForSubordinate(request, support, subOrgName, allRelationships, visitedOrgs);
+	if (subHD == null) {
+	  if (VERBOSE && tries > 1) {
+	    System.out.println("At " + new Date() + 
+			       " In "+ support.getAgentIdentifier()+
+			       ", fetch hierarchy from "+subOrgName+
+			       " returned null, retry in " + 
+			       timeToWait[tries] + " millis.");
+	  }
+
+	  synchronized(this) { 
+	    try { wait(timeToWait[tries]); } catch (Exception e) {
+	      System.out.println ("got exception " + e);
+	    } 
+	  }
+	}
+      }
+
+      if (VERBOSE && (subHD == null)) {
+	System.out.println("In "+ support.getAgentIdentifier()+
+			   ", fetch hierarchy from "+subOrgName+
+			   " returned null.");
+      }
+
       // take Orgs from sub's hierarchy data
       int nSubHD = ((subHD != null) ? subHD.numOrgs() : 0);
       for (int i = 0; i < nSubHD; i++) {
@@ -404,6 +437,10 @@ public class HierarchyWorker
 					      String subOrgName,
 					      boolean allRelationships,
 					      Set visitedOrgs) {
+    HierarchyData hd = null;
+    InputStream is = null;
+    ObjectInputStream ois = null;
+
     try {
       // build URL for remote connection
       StringBuffer buf = new StringBuffer();
@@ -427,19 +464,20 @@ public class HierarchyWorker
 
       if (VERBOSE) {
         System.out.println(
-			   "In "+ support.getAgentIdentifier()+
+			   "At " + new Date () + 
+			   " - in "+ support.getAgentIdentifier()+
 			   ", fetch hierarchy from "+subOrgName+
-			   ", URL: "+url);
+			   ", URL:\n"+url);
       }
 
       // open connection
       URL myURL = new URL(url);
       URLConnection myConnection = myURL.openConnection();
-      InputStream is = myConnection.getInputStream();
-      ObjectInputStream ois = new ObjectInputStream(is);
+      is = myConnection.getInputStream();
+      ois = new ObjectInputStream(is);
 
       // read single HierarchyData Object from subordinate
-      HierarchyData hd = (HierarchyData)ois.readObject();
+      hd = (HierarchyData)ois.readObject();
 
       if (VERBOSE) {
         System.out.println(
@@ -451,27 +489,32 @@ public class HierarchyWorker
 			   " from "+subOrgName);
       }
 
-      return hd;
     } catch (StreamCorruptedException sce) {
       if (VERBOSE) {
 	System.err.println ("In "+support.getAgentIdentifier()+
 			    ", got exception : ");
 	sce.printStackTrace ();
       }
-      return null;
     } catch (FileNotFoundException fnf) {
-      if (!allRelationships) {
+      if (!allRelationships || true) {
 	System.err.println ("In "+support.getAgentIdentifier()+
 			    ", got exception : ");
 	fnf.printStackTrace ();
       }
-      return null;
     } catch (Exception e) {
       System.err.println ("In "+support.getAgentIdentifier()+
 			  ", got exception : ");
       e.printStackTrace();
-      return null;
+    } finally {
+      try {
+	if (ois != null)
+	  ois.close();
+	if (is != null)
+	  is.close();
+      } catch (Exception e) {}
     }
+
+    return hd;
   }
 
   /** 
@@ -552,8 +595,14 @@ public class HierarchyWorker
       writer.println("\n</BODY></HTML>\n");
       writer.flush ();
     }
-    else 
-      writeResponse (result, out, request, support, format);
+    else {
+      try {
+	writeResponse (result, out, request, support, format);
+      } catch (Exception e) {
+	System.err.println ("Got exception " + e + " writing out response for " + support.getAgentIdentifier());
+	e.printStackTrace();
+      }
+    }
   }
 }
 

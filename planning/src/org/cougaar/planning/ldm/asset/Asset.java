@@ -378,6 +378,8 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
     Object proto = in.readObject();
     myPrototype = grokPrototype(ldm, proto);
 
+    initRoleSchedule();
+
     if (cs instanceof ClusterContextTable.MessageContext) { // a message?
       // done
     } else {                    // from a file?
@@ -386,8 +388,6 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
         ((RoleScheduleImpl)roleschedule).setAvailableSchedule(schedule);
       }
     }
-
-    initRoleSchedule();
   }
 
   /** Figure out how to interpret an object which was supplied as the prototype

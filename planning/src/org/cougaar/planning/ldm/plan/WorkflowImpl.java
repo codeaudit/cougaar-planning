@@ -311,7 +311,9 @@ public class WorkflowImpl
       rt.printStackTrace();
     } 
 
-    subtasks.removeElement(remTask);
+    if (!subtasks.removeElement(remTask)) {
+      throw new IllegalArgumentException("removeTask not in Workflow: " + remTask);
+    }
     changedSubtasks.remove(remTask.getUID());
     clearTST();
   }

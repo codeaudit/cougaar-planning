@@ -1,6 +1,12 @@
 2003-02-12  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* WorkflowImpl.java: 
+	Bug #1954 -- RescindLP removes expansion subtasks still in workflow
+	Throw illegal argument exception if attempt to remove a subtask
+	that is not part of the workflow. This is the only way I see for
+	this bug to happen.
+	
+	* WorkflowImpl.java: 
 	Bug #1296 -- Removing subtasks from a workflow
 	The Workflow now manages the subtask result information. When a
 	new aggregated AllocationResult is computed, an associated set of

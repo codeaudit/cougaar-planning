@@ -106,8 +106,8 @@ public class TestDeletionPlugin extends SimplePlugin {
      * TestDeletionAggregate.
      **/
     
-    private static Verb testDeletionExpand = Verb.getVerb("TestDeletionExpand");
-    private static Verb testDeletionAggregate = Verb.getVerb("TestDeletionAggregate");
+    private static Verb testDeletionExpand = Verb.get("TestDeletionExpand");
+    private static Verb testDeletionAggregate = Verb.get("TestDeletionAggregate");
 
     /** The preposition used to specify task level **/
     private static final String LEVEL = "AtLevel";

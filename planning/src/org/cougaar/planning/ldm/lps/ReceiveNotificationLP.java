@@ -152,22 +152,30 @@ public class ReceiveNotificationLP
       UID tuid, AllocationResult result,
       UID childuid, Collection changes) {
 
-    // compare getReceivedResult .isEquals with this new one -- reconciliation after restart
-    // is going to resend all the ARs, and we should avoid propagating the changes
-    if (result == null || result.isEqual(pe.getReceivedResult())) {
-      if (logger.isInfoEnabled())
-	logger.info("Not propagating unchanged ReceivedResult for PE " + pe);
-      return;
-    }
+    // In general, do not pubChange PE if nothing changed. Primary job here is to propagate Received
+    // result, so if that hasn't changed, don't publishChange. However, Expansions are 
+    // different since tuid task is not same as childuid (see bug 3462).
+    // (the big win here is less work during reconciliation when all notifications are resent)
 
     if ((pe instanceof Allocation) ||
         (pe instanceof AssetTransfer) ||
         (pe instanceof Aggregation)) {
+      // compare getReceivedResult .isEqual with this new one -- reconciliation after restart
+      // is going to resend all the ARs, and we should avoid propagating the changes
+      if (result == null || result.isEqual(pe.getReceivedResult())) {
+	if (logger.isInfoEnabled()) {
+	  logger.info("Not propagating unchanged ReceivedResult for PE " + pe + ", new result: " + result);
+	}
+	return;
+      }
+
       ((PEforCollections) pe).setReceivedResult(result);
       if (logger.isDebugEnabled())
 	logger.debug("pubChanging local pe: " + pe);
       rootplan.change(pe, changes);
     } else if (pe instanceof Expansion) {
+      // Note that below we avoid pubChanging the expansion if the newly calculated AR is same as
+      // the old
       rootplan.delayLPAction(
           new DelayedAggregateResults((Expansion)pe, childuid));
 
@@ -218,14 +226,22 @@ public class ReceiveNotificationLP
       // compute the new result from the subtask results.
       try {
         AllocationResult ar = wf.aggregateAllocationResults(ids);
-        if (ar != null) {         // if the aggregation is defined:
-          // set the result on the
-          ((PEforCollections) pe).setReceivedResult(ar);
-
-          // publish the change to the blackboard.
-          bb.change(pe, null); // drop the change details.
-          //bb.change(pe, changes);
-          //Logging.printDot("=");
+	// if the aggregation is defined
+        if (ar != null) {         
+	  // Only propogate the notification by pubChanging the Expansion
+	  // if the newly computed AllocationResult is different from what was already there
+	  if (! ar.isEqual(pe.getReceivedResult())) {
+	    // set the result on the
+	    ((PEforCollections) pe).setReceivedResult(ar);
+	    
+	    // publish the change to the blackboard.
+	    bb.change(pe, null); // drop the change details.
+	    //bb.change(pe, changes);
+	    //Logging.printDot("=");
+	  } else {
+	    if (logger.isInfoEnabled())
+	      logger.info("NOT publishChanging Expansion " + pe + " - new ReceivedResult same as old: " + ar);
+	  }
         }
       } catch (RuntimeException re) {
         logger.error("Caught exception while processing DelayedAggregateResults for "+pe, re);

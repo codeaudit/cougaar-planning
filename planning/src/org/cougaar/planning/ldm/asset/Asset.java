@@ -23,7 +23,10 @@
  *  
  * </copyright>
  */
-/* hand generated!
+
+/* 
+ * This file is hand generated!  Don't be fooled by the fact that most other
+ * asset-related classes are machine generated.
  */
 
 package org.cougaar.planning.ldm.asset;
@@ -54,17 +57,31 @@ import org.cougaar.planning.ldm.PlanningFactory;
 import org.cougaar.planning.ldm.plan.RoleSchedule;
 import org.cougaar.planning.ldm.plan.RoleScheduleImpl;
 import org.cougaar.planning.ldm.plan.Schedule;
+import org.cougaar.util.log.Logging;
+import org.cougaar.util.log.Logger;
+import org.cougaar.util.PropertyParser;
 
 /**
  * Base class for all instantiable assets.
  **/
 
 public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
-  implements Cloneable, UniqueObject, Publishable {
+  implements Cloneable, UniqueObject, Publishable 
+{
+  /** @property org.cougaar.planning.ldm.asset.Asset.regeneratePrototypeCache If set to true
+   * (defaults to false), the prototypeCache will be regenerated as much as possible
+   * from persistence information on rehydration.
+   **/
+  public static final boolean regeneratePrototypeCacheP = 
+    PropertyParser.getBoolean("org.cougaar.planning.ldm.asset.Asset.regeneratePrototypeCache", false);
+
+  static final long serialVersionUID = -7188316484839955973L;
+
   private transient RoleSchedule roleschedule;
+
   private static final String AGGREGATE_TYPE_ID = "AggregateAsset" ;
   
-
+  private static final Logger log = Logging.getLogger(Asset.class);
 
   public Asset() {
     myPrototype = null;         // no prototype, by default
@@ -395,7 +412,7 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
           } else {
           }
         } else {
-          System.err.println("\nWARNING!!! Deserialized an unknown prototype class: "+proto);
+          log.error("Deserialized an unknown prototype class: "+proto); 
         }
       } else {
         myPrototype = null;
@@ -404,11 +421,12 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
       initRoleSchedule();
     } else {
       ClusterContext cc = ClusterContextTable.getClusterContext();
+      LDMServesPlugin ldm = null;
       if (cc != null) {
         MessageAddress ma = cc.getMessageAddress();
-        LDMServesPlugin ldm = LDMContextTable.getLDM(ma);
+        ldm = LDMContextTable.getLDM(ma);
         bindToLDM(ldm);
-      }
+      } // else delay warning to below so that we can print it
 
       // plain serialization
       in.defaultReadObject();
@@ -416,10 +434,39 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
       myTypeIdentificationPG=(TypeIdentificationPG)in.readObject();
       myItemIdentificationPG=(ItemIdentificationPG)in.readObject();
       myPrototype=(Asset)in.readObject();
-      if (cc == null) {
-        System.err.println("Warning! Contextless deserialization of "+this);
-        Thread.dumpStack();
+
+      if (cc == null) {         // delayed warning from above
+        log.error("Contextless deserialization of "+this);
       }
+
+      // if we're trying to regenerate the prototype cache,
+      // AND we've got a prototype AND we have a live LDM, then try to cache it
+      if (regeneratePrototypeCacheP && myPrototype != null && ldm != null) {
+        // we could probably use myTypeIdentificationPG, but let's use the proto instead
+        TypeIdentificationPG tipg = myPrototype.getTypeIdentificationPG();
+        String tid = tipg.getTypeIdentification();
+        if (ldm.isPrototypeCached(tid)) { // is there a cached prototype?
+          // use the cached one instead of this
+          Asset putativeProto = ldm.getPrototype(tid);
+          if (putativeProto != myPrototype) {
+            if (log.isInfoEnabled()) {
+              log.info("Deserialization used cached prototype "+putativeProto+
+                       " instead of stored prototype "+myPrototype);
+            }
+            // use the cached one instead
+            myPrototype = putativeProto;
+          } else {
+            // no problem - they're identical.  might want to log an info
+          } 
+        } else {
+          // not cached... so let's cache it right now
+          ldm.cachePrototype(tid, myPrototype);
+          if (log.isDebugEnabled()) {
+            log.debug("Deserialization cached prototype "+myPrototype);
+          } 
+        }
+      }
+
       initRoleSchedule();
       if (in instanceof org.cougaar.core.persist.PersistenceInputStream) {
         Schedule schedule = (Schedule) in.readObject();
@@ -504,8 +551,7 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
             try {
               m = assetC.getMethod("addOtherPropertyGroup", _pgClassArgs);
             } catch (NoSuchMethodException e1) {
-              System.err.println("Couldn't find addOtherPropertyGroup in "+this);
-              e1.printStackTrace();
+              log.error("Couldn't find addOtherPropertyGroup in "+this, e1);
             }
           }
           _setterTable.put(pS, m);
@@ -521,8 +567,7 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
         m.invoke(this, new Object[] {property});
       }
     } catch (Exception e) {
-      System.err.println("setPropertyGroup problem: "+e);
-      e.printStackTrace();
+      log.error("setPropertyGroup problem", e);
     }
   }
 
@@ -727,7 +772,7 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
       return _ldm.lateFillPropertyGroup(this, pgc, t);
     }
     else {
-      System.err.println("Asset "+this+" is not bound to an LDM instance!");
+      log.error("Asset "+this+" is not bound to an LDM instance!");
     }
     return null;
   }
@@ -795,8 +840,8 @@ public class Asset extends org.cougaar.planning.ldm.asset.AssetSkeleton
       }
 
       if ((myTypeString.equals("")) && (myItemString.equals(""))) {
-        System.err.println("Unable to create unique key for asset " + asset +
-                           " - type and item identification are not set.");
+        log.error("Unable to create unique key for asset " + asset +
+                  " - type and item identification are not set.");
       }
 
       myHashCode = myTypeString.hashCode() + myItemString.hashCode();

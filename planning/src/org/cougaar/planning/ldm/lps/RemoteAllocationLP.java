@@ -245,8 +245,17 @@ implements LogicProvider, EnvelopeLogicProvider, RestartLogicProvider
         et = Double.NaN;
       }
     if (Double.isNaN(et)) return true; // Can't tell, send it
+
+    // Require end time to be later than 1 day before now. In other words,
+    // Task must be at least 1 day in the past for it to be dropped.
     long minValidTaskTime = currentTimeMillis() - VALID_TASK_TIME_OFFSET;
-    return ((long) et) >= minValidTaskTime;
+    boolean shouldSend = ((long) et) >= minValidTaskTime;
+
+    if (!shouldSend && logger.isInfoEnabled()) {
+      logger.info(self + ": " + task + " has end time pref earlier than minValidTime (now - 1 day) of " + minValidTaskTime + ". Will not Allocate task due more than 1 day ago!");
+    }
+
+    return shouldSend;
   }
 
   private Task prepareRemoteTask(Task task, MessageAddress dest, UID uid, boolean isDeleted) {

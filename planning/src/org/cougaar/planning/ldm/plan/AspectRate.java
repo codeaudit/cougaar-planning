@@ -51,7 +51,7 @@ public class AspectRate extends TypedAspectValue {
         // only make a fuss this once
         hack_warnedUser = true;
         org.cougaar.util.log.LoggerFactory.getInstance().createLogger(AspectRate.class).error(
-            "BUG <TBA>: create("+type+", "+o+") with non-rate type "+
+            "BUG 2529: create("+type+", "+o+") with non-rate type "+
             (o==null?"null":(o.getClass().getName()+": "+o))+
             "!  This will be the *only* warning!", 
             new RuntimeException("Trace"));

@@ -1,3 +1,10 @@
+2003-04-25  Ray Tomlinson  <RTomlinson@bbn.com>
+
+	* WorkflowImpl.java:
+	Synchronize around writing of changedSubtasks. This only happens
+	during persistence when there are no other plugins running, so it
+	is probably not necessary, but it is logically correct.
+
 2003-04-16  Ray Tomlinson  <RTomlinson@bbn.com>
 
 	* WorkflowImpl.java: 

@@ -56,6 +56,7 @@ import org.cougaar.util.TimeSpan;
 import org.cougaar.util.UnaryPredicate;
 import org.cougaar.util.log.Logger;
 import org.cougaar.util.log.Logging;
+import org.cougaar.core.logging.LoggingServiceWithPrefix;
 
 
 /**
@@ -67,12 +68,13 @@ import org.cougaar.util.log.Logging;
 
 public class ReceiveAssetLP
 implements LogicProvider, MessageLogicProvider {
-  private static Logger logger = Logging.getLogger(ReceiveAssetLP.class);
+  private static Logger logBase = Logging.getLogger(ReceiveAssetLP.class);
 
   private final RootPlan rootplan;
   private final LogPlan logplan;
   private final PlanningFactory ldmf;
   private final MessageAddress self;
+  private final Logger logger;
 
   private static TimeSpan ETERNITY = new MutableTimeSpan();
 
@@ -85,6 +87,7 @@ implements LogicProvider, MessageLogicProvider {
     this.logplan = logplan;
     this.ldmf = ldmf;
     this.self = self;
+    logger = new LoggingServiceWithPrefix(logBase, self.toString() + ": ");
   }
 
   public void init() {

@@ -647,7 +647,6 @@ public class TestDeletionPlugin extends SimplePlugin {
     }
 
     private void allocateAggtask(Task subtask, boolean remote) {
-        int subtype = getSubtype(subtask);
         Asset asset;
         if (remote) {
             asset = provider;

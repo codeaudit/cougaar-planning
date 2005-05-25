@@ -169,9 +169,9 @@ public class TaskImpl extends PlanningDirectiveImpl
     }
 
     while (enumOfPrepPhrase.hasMoreElements()) {
-      PrepositionalPhrase pp = (PrepositionalPhrase) enumOfPrepPhrase.nextElement();
+      Object pp = enumOfPrepPhrase.nextElement();
       if (pp instanceof PrepositionalPhrase) {
-        phrases.add(pp);
+        phrases.add((PrepositionalPhrase)pp);
       } else {
         //buzzzzzzz... wrong answer - tryed to pass in a null!
         throw new IllegalArgumentException("Task.setPrepositionalPhrases(Enum e): all elements of e must be PrepositionalPhrases");

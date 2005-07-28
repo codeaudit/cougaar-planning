@@ -96,7 +96,20 @@ public class XMLize {
         className = className.substring(0, i);
       }
     }
-    Element root = doc.createElement(className);
+    Element root;
+
+    // fix for bug where inner classes would cause XMLize to throw
+    // exception
+    try {
+      className = className.replaceAll ("\\$", "_");
+
+      root = doc.createElement(className);
+    } catch (Exception e) {
+      System.err.println("Got exception " + e + " trying to create element '" +
+                         className +"'");
+      root = doc.createElement ("Invalid_Name");
+    }
+
     Set seenObjs = new HashSet();
     addNodes(doc, obj, root, seenObjs, searchDepth);
     return root;

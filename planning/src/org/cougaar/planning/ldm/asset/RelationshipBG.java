@@ -26,57 +26,43 @@
 
 package org.cougaar.planning.ldm.asset;
 
+import org.cougaar.planning.ldm.plan.HasRelationships;
+import org.cougaar.planning.ldm.plan.RelationshipScheduleImpl;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import org.cougaar.planning.ldm.plan.HasRelationships;
-import org.cougaar.planning.ldm.plan.RelationshipScheduleImpl;
-
 public class RelationshipBG implements PGDelegate {
   protected transient NewRelationshipPG myPG;
-  
 
-  public RelationshipBG() {
-  }
-
-  /**
-   *  Note that simply constructing this BG may have a side effect
-   * on the input PG (setting the relationship schedule if not set)
-   * @see #init
-   **/
-  public RelationshipBG(NewRelationshipPG pg, 
-                        HasRelationships hasRelationships) {
-    init(pg, hasRelationships);
-  }
-
-  
-  public PGDelegate copy(PropertyGroup pg) { 
+  public PGDelegate copy(PropertyGroup pg) {
     if (!(pg instanceof NewRelationshipPG)) {
       throw new java.lang.IllegalArgumentException("Property group must be a RelationshipPG");
     }
 
     NewRelationshipPG relationshipPG = (NewRelationshipPG ) pg;
 
+    HasRelationships x = null;
     if (relationshipPG.getRelationshipSchedule() != null) {
-      return new RelationshipBG(relationshipPG, 
-                                relationshipPG.getRelationshipSchedule().getHasRelationships());
-    } else {
-      return new RelationshipBG(relationshipPG, null);
+      x = relationshipPG.getRelationshipSchedule().getHasRelationships();
     }
+    RelationshipBG bg = new RelationshipBG();
+    bg.init(relationshipPG, x);
+    return bg;
   }
 
   public void readObject(ObjectInputStream in) {
     try {
-     in.defaultReadObject();
+      in.defaultReadObject();
 
-     if (in instanceof org.cougaar.core.persist.PersistenceInputStream){
-       myPG = (NewRelationshipPG) in.readObject();
-     } else {
-       // If not persistence, need to initialize the relationship schedule
-       myPG = (NewRelationshipPG) in.readObject();
-       init(myPG, myPG.getRelationshipSchedule().getHasRelationships());
-     }
+      if (in instanceof org.cougaar.core.persist.PersistenceInputStream){
+        myPG = (NewRelationshipPG) in.readObject();
+      } else {
+        // If not persistence, need to initialize the relationship schedule
+        myPG = (NewRelationshipPG) in.readObject();
+        init(myPG, myPG.getRelationshipSchedule().getHasRelationships());
+      }
     } catch (IOException ioe) {
       ioe.printStackTrace();
       throw new RuntimeException();
@@ -84,13 +70,13 @@ public class RelationshipBG implements PGDelegate {
       cnfe.printStackTrace();
       throw new RuntimeException();
     }
-  }       
+  }
 
   public void writeObject(ObjectOutputStream out) {
     try {
       // Make sure that it agrees with schedule
       out.defaultWriteObject();
-      
+
       if (out instanceof org.cougaar.core.persist.PersistenceOutputStream) {
         out.writeObject(myPG);
       } else {
@@ -109,11 +95,13 @@ public class RelationshipBG implements PGDelegate {
 
     RelationshipScheduleImpl pgSchedule = (RelationshipScheduleImpl) pg.getRelationshipSchedule();
     if ((pgSchedule == null) ||
-        (pgSchedule.isEmpty())){
+      (pgSchedule.isEmpty())){
       myPG.setRelationshipSchedule(new RelationshipScheduleImpl(hasRelationships));
     } else if (!pgSchedule.getHasRelationships().equals(hasRelationships)) {
-       throw new java.lang.IllegalArgumentException("");
+      throw new java.lang.IllegalArgumentException("");
     }
+
+    pg.setRelationshipBG(this);
   }
 
   public boolean isSelf() {

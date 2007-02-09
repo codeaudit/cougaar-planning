@@ -47,9 +47,9 @@ public abstract class EntityAdapter extends Asset {
   }
 
   public void initRelationshipSchedule() {
-    NewRelationshipPG relationshipPG = 
-      (NewRelationshipPG) PropertyGroupFactory.newRelationshipPG();
-    relationshipPG.setRelationshipBG(new RelationshipBG(relationshipPG, (HasRelationships) this));
+    NewRelationshipPG relationshipPG = (NewRelationshipPG) PropertyGroupFactory.newRelationshipPG();
+    RelationshipBG bg = new RelationshipBG();
+    bg.init(relationshipPG, (HasRelationships) this);
     setRelationshipPG(relationshipPG);
   }
 }

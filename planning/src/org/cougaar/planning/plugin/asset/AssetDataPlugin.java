@@ -309,10 +309,9 @@ public class AssetDataPlugin extends SimplePlugin {
     NewRelationshipPG pg = 
       (NewRelationshipPG) myLocalAsset.getRelationshipPG();
 
-    // Although we ignore the returned BG, constructing the BG has the side
-    // effect of setting the relationship schedule on the PG if necessary
-    RelationshipBG bg = 
-      new RelationshipBG(pg, (HasRelationships) myLocalAsset);
+    RelationshipBG bg = new RelationshipBG();
+    // init sets the relationship schedule on the PG and sets the pointer from pg to bg
+    bg.init(pg, (HasRelationships) myLocalAsset);
 
     // this asset is local to the agent
     pg.setLocal(true);

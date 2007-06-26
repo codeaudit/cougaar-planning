@@ -32,31 +32,30 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
 
 import org.cougaar.core.blackboard.ActiveSubscriptionObject;
-import org.cougaar.core.blackboard.Subscriber;
-import org.cougaar.core.blackboard.Transaction;
 import org.cougaar.core.blackboard.Blackboard;
+import org.cougaar.core.blackboard.Subscriber;
 import org.cougaar.core.blackboard.Transaction;
 import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.persist.PersistenceStream;
 import org.cougaar.core.util.UID;
 import org.cougaar.planning.ldm.asset.Asset;
 import org.cougaar.util.BackedEnumerator;
+import org.cougaar.util.CallerTracker;
 import org.cougaar.util.Empty;
 import org.cougaar.util.Enumerator;
 import org.cougaar.util.Filters;
-import org.cougaar.util.CallerTracker;
 import org.cougaar.util.log.Logger;
 import org.cougaar.util.log.Logging;
- 
+
 /** Implementation of Task.   
  * Tasks that were created by Expanders are part of a Workflow.
  * Tasks are the basic unit of Planning Domain work.
@@ -174,7 +173,9 @@ public class TaskImpl extends PlanningDirectiveImpl
         phrases.add((PrepositionalPhrase)pp);
       } else {
         //buzzzzzzz... wrong answer - tryed to pass in a null!
-        throw new IllegalArgumentException("Task.setPrepositionalPhrases(Enum e): all elements of e must be PrepositionalPhrases");
+        String info = pp != null ? ", found a " + pp.getClass() : " found a 'null'";
+        throw new IllegalArgumentException("Task.setPrepositionalPhrases(Enum e): " +
+          "all elements of e must be PrepositionalPhrases" + info);
       }
     }
 

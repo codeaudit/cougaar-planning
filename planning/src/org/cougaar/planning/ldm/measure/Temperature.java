@@ -30,7 +30,7 @@
 
 package org.cougaar.planning.ldm.measure;
 
-public final class Temperature extends AbstractMeasure 
+public final class Temperature extends AbstractMeasure
 {
   private static final Conversion CELSIUS_TO_CELSIUS = new Conversion() {
     public double convert(double from) { return from; }};
@@ -53,17 +53,17 @@ public final class Temperature extends AbstractMeasure
     if (i < 0) throw new UnknownUnitException();
     double n = Double.valueOf(s.substring(0,i).trim()).doubleValue();
     String u = s.substring(i).trim().toLowerCase();
-    if (u.equals("celsius")) 
+    if (u.equals("celsius"))
       theValue=n;
-    else if (u.equals("fahrenheit")) 
+    else if (u.equals("fahrenheit"))
       theValue=FAHRENHEIT_TO_CELSIUS.convert(n);
-    else 
+    else
       throw new UnknownUnitException();
   }
 
   public int getCommonUnit() { return FAHRENHEIT; }
   public int getMaxUnit() { return 1; }
-  public String getUnitName(int i) { 
+  public String getUnitName(int i) {
     if (i ==0) return "celcius";
     else if (i == 1) return "fahrenheit";
     else throw new IllegalArgumentException();
@@ -96,7 +96,7 @@ public final class Temperature extends AbstractMeasure
   public static int CELSIUS = 0;
   public static int FAHRENHEIT = 1;
   private static int MAXUNIT = 1;
-  
+
   // Index Typed factory methods
   public static Temperature newTemperature(double v, int unit) {
     if (unit >= 0 && unit <= MAXUNIT)
@@ -137,7 +137,7 @@ public final class Temperature extends AbstractMeasure
 
   public static Conversion getConversion(final int from, final int to) {
     if (from >= 0 && from <= MAXUNIT &&
-        to >= 0 && to <= MAXUNIT ) {
+      to >= 0 && to <= MAXUNIT ) {
       return new Conversion() {
         public double convert(double value) {
           return convFactor[MAXUNIT+1+to].convert(convFactor[from].convert(value));
@@ -149,7 +149,7 @@ public final class Temperature extends AbstractMeasure
 
   public boolean equals(Object o) {
     return ( o instanceof Temperature &&
-             theValue == ((Temperature) o).getCelsius());
+      theValue == ((Temperature) o).getCelsius());
   }
   public String toString() {
     return Double.toString(theValue) + "c";
@@ -158,5 +158,49 @@ public final class Temperature extends AbstractMeasure
     return (new Double(theValue)).hashCode();
   }
 
-  
+  /**
+   * TODO : fill in
+   * @param other
+   * @return
+   */
+  public Measure add(Measure other) {
+    return null;
+  }
+
+  /**
+   * TODO : fill in
+   * @param other
+   * @return
+   */
+  public Measure subtract(Measure other) {
+    return null;
+  }
+
+  public Measure negate() {
+    return null;
+  }
+
+  public Measure scale(double scale) {
+    return null;
+  }
+
+  public Measure floor(int unit) {
+    return null;  
+  }
+
+  public Measure valueOf(double value) {
+    return null;  
+  }
+
+  public Measure valueOf(double value, int unit) {
+    return null;
+  }
+
+  public int getNativeUnit() {
+    return 0;
+  }
+
+  public double getNativeValue() {
+    return getValue(getNativeUnit());
+  }
 } // end Temperature

@@ -36,10 +36,10 @@ public final class Heading extends AbstractMeasure
   private final double lowerBound = 0.0;
   private final double wrapUpperBound = -1.0;
   private final double wrapLowerBound = -360.0;
-	
+
   //no real conversions for now
   private static final Conversion DEGREES_TO_DEGREES = new Conversion() {
-      public double convert(double from) { return from; }};
+    public double convert(double from) { return from; }};
 
   // basic unit is Degrees
   private double theValue;
@@ -57,7 +57,7 @@ public final class Heading extends AbstractMeasure
     } else {
       throw new ValueRangeException ("Heading expects the double to be between 0.0 and 360.0.");
     }
-  	
+
   }
 
   public Heading(String s) {
@@ -65,15 +65,15 @@ public final class Heading extends AbstractMeasure
     if (i < 0) throw new UnknownUnitException();
     double n = Double.valueOf(s.substring(0,i).trim()).doubleValue();
     String u = s.substring(i).trim().toLowerCase();
-    if (u.equals("degrees")) 
+    if (u.equals("degrees"))
       theValue=n;
-    else 
+    else
       throw new UnknownUnitException();
   }
 
   public int getCommonUnit() { return 0; }
   public int getMaxUnit() { return 0; }
-  public String getUnitName(int i) { 
+  public String getUnitName(int i) {
     if (i ==0) return "degrees";
     else throw new IllegalArgumentException();
   }
@@ -93,7 +93,7 @@ public final class Heading extends AbstractMeasure
   public static Heading newHeading(String s) {
     return new Heading((Double.valueOf(s).doubleValue()));
   }
-  
+
 
   // Index Typed factory methods
   // ***No real conversions for now
@@ -112,16 +112,16 @@ public final class Heading extends AbstractMeasure
 
   // Index Typed factory methods
   public static Heading newHeading(double v, int unit) {
-    if (unit >= 0 && unit <= MAXUNIT) 
+    if (unit >= 0 && unit <= MAXUNIT)
       return new Heading(convFactor[unit].convert(v));
     else
       throw new UnknownUnitException();
   }
 
   public static Heading newHeading(String s, int unit) {
-    if (unit >= 0 && unit <= MAXUNIT) 
+    if (unit >= 0 && unit <= MAXUNIT)
       return new Heading(convFactor[unit].convert(Double.valueOf(s).doubleValue()));
-    else 
+    else
       throw new UnknownUnitException();
   }
 
@@ -150,19 +150,19 @@ public final class Heading extends AbstractMeasure
 
   public static Conversion getConversion(final int from, final int to) {
     if (from >= 0 && from <= MAXUNIT &&
-        to >= 0 && to <= MAXUNIT ) {
+      to >= 0 && to <= MAXUNIT ) {
       return new Conversion() {
-          public double convert(double value) {
-            return convFactor[MAXUNIT+1+to].convert(convFactor[from].convert(value));
-          }
-        };
+        public double convert(double value) {
+          return convFactor[MAXUNIT+1+to].convert(convFactor[from].convert(value));
+        }
+      };
     } else
       throw new UnknownUnitException();
   }
 
   public boolean equals(Object o) {
     return ( o instanceof Heading &&
-             theValue == ((Heading) o).getDegrees());
+      theValue == ((Heading) o).getDegrees());
   }
   public String toString() {
     return Double.toString(theValue) + "o";
@@ -170,12 +170,12 @@ public final class Heading extends AbstractMeasure
   public int hashCode() {
     return (new Double(theValue)).hashCode();
   }
-  
+
   private double figureWrap( double v ) {
     double wrappedValue = v + 360.0;
     return wrappedValue;
   }
-  
+
   private boolean inWrapBounds( double v ) {
     boolean ok;
     if ( (v <= wrapUpperBound) && (v >= wrapLowerBound) ) {
@@ -186,7 +186,7 @@ public final class Heading extends AbstractMeasure
     return ok;
   }
 
-  
+
   private boolean inBounds( double v ) {
     boolean ok;
     if ( (v <= upperBound) && (v >= lowerBound) ) {
@@ -197,5 +197,66 @@ public final class Heading extends AbstractMeasure
     return ok;
   }
 
-  
+  /**
+   * TODO : fill in
+   * @param other
+   * @return
+   */
+  public Measure add(Measure other) {
+    return null;
+  }
+
+  /**
+   * TODO : fill in
+   * @param other
+   * @return
+   */
+  public Measure subtract(Measure other) {
+    return null;
+  }
+
+  /**
+   * TODO : fill in
+   * @param other
+   * @return
+   */
+  public Measure multiply(Measure other) {
+    return null;
+  }
+
+  /**
+   * TODO : fill in
+   * @param other
+   * @return
+   */
+  public Measure divide(Measure other) {
+    return null;
+  }
+
+  public Measure negate() {
+    return null;
+  }
+  public Measure scale(double scale) {
+    return null;
+  }
+
+  public Measure floor(int unit) {
+    return null;
+  }
+
+  public Measure valueOf(double value) {
+    return null;
+  }
+
+  public Measure valueOf(double value, int unit) {
+    return null;
+  }
+
+  public int getNativeUnit() {
+    return 0;
+  }
+
+  public double getNativeValue() {
+    return getValue(getNativeUnit());  
+  }
 } // end Heading

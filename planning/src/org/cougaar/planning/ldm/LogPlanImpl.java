@@ -47,25 +47,28 @@ implements LogPlan, XPlan
 {
   private Blackboard blackboard;
 
-  static final UnaryPredicate planElementP = new UnaryPredicate() {
+  private static final UnaryPredicate planElementP = new PlanElementPredicate();
+  private static class PlanElementPredicate implements UnaryPredicate {
     public boolean execute(Object o) {
       return (o instanceof PlanElement);
     }
-  };
+  }
 
   /** is this a task object? **/
-  private static final UnaryPredicate taskP = new UnaryPredicate() {
+  private static final UnaryPredicate taskP = new TaskPredicate();
+  private static class TaskPredicate implements UnaryPredicate {
     public boolean execute(Object o) {
       return (o instanceof Task);
     }
-  };
+  }
 
   /** is this an asset? **/
-  private static final UnaryPredicate assetP = new UnaryPredicate() {
+  private static final UnaryPredicate assetP = new AssetPredicate();
+  private static class AssetPredicate implements UnaryPredicate {
     public boolean execute(Object o) {
       return (o instanceof Asset);
     }
-  };
+  }
 
   /**
    * Private container for PlanElements only.  Supports fast lookup of
@@ -149,11 +152,12 @@ implements LogPlan, XPlan
     return planElementSet.size();
   }
 
-  private static UnaryPredicate workflowPredicate = new UnaryPredicate() {
+  private static final UnaryPredicate workflowPredicate = new WorkflowPredicate();
+  private static class WorkflowPredicate implements UnaryPredicate {
     public boolean execute(Object o) {
-      return o instanceof Workflow;
+      return (o instanceof Workflow);
     }
-  };
+  }
 
   public int getWorkflowCount() {
     // no subscription for workflows?

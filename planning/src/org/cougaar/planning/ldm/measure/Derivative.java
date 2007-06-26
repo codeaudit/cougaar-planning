@@ -51,18 +51,18 @@ public interface Derivative extends Measure {
 
   /** Get the value of the derivative measure by specifying both numerator and
    * denominator units.
+   * @param numerator_unit to use
+   * @param denominator_unit to use
+   * @return value given these units
    **/
   double getValue(int numerator_unit, int denominator_unit);
   
   /** integrate the denominator, resulting in a non-derivative numerator.
    * For example, computes a Distance given a Speed and a Duration.
+   *
+   * This is a synonym for multiply
+   * @param denominator to use
    * @return a newly created Numerator measure.
    **/
   Measure computeNumerator(Measure denominator);
-
-  /** integrate the numerator, resulting in a non-derivative denominator.
-   * For example, compute a Duration given a Speed and a Distance.
-   * @return a newly created Denominator measure.
-   **/
-  Measure computeDenominator(Measure numerator);
 }

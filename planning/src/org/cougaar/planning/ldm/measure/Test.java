@@ -101,8 +101,5 @@ public class Test {
                        d.getValue(Distance.MILES, Duration.HOURS));
     System.out.println("  computeNumerator(30minutes) = "+
                        d.computeNumerator(Duration.newMinutes(30)).getValue(Distance.MILES));
-    System.out.println("  computeDenominator(2miles) = "+
-                       d.computeDenominator(Distance.newMiles(2)).getValue(Duration.MINUTES));
-
   }
 }

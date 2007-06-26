@@ -163,17 +163,17 @@ public class AssetReportPlugin extends ComponentPlugin
    * @return UnaryPredicate - task predicate to be used.
    */
   protected UnaryPredicate getTaskPredicate() {
-    return allReportTaskPred();
+    return allReportTaskPred;
   }
 
 
   protected UnaryPredicate getAssetTransferPred() {
-    return allReportAssetTransferPred();
+    return allReportAssetTransferPred;
   }
 
 
   protected UnaryPredicate getLocalAssetPred() {
-    return new allLocalAssetPred(getAgentIdentifier());
+    return new SelfOrgPredicate(getAgentIdentifier());
   }
 
 
@@ -281,22 +281,12 @@ public class AssetReportPlugin extends ComponentPlugin
 
 
   protected Asset findLocalAsset(Asset asset) {
-    final Object key = asset.getKey();
+    Object key = asset.getKey();
     Asset localAsset = null;
     
     // Query subscription to see if clientAsset already exists
-    Collection collection = getBlackboardService().query(new UnaryPredicate() {
-      
-      public boolean execute(Object o) {
-        if ((o instanceof Asset) &&
-            (((Asset) o).getKey().equals(key)))
-          return true;
-        else {
-          return false;
-        }
-      }
-    });
-
+    Collection collection = getBlackboardService().query(
+        new AssetPredicate(key));
 
     if (collection.size() > 0) {
       Iterator iterator = collection.iterator();
@@ -410,43 +400,56 @@ public class AssetReportPlugin extends ComponentPlugin
   // #######################################################################
   // BEGIN predicates
   // #######################################################################
-  
+
+  private static class AssetPredicate implements UnaryPredicate {
+    private final Object key;
+    public AssetPredicate(Object key) {
+      this.key = key;
+    }
+    public boolean execute(Object o) {
+      return 
+        ((o instanceof Asset) &&
+         (((Asset) o).getKey().equals(key)));
+    }
+  }
+
   // predicate for getting allocatable tasks of report for duty
-  private static UnaryPredicate allReportTaskPred() {
-    return new UnaryPredicate() {
-      public boolean execute(Object o) {
-        if (o instanceof Task) {
-          Task task = (Task) o;
-          if (task.getVerb().equals(Constants.Verb.REPORT)) {
-            return true;
-          }
+  private static final UnaryPredicate allReportTaskPred =
+    new AllReportTaskPredicate();
+  private static class AllReportTaskPredicate implements UnaryPredicate {
+    public boolean execute(Object o) {
+      if (o instanceof Task) {
+        Task task = (Task) o;
+        if (task.getVerb().equals(Constants.Verb.REPORT)) {
+          return true;
         }
-        return false;
       }
-    };
+      return false;
+    }
   }
 
 
-  private static UnaryPredicate allReportAssetTransferPred() {
-    return new UnaryPredicate() {
-      public boolean execute(Object o) {
-        if (o instanceof AssetTransfer) {
-          Task t = ((AssetTransfer)o).getTask();
-          if (t.getVerb().equals(Constants.Verb.REPORT)) {
-            // if the PlanElement is for the correct kind of task then
-            // make sure it's an assettransfer
-            return true;
-          }
+  private static final UnaryPredicate allReportAssetTransferPred =
+    new AllReportAssetTransferPredicate();
+  private static class AllReportAssetTransferPredicate
+      implements UnaryPredicate {
+    public boolean execute(Object o) {
+      if (o instanceof AssetTransfer) {
+        Task t = ((AssetTransfer)o).getTask();
+        if (t.getVerb().equals(Constants.Verb.REPORT)) {
+          // if the PlanElement is for the correct kind of task then
+          // make sure it's an assettransfer
+          return true;
         }
-        return false;
       }
-    };
+      return false;
+    }
   }
 
 
-  private static class allLocalAssetPred implements UnaryPredicate {
+  private static class SelfOrgPredicate implements UnaryPredicate {
     private final MessageAddress myAID;
-    public allLocalAssetPred(MessageAddress aid) {
+    public SelfOrgPredicate(MessageAddress aid) {
       super();
       myAID = aid;
     }

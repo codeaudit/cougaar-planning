@@ -60,7 +60,7 @@ public class Capacity extends AbstractMeasure {
       qs = s.substring(0,i);
       ps = s.substring(i+1);
     }
-    
+
     try {
       Class[] sa = new Class[1];
       sa[0] = String.class;
@@ -86,7 +86,7 @@ public class Capacity extends AbstractMeasure {
       }
     } catch (Exception e) {
       e.printStackTrace();
-      throw new RuntimeException("Exception: "+e);      
+      throw new RuntimeException("Exception: "+e);
     }
   }
 
@@ -105,7 +105,7 @@ public class Capacity extends AbstractMeasure {
     this.quantity=quantity;
     this.period = null;
   }
-  
+
   /** @return the numerator of the Capacity **/
   public Scalar getQuantity() { return quantity; }
 
@@ -123,14 +123,80 @@ public class Capacity extends AbstractMeasure {
    * what the concrete type of the quantity is.
    *
    * @exception UnknownUnitException if a bad unit in either argument.
-   * @exception DivideByZero if duration is 0.
+   * @exceptionx DivideByZero if duration is 0.
    * @exception NullPointerException if duration is null.
    **/
   public double getRate(int quantityUnits, int periodUnits) {
-    if (isInstantaneous()) 
+    if (isInstantaneous())
       throw new IllegalArgumentException("Cannot compute rate of an instantaneous Capacity");
     return quantity.getValue(quantityUnits) /
       period.getValue(periodUnits);
+  }
+
+  /**
+   * TODO : fill in
+   * @param other
+   * @return
+   */
+  public Measure add(Measure other) {
+    return null;
+  }
+
+  /**
+   * TODO : fill in
+   * @param other
+   * @return
+   */
+  public Measure subtract(Measure other) {
+    return null;
+  }
+
+  /**
+   * TODO : fill in
+   * @param other
+   * @return
+   */
+  public Measure multiply(Measure other) {
+    return null;
+  }
+
+  /**
+   * TODO : fill in
+   * @param other
+   * @return
+   */
+  public Measure divide(Measure other) {
+    return null;
+  }
+
+  public Measure negate() {
+    return null;
+  }
+
+  public Measure scale(double scale) {
+    return null;
+  }
+
+  public Measure floor(int unit) {
+    return null;
+  }
+
+  public Measure valueOf(double value) {
+    return null;
+  }
+
+  public Measure valueOf(double value, int unit) {
+    return null;
+  }
+
+
+  public int getNativeUnit() {
+    return 0;
+  }
+
+
+  public double getNativeValue() {
+    return getValue(getNativeUnit());
   }
 
   public String toString() {
@@ -146,7 +212,7 @@ public class Capacity extends AbstractMeasure {
       Capacity oc = (Capacity) o;
       Duration ocp = oc.getPeriod();
       if ((period == null) != (ocp == null)) return false;
-      if (period == null) 
+      if (period == null)
         return quantity.equals(oc.getQuantity());
       else
         return (getRate(0,0) == oc.getRate(0,0));

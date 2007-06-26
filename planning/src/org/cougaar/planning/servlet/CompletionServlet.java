@@ -93,12 +93,12 @@ import org.cougaar.util.Filters;
 public class CompletionServlet
 extends BaseServletComponent
 {
-  protected static final UnaryPredicate TASK_PRED =
-      new UnaryPredicate() {
-        public boolean execute(Object o) {
-          return (o instanceof Task);
-        }
-      };
+  protected static final UnaryPredicate TASK_PRED = new TaskPredicate();
+  private static final class TaskPredicate implements UnaryPredicate {
+    public boolean execute(Object o) {
+      return (o instanceof Task);
+    }
+  }
 
   protected static class RootTaskPredicate implements UnaryPredicate {
     private Verb rootVerb;
@@ -121,6 +121,10 @@ extends BaseServletComponent
         }
       }
       return false;
+    }
+
+    public String toString() {
+      return getClass().getName()+"[verb="+rootVerb+"]";
     }
   }
 

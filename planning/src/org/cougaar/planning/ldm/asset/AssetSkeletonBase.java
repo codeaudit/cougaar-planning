@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.lang.reflect.Modifier;
 
 import org.cougaar.util.Empty;
 import org.cougaar.util.Enumerator;
@@ -550,10 +551,15 @@ public abstract class AssetSkeletonBase
           // Don't bother with PropertyGroupSchedules
           continue;
         } else if (o instanceof PropertyGroup) {
+          if (Modifier.isAbstract(o.getClass().getModifiers())) {
+            throw new RuntimeException("properties["+i+"/"+l+"] is abstract: "+o.getClass() +
+              " asset was " + this);
+          }
+
           ok = ((PropertyGroup) o).getPrimaryClass();
         } else {
           throw new RuntimeException("Unable to handle object of Class: " + o.getClass() +
-                                     " in otherProperties list.");
+            " in otherProperties list.");
         }
         if (propertyGroupClass.isAssignableFrom(ok)) {
           return i;

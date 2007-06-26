@@ -31,7 +31,6 @@ import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.TimeZone;
 
 import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
@@ -175,9 +174,7 @@ public class SimpleTimeAdvanceComponent extends BaseServletComponent {
   private static final SimpleDateFormat dateFormat =
     new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
   private static Date fdate = new Date();
-  static {
-    dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-  }
+
   public static String formatDate(long time) {
     synchronized (fdate) {
       fdate.setTime(time);

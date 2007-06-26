@@ -30,8 +30,8 @@ import org.cougaar.core.component.Component;
 import org.cougaar.core.component.ServiceBroker;
 import org.cougaar.core.component.ServiceProvider;
 import org.cougaar.core.node.DBInitializerService;
+import org.cougaar.core.node.Node;
 import org.cougaar.core.node.NodeControlService;
-import org.cougaar.core.agent.AgentManager;
 import org.cougaar.core.service.LoggingService;
 import org.cougaar.planning.service.AssetInitializerService;
 import org.cougaar.util.ConfigFinder;
@@ -136,7 +136,7 @@ public final class AssetInitializerServiceComponent
   private ServiceProvider chooseSP() {
     try {
       ServiceProvider sp = null;
-      String prop = System.getProperty(AgentManager.INITIALIZER_PROP);
+      String prop = System.getProperty(Node.INITIALIZER_PROP);
 
       // If user specified to load from the database
       if (prop != null && prop.indexOf("DB") != -1) {

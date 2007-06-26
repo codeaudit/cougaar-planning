@@ -243,7 +243,7 @@ class PlanningFactoryImpl
    * This *always* creates a prototype of the specific class.
    * most plugins want to call getPrototype(String typeid);
    *
-   * @param class an LDM Asset class.
+   * @param assetClass an LDM Asset class.
    **/
   public final Asset createAsset(Class assetClass) {
     if (assetClass == null) throw new IllegalArgumentException("assetClass must be non-null");

@@ -1,5 +1,4 @@
 /*
- *
  * <copyright>
  *  
  *  Copyright 1997-2004 BBNT Solutions, LLC
@@ -47,6 +46,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -56,9 +56,13 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.xerces.dom.DocumentImpl;
 import org.apache.xml.serialize.OutputFormat;
 import org.apache.xml.serialize.XMLSerializer;
+import org.cougaar.core.blackboard.PublisherInfo;
+import org.cougaar.core.blackboard.PublisherSubscription;
 import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.core.plugin.ComponentPlugin;
 import org.cougaar.core.servlet.ServletUtil;
-import org.cougaar.core.servlet.SimpleServletSupport;
+import org.cougaar.core.service.BlackboardQueryService;
+import org.cougaar.core.service.ServletService;
 import org.cougaar.core.util.UID;
 import org.cougaar.core.util.UniqueObject;
 import org.cougaar.planning.ldm.asset.AggregateAsset;
@@ -104,15 +108,14 @@ import org.cougaar.planning.plugin.util.PluginHelper;
 import org.cougaar.util.ConfigFinder;
 import org.cougaar.util.PropertyTree;
 import org.cougaar.util.Sortings;
+import org.cougaar.util.StackElements;
 import org.cougaar.util.TimeSpan;
 import org.cougaar.util.UnaryPredicate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 /**
- * A <code>Servlet</code>, loaded by the 
- * <code>SimpleServletComponent</code>, that generates HTML views 
- * of an Agent's Blackboard.
+ * A <code>Servlet</code> that generates HTML views of an Agent's Blackboard.
  * <p>
  * This Servlet allows the user to: <ol>
  *   <li> List Tasks, PlanElements, Assets, UniqueObjects</li>
@@ -148,17 +151,113 @@ import org.w3c.dom.Element;
  *    the "Advanced Search" page, which defaults to 
  *    "default.preds.dat"
  * </pre>
- *
- * @see org.cougaar.core.servlet.SimpleServletComponent
  */
 public class PlanViewServlet
-extends HttpServlet 
+extends ComponentPlugin
 {
 
+  // this matches the Subscriber system property that's required to capture
+  // the additional blackboard detail.
+  private static final boolean ENABLE_STACKS =
+    Boolean.getBoolean("org.cougaar.core.blackboard.trackPublishers");
+
+  private BlackboardQueryService blackboardQueryService;
+  private ServletService servletService;
+  private String myPath;
+  private PublisherSubscription sub;
+
+  // *not* the one in core -- see below for our private adapter class.
   private SimpleServletSupport support;
 
-  public void setSimpleServletSupport(SimpleServletSupport support) {
-    this.support = support;
+  // set out path
+  public void setParameter(Object o) {
+    if (o instanceof String) {
+      myPath = (String) o;
+    } else if (o instanceof List) {
+      List l = (List) o;
+      if (l.size() > 0) {
+        Object o1 = l.get(0);
+        if (o1 instanceof String) {
+          myPath = (String) o1;
+        }
+      }
+    }
+  }
+
+  public void setBlackboardQueryService(
+      BlackboardQueryService blackboardQueryService) {
+    this.blackboardQueryService = blackboardQueryService;
+  }
+
+  public void setServletService(ServletService servletService) {
+    this.servletService = servletService;
+  }
+
+  public void load() {
+    super.load();
+
+    this.support = new SimpleServletSupport();
+
+    HttpServlet servlet = new HttpServlet() {
+      public void doGet(
+          HttpServletRequest request,
+          HttpServletResponse response) throws IOException, ServletException {
+        PlanViewServlet.this.doGet(request, response);
+      }
+    };
+    try {
+      servletService.register(myPath, servlet);
+    } catch (Exception e) {
+      throw new RuntimeException("Unable register "+myPath, e);
+    }
+  }
+
+  protected void setupSubscriptions() {
+    if (ENABLE_STACKS) {
+      UnaryPredicate pred = new UniqueObjectPredicate();
+      sub = (PublisherSubscription) 
+        getBlackboardService().subscribe(new PublisherSubscription(pred));
+    }
+  }
+  protected void execute() {
+    // ignore changes
+  }
+
+  private static final class UniqueObjectPredicate implements UnaryPredicate {
+    public boolean execute(Object o) {
+      return (o instanceof UniqueObject);
+    }
+  }
+
+  // adapted from old "SimpleServletSupport":
+  private class SimpleServletSupport {
+    private final String encAgentName;
+    public SimpleServletSupport() {
+      this.encAgentName = encodeAgentName(getAgentIdentifier().getAddress());
+    }
+    public String getPath() {
+      return myPath;
+    }
+    public String getEncodedAgentName() {
+      return encAgentName;
+    }
+    public String encodeAgentName(String name) {
+      try {
+        return URLEncoder.encode(name, "UTF-8");
+      } catch (java.io.UnsupportedEncodingException e) {
+        // should never happen
+        throw new RuntimeException("Unable to encode to UTF-8?");
+      }
+    }
+    public Collection queryBlackboard(UnaryPredicate pred) {
+      return blackboardQueryService.query(pred);
+    }
+
+    // note that our sub is thread-safe and can be used outside of a
+    // blackboard transaction
+    public PublisherInfo getInfo(UID uid) {
+      return (sub == null ? null : sub.getInfo(uid));
+    }
   }
 
   public void doGet(
@@ -200,7 +299,7 @@ extends HttpServlet
     public static final String MODE = "mode";
     public static final int MODE_FRAME                        =  0;
     public static final int MODE_ALL_TASKS                    =  1;
-    public static final int MODE_AGENTS                     =  2;
+    public static final int MODE_AGENTS                       =  2;
     public static final int MODE_TASK_DETAILS                 =  3;
     public static final int MODE_TASKS_SUMMARY                =  4;
     public static final int MODE_PLAN_ELEMENT_DETAILS         =  5;
@@ -219,6 +318,7 @@ extends HttpServlet
     public static final int MODE_XML_RAW_ATTACHED_DETAILS     = 18;
     public static final int MODE_ADVANCED_SEARCH_FORM         = 19;
     public static final int MODE_ADVANCED_SEARCH_RESULTS      = 20;
+    public static final int MODE_STACK_DETAILS                = 21;
     private int mode = -1;
 
     // filter by uid
@@ -376,6 +476,9 @@ extends HttpServlet
             break;
           case MODE_ADVANCED_SEARCH_RESULTS:
             displayAdvancedSearchResults();
+            break;
+          case MODE_STACK_DETAILS:
+            displayStackDetails();
             break;
         }
       } catch (Exception e) {
@@ -1529,6 +1632,14 @@ extends HttpServlet
           // link to non-html view of object
           out.print("<p>");
           printLinkToXML(xo, false);
+          if (ENABLE_STACKS) {
+            out.print(
+                "<br><p>"+
+                "<nowrap>Publisher:&nbsp;");
+            UID uid = UID.toUID(itemUID);
+            printLinkToStack(uid, support.getInfo(uid));
+            out.print("</nowrap>");
+          }
           out.print("<br><hr><br><pre>\n");
           // print HTML-wrapped XML
           printXMLDetails(xo, true);
@@ -2025,6 +2136,76 @@ extends HttpServlet
       out.flush();
     }
 
+    private void displayStackDetails() {
+      out.print("<html><head><title>");
+      out.print(support.getEncodedAgentName());
+      out.print(
+          " Stack Details</title></head>\n"+
+          "<body bgcolor=\"#F0F0F0\"><p>\n"+
+          "<b>");
+      // link to agent
+      printLinkToTasksSummary();
+      out.print(
+          "</b><br>\n");
+      if (itemUID == null) {
+        out.print("<font color=red>Missing UID</font>");
+      } else {
+        UniqueObject uo = findUniqueObjectWithUID(itemUID);
+        out.print(
+            "Publisher info for "+
+            getItemTypeString(uo)+
+            " "+
+            itemUID+
+            "<p>");
+        UID uid = UID.toUID(itemUID);
+        PublisherInfo info = support.getInfo(uid);
+        if (info == null) {
+          out.print(
+            "<font color=red>Unable to find info for "+
+            uid.toString()+
+            "</font>");
+        } else {
+          // print publisher
+          String publisher = info.getPublisher();
+          out.print(
+              "<font color=mediumblue><nowrap>Publisher:&nbsp;");
+          if (publisher == null) {
+            out.print("<font color=red>Unknown</font>");
+          } else {
+            out.print(encodeHTML(publisher, true));
+          }
+          out.print(
+              "</nowrap></font>"+
+              "<p>\n");
+          // print add
+          printStack(info.getAddStack(), uid, "publishAdd");
+          // print changes
+          Set change_stacks = info.getChangeStacks();
+          int n = (change_stacks == null ? 0 : change_stacks.size());
+          if (n > 0) {
+            Iterator iter = change_stacks.iterator();
+            for (int i = 0; i < n; i++) {
+              StackElements se = (StackElements) iter.next();
+              String id = "publishChange["+i+" / "+n+"]";
+              printStack(se, uid, id);
+            }
+            if (n > 1) {
+              out.print(
+                  "<p>"+
+                  "<b>Note</b>:"+
+                  " Only unique publishChange stacks are shown, and they"+
+                  " are listed in the order that they were <i>first</i>"+
+                  " observed.");
+            }
+          }
+        }
+      }
+      out.print(
+          "</body>\n"+
+          "</html>\n");
+      out.flush();
+    }
+
     /** END DISPLAY ROUTINES **/
 
     /** BEGIN PRINT ROUTINES **/
@@ -2053,7 +2234,9 @@ extends HttpServlet
       }
       out.print(
           "</font>"+
-          "</li>\n"+
+          "</li>\n");
+      printListItemForStack(tu);
+      out.print(
           "<li>"+
           "<font size=small color=mediumblue>Verb= ");
       // show verb
@@ -2249,8 +2432,8 @@ extends HttpServlet
       out.print(
           "</font>"+
           "</ol>\n"+
-          "</li>\n");
-      out.print("</ul>\n");
+          "</li>\n"+
+          "</ul>\n");
       // link to XML view
       out.print("<font size=small color=mediumblue>");
       // this task is local
@@ -2345,6 +2528,7 @@ extends HttpServlet
       out.print(
           "</font>"+
           "</li>\n");
+      printListItemForStack(peu);
       // show task
       out.print(
           "<li>"+
@@ -2760,6 +2944,7 @@ extends HttpServlet
         out.print(
             "</font>"+
             "</li>\n");
+        printListItemForStack(asset.getUID());
       }
       // show class
       out.print(
@@ -3156,6 +3341,52 @@ extends HttpServlet
           out.print("\nException!\n\n");
           e.printStackTrace(out);
         }
+      }
+    }
+
+    private void printListItemForStack(UID uid) {
+      if (ENABLE_STACKS) {
+        out.print(
+            "<li>"+
+            "<font size=small color=mediumblue>"+
+            "<nowrap>Publisher:&nbsp;");
+        printLinkToStack(uid, support.getInfo(uid));
+        out.print(
+            "</nowrap></font>"+
+            "</li>\n");
+      }
+    }
+
+    private void printStack(StackElements stack, UID uid, String type) {
+      if (stack == null) {
+        out.print(
+            "<font color=red>Unable to find "+type+" stack for "+
+            uid.toString()+
+            "</font>");
+      } else {
+        out.print(
+            "<font color=mediumblue>"+type+":</font>\n"+
+            "<font color=green><pre>");
+        Throwable t = stack.getThrowable();
+        if (t == null) {
+          out.print("null");
+        } else {
+          StackTraceElement[] trace = t.getStackTrace();
+          boolean show = false;
+          for (int i = 0; i < trace.length; i++) {
+            StackTraceElement ste = trace[i];
+            if (!show) {
+              String cl = ste.getClassName();
+              if (cl != null && cl.startsWith("org.cougaar.core.blackboard.")) {
+                // hide blackboard internals
+                continue;
+              }
+              show = true;
+            }
+            out.print("\tat " + ste+"\n");
+          }
+        }
+        out.print("</pre></font>\n");
       }
     }
 
@@ -3855,6 +4086,41 @@ extends HttpServlet
       }
     }
 
+    /**
+     * printLinkToStack
+     */
+    private void printLinkToStack(
+        UID uid,
+        PublisherInfo info) {
+      String publisher = (info == null ? null : info.getPublisher());
+      String suid;
+      if (publisher == null) {
+        out.print("<font color=red>Unknown</font>\n");
+      } else if (
+          (info.getAddStack() == null) ||
+          (uid == null) ||
+          ((suid = uid.toString()) == null)) {
+        out.print(encodeHTML(publisher, true));
+      } else {
+        String encUID = encodeUID(suid);
+        out.print("<a href=\"/$");
+        out.print(support.getEncodedAgentName());
+        out.print(support.getPath());
+        out.print(
+            "?"+
+            MODE+
+            "="+
+            MODE_STACK_DETAILS+
+            "&"+
+            ITEM_UID+
+            "="+
+            encodeUID(suid)+
+            "\" target=\"itemFrame\">");
+        out.print(encodeHTML(publisher, true));
+        out.print("</a>\n");
+      }
+    }
+
     /** END PRINTLINK ROUTINES **/
 
     /** BEGIN UTILITY PARSERS **/
@@ -3944,66 +4210,72 @@ extends HttpServlet
 
     /** BEGIN BLACKBOARD SEARCHERS **/
 
-    private UnaryPredicate getUniqueObjectWithUIDPred(
-        final String uidFilter) 
-    {
-      final UID findUID = UID.toUID(uidFilter);
-      return new UnaryPredicate() {
-        public boolean execute(Object o) {
-          if (o instanceof UniqueObject) {
-            UID u = ((UniqueObject)o).getUID();
-            return 
-              findUID.equals(u);
-          }
-          return false;
+    private UnaryPredicate getUniqueObjectWithUIDPred(final String uidFilter) {
+      UID findUID = UID.toUID(uidFilter);
+      return new UniqueObjectWithUIDPredicate(findUID);
+    }
+    private static final class UniqueObjectWithUIDPredicate 
+        implements UnaryPredicate {
+      private final UID findUID;
+      public UniqueObjectWithUIDPredicate(UID findUID) {
+        this.findUID = findUID;
+      }
+      public boolean execute(Object o) {
+        if (o instanceof UniqueObject) {
+          UID u = ((UniqueObject)o).getUID();
+          return findUID.equals(u);
         }
-      };
+        return false;
+      }
     }
 
-    private UnaryPredicate getTaskPred() 
-    {
-      return new UnaryPredicate() {
-        public boolean execute(Object o) {
-          return (o instanceof Task);
-        }
-      };
+    private UnaryPredicate getTaskPred() {
+      return new TaskPredicate();
+    }
+    private static final class TaskPredicate implements UnaryPredicate {
+      public boolean execute(Object o) {
+        return (o instanceof Task);
+      }
     }
 
-    private UnaryPredicate getTaskWithVerbPred(final Verb v) 
-    {
-      return new UnaryPredicate() {
-        public boolean execute(Object o) {
-          return ((o instanceof Task) &&
-              v.equals(((Task)o).getVerb()));
-        }
-      };
+    private UnaryPredicate getTaskWithVerbPred(Verb v) {
+      return new TaskWithVerbPredicate(v);
+    }
+    private static final class TaskWithVerbPredicate
+        implements UnaryPredicate {
+      private final Verb v;
+      public TaskWithVerbPredicate(Verb v) {
+        this.v = v;
+      }
+      public boolean execute(Object o) {
+        return ((o instanceof Task) &&
+            v.equals(((Task)o).getVerb()));
+      }
+      public String toString() {
+        return getClass().getName()+"[verb="+v+"]";
+      }
     }
 
-    private UnaryPredicate getPlanElementPred() 
-    {
-      return new UnaryPredicate() {
-        public boolean execute(Object o) {
-          return (o instanceof PlanElement);
-        }
-      };
+    private UnaryPredicate getPlanElementPred() {
+      return new PlanElementPredicate();
+    }
+    private static final class PlanElementPredicate implements UnaryPredicate {
+      public boolean execute(Object o) {
+        return (o instanceof PlanElement);
+      }
     }
 
-    private UnaryPredicate getAssetPred() 
-    {
-      return new UnaryPredicate() {
-        public boolean execute(Object o) {
-          return (o instanceof Asset);
-        }
-      };
+    private UnaryPredicate getAssetPred() {
+      return new AssetPredicate();
+    }
+    public static final class AssetPredicate implements UnaryPredicate {
+      public boolean execute(Object o) {
+        return (o instanceof Asset);
+      }
     }
 
-    private UnaryPredicate getUniqueObjectPred() 
-    {
-      return new UnaryPredicate() {
-        public boolean execute(Object o) {
-          return (o instanceof UniqueObject);
-        }
-      };
+    private UnaryPredicate getUniqueObjectPred() {
+      return new UniqueObjectPredicate();
     }
 
     private Collection searchUsingPredicate(

@@ -59,14 +59,22 @@ public interface Measure extends Serializable {
    **/
   int getCommonUnit();
 
+  /**
+   * The Measure holds the value in a native unit - what is it?
+   * @return the native unit - what the measure uses as the internal unit
+   */
+  int getNativeUnit();
+
   /** @return the value of the highest-valued unit known by this measure.
    * There is no implied relationship between "highest valued" unit and "size" 
    * of that unit.
    **/
   int getMaxUnit();
 
-  /** @return the name of the unit specified.
-   *  The result is undefined if the unit is not valid for this measure class.
+  /**
+   * The result is undefined if the unit is not valid for this measure class.
+   * @param unit to get name of
+   * @return the name of the unit specified.
    **/
   String getUnitName(int unit);
 
@@ -74,4 +82,12 @@ public interface Measure extends Serializable {
    *  @param unit must be in the range from 0 to getMaxUnit.
    **/
   double getValue(int unit);
+  double getNativeValue();
+  Measure add(Measure other);
+  Measure subtract(Measure other);
+  Measure negate();
+  Measure scale(double scale);
+  Measure floor(int unit);
+  Measure valueOf(double value);
+  Measure valueOf(double value, int unit);
 }

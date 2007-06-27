@@ -75,6 +75,11 @@ public class GenericDerivative<N extends Measure, D extends Measure> implements 
   }
 
   public GenericDerivative<N, D> add(GenericDerivative<N, D> toAdd) {
+    if (denominator.equals(toAdd.denominator)) {
+      N newNumer = (N) numerator.add(toAdd.numerator);
+      return newInstance(newNumer, denominator);
+    }
+
     D commonDenom = (D) denominator.scale(toAdd.denominator.getNativeValue());
     double otherNumerUnitless = toAdd.numerator.getNativeValue();
     double otherDenomUnitless = toAdd.denominator.getNativeValue();
@@ -87,15 +92,7 @@ public class GenericDerivative<N extends Measure, D extends Measure> implements 
   }
 
   public GenericDerivative<N, D> subtract(GenericDerivative<N, D> toSubtract) {
-    D commonDenom = (D) denominator.scale(toSubtract.denominator.getNativeValue());
-    double otherNumerUnitless = toSubtract.numerator.getNativeValue();
-    double otherDenomUnitless = toSubtract.denominator.getNativeValue();
-    double leftNumerator = numerator.getNativeValue() * otherDenomUnitless;
-    double rightNumerator = otherNumerUnitless * denominator.getNativeValue();
-
-    N newNumer = (N) numerator.valueOf(leftNumerator - rightNumerator);
-
-    return newInstance(newNumer, commonDenom);
+    return add((GenericDerivative<N, D>) toSubtract.negate());
   }
 
   public N multiply(D other) {

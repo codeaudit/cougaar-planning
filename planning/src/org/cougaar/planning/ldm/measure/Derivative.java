@@ -65,4 +65,5 @@ public interface Derivative extends Measure {
    * @return a newly created Numerator measure.
    **/
   Measure computeNumerator(Measure denominator);
+  double divideRate(Rate other);
 }

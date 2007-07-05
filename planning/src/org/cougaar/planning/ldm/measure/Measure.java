@@ -90,4 +90,5 @@ public interface Measure extends Serializable {
   Measure floor(int unit);
   Measure valueOf(double value);
   Measure valueOf(double value, int unit);
+  Duration divide(Rate rate);
 }

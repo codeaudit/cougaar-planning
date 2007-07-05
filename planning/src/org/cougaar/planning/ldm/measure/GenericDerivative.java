@@ -1,8 +1,8 @@
 package org.cougaar.planning.ldm.measure;
 
 import java.io.Serializable;
-import java.text.NumberFormat;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 
 /**
  * Generic derivative - represents a fraction of any measure over any other, e.g. Volume/Duration 
@@ -219,11 +219,25 @@ public class GenericDerivative<N extends Measure, D extends Measure> implements 
   }
 
   public int getNativeUnit() {
-    return 0; 
+    return 0;
   }
 
   public double getNativeValue() {
     return theValue;
+  }
+
+  public final Duration divide(Rate toRate) {
+    throw new IllegalArgumentException("Call divideRate instead to divide one Rate by another.");
+  }
+
+  public final double divideRate(Rate toRate) {
+    if (toRate.getCanonicalNumerator().getClass() !=  getCanonicalNumerator().getClass() ||
+      toRate.getCanonicalDenominator().getClass() !=  getCanonicalDenominator().getClass()) {
+      throw new IllegalArgumentException("Expecting a GenericDerivative" +
+        ", got a " + toRate.getCanonicalNumerator().getClass() + "/" + toRate.getCanonicalDenominator().getClass()
+      );
+    }
+    return theValue/toRate.getNativeValue();
   }
 
   // serialization

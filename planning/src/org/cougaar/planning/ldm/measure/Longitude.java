@@ -218,6 +218,10 @@ public final class Longitude extends AbstractMeasure
     return getValue(getNativeUnit());
   }
 
+  public Duration divide(Rate rate) {
+    return null;
+  }
+
   /*
   private static void check(double x, double z) {
     double y = wrap(x);

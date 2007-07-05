@@ -203,4 +203,8 @@ public final class Temperature extends AbstractMeasure
   public double getNativeValue() {
     return getValue(getNativeUnit());
   }
+
+  public Duration divide(Rate rate) {
+    return null;
+  }
 } // end Temperature

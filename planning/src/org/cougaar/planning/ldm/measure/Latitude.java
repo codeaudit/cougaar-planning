@@ -215,4 +215,8 @@ public final class Latitude extends AbstractMeasure
   public double getNativeValue() {
     return getValue(getNativeUnit());
   }
+
+  public Duration divide(Rate rate) {
+    return null;
+  }
 } // end Latitude

@@ -165,7 +165,7 @@ public class Capacity extends AbstractMeasure {
    * @param other
    * @return
    */
-  public Measure divide(Measure other) {
+  public Duration divide(Rate other) {
     return null;
   }
 

@@ -51,7 +51,7 @@ import java.io.Serializable;
  * @see AbstractMeasure for base implementation class of all measures.
  **/
 
-public interface Measure extends Serializable {
+public interface Measure extends Comparable, Serializable {
   /** @return a commonly-used unit used by this measure.  NOTE that this
    * is only a convenience and should not be depended on for computational
    * use, since the notion of a common unit is extremely dependent on
@@ -91,4 +91,9 @@ public interface Measure extends Serializable {
   Measure valueOf(double value);
   Measure valueOf(double value, int unit);
   Duration divide(Rate rate);
+
+  Measure min(Measure other);
+  Measure max(Measure other);
+  Measure apply(UnaryOperator op);
+  Measure apply(BinaryOperator op, Measure other);
 }

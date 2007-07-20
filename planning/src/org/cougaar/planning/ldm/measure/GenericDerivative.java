@@ -240,6 +240,44 @@ public class GenericDerivative<N extends Measure, D extends Measure> implements 
     return theValue/toRate.getNativeValue();
   }
 
+  public Measure min(Measure other) {
+    return (compareTo(other) <= 0 ? this : other); 
+  }
+
+  public Measure max(Measure other) {
+    return (compareTo(other) >= 0 ? this : other); 
+  }
+
+  public Measure apply(UnaryOperator op) {
+    return op.apply(this);
+  }
+
+  public Measure apply(BinaryOperator op, Measure other) {
+    return op.apply(this, other);
+  }
+
+  public int compareTo(Object o) {
+    double da = theValue;
+    double db;
+    if (o == null) {
+      db = 0.0;
+    } else {
+      GenericDerivative<N, D> gd = (GenericDerivative<N, D>) o;
+      if (!isSameClass(numerator, gd.numerator) ||
+          !isSameClass(denominator, gd.denominator)) {
+        throw new IllegalArgumentException(
+            "Incompatible types:\n  "+this+"\"  "+o);
+      }
+      db = gd.getNativeValue();
+    }
+    return (da < db ? -1 : da > db ? 1 : 0);
+  }
+  private static final boolean isSameClass(Object a, Object b) {
+    return
+      (a == null ? b == null :
+       b != null && a.getClass() == b.getClass());
+  }
+
   // serialization
 /*  public void writeExternal(ObjectOutput out) throws IOException {
     out.writeDouble(theValue);

@@ -51,4 +51,34 @@ public abstract class AbstractMeasure implements Measure {
     return -1;
   }
 
+  public Measure min(Measure other) {
+    return (compareTo(other) <= 0 ? this : other);
+  }
+
+  public Measure max(Measure other) {
+    return (compareTo(other) >= 0 ? this : other);
+  }
+
+  public Measure apply(UnaryOperator op) {
+    return op.apply(this);
+  }
+
+  public Measure apply(BinaryOperator op, Measure other) {
+    return op.apply(this, other);
+  }
+
+  public int compareTo(Object o) {
+    double da = getNativeValue();
+    double db;
+    if (o == null) {
+      db = 0.0;
+    } else {
+      if (o.getClass() != getClass()) {
+        throw new IllegalArgumentException(
+            "Incompatible types:\n  "+this+"\n  "+o);
+      }
+      db = ((Measure) o).getNativeValue();
+    }
+    return (da < db ? -1 : da > db ? 1 : 0);
+  }
 }

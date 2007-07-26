@@ -62,6 +62,17 @@ public interface UnaryOperator<M extends Measure> {
     }
   }
 
+  /**
+   * Returns the given measure instance.
+   * @see Area
+   */
+  Identity IDENTITY = new Identity();
+  class Identity<M extends Measure> implements UnaryOperator<M> {
+    public M apply(M m) {
+      return m;
+    }
+  }
+
   /** @see Measure#negate */
   Negate NEGATE = new Negate();
   class Negate<M extends Measure> implements UnaryOperator<M> {
@@ -109,7 +120,9 @@ public interface UnaryOperator<M extends Measure> {
 
   // Multiply for GenericDerivative?
 
-  /** Select the measure with the minimum {@link Measure#getNativeValue} */
+  /**
+   * Select the measure with the minimum {@link Measure#getNativeValue}.
+   */
   class Min<M extends Measure> implements UnaryOperator<M> {
     public final M other;
     public Min(M other) {
@@ -147,4 +160,44 @@ public interface UnaryOperator<M extends Measure> {
     public BelowZero() { super(null); }
   }
 
+  /**
+   * Sum the values at the individual points.
+   * @see Integrate sum-of-areas
+   */
+  class Sum<M extends Measure> implements UnaryOperator<M> {
+    private M sum = null;
+    public M apply(M m) {
+      sum = (sum == null ? m : (M) sum.add(m));
+      return sum;
+    }
+  }
+
+  /**
+   * An "identity" operator where the caller is required to pass
+   * in the integrated volume between points.
+   * <p>
+   * E.g., if the prior measure was "time=10 value=5" and the
+   * current measure is "time=20 value=0" then the caller should
+   * apply a value of 25.
+   *
+   * @see Identity
+   */
+  Area AREA = new Area();
+  class Area<M extends Measure> implements UnaryOperator<M> {
+    public M apply(M m) {
+      return m;
+    }
+  }
+
+  /**
+   * Sum of {@link #AREA}s.
+   * @see Sum sum-of-values
+   */
+  class Integrate<M extends Measure> extends Area<M> {
+    private M sum = null;
+    public M apply(M m) {
+      sum = (sum == null ? m : (M) sum.add(m));
+      return sum;
+    }
+  }
 }

@@ -43,7 +43,6 @@ public interface BinaryOperator<M extends Measure> {
    */
   M apply(M a, M b);
 
-  /** @see Measure#add */
   Add ADD = new Add();
   class Add<M extends Measure> implements BinaryOperator<M> {
     public M apply(M a, M b) {
@@ -63,6 +62,18 @@ public interface BinaryOperator<M extends Measure> {
          b == null ? a :
          (M) a.subtract(b));
     }
+  }
+
+  /** return the "a" graph */
+  First FIRST = new First();
+  class First<M extends Measure> implements BinaryOperator<M> {
+    public M apply(M a, M b) { return a; }
+  }
+
+  /** return the "b" graph */
+  Second SECOND = new Second();
+  class Second<M extends Measure> implements BinaryOperator<M> {
+    public M apply(M a, M b) { return b; }
   }
 
   // Multiply for GenericDerivative?

@@ -58,4 +58,16 @@ public class ContextOfOplanIds
       add(anArrayOfOplanIDS);
     }
   }
+
+  /**
+   * There should always be exactly one oplan
+   * @return only oplan id
+   */
+  public String getOPlanId() {
+    if (isEmpty()) {
+      System.err.println("huh? no oplans?");
+      return "";
+    }
+    return iterator().next();
+  }
 }

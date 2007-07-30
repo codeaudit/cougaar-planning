@@ -28,9 +28,6 @@ package org.cougaar.planning.ldm.plan;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
-
-//import org.cougaar.core.util.UID;
 
 /** ContextOfOplanIds is an implementation of Context. It is simply a Set of Oplan IDs. 
  * It can be used when the current oplan under which to operate needs to be referenced.
@@ -38,18 +35,16 @@ import java.util.Iterator;
  * @see Context
  */
 public class ContextOfOplanIds 
-  extends HashSet implements Context, Collection
+  extends HashSet<String> implements Context, Collection<String>
 {
 
-  public ContextOfOplanIds (Collection ids) {
-    for (Iterator iterator = ids.iterator(); iterator.hasNext(); ) {
-      Object o = iterator.next();
-      if (o instanceof String) add(o);
-    }
+  public ContextOfOplanIds (Collection<String> ids) {
+    addAll(ids);
   }
 
   /** 
    * Constructor that creates a collection with one and only one oplanID
+   * @param oneOplanId to add
    */
   public ContextOfOplanIds(String oneOplanId){
     add(oneOplanId);
@@ -59,8 +54,8 @@ public class ContextOfOplanIds
    * A constructor that copies the elements of the passed in array into the collection
    */
   public ContextOfOplanIds(String[] arrayOfOplanIDS) {
-    for (int i=0; i<arrayOfOplanIDS.length; i++) {
-      add(arrayOfOplanIDS[i]);
+    for (String anArrayOfOplanIDS : arrayOfOplanIDS) {
+      add(anArrayOfOplanIDS);
     }
   }
 }

@@ -183,7 +183,7 @@ extends BaseServletComponent
     super.unload();
     if (agentContainer != null) {
       serviceBroker.releaseService(
-          this, MessageTransportService.class, agentContainer);
+          this, AgentContainmentService.class, agentContainer);
       agentContainer = null;
     }
     if (nodeIdService != null) {

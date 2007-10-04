@@ -15,6 +15,7 @@ public class GenericDerivative<N extends Measure, D extends Measure> implements 
   private N numerator;
   private D denominator;
   private static final NumberFormat format = new DecimalFormat("#.###");
+  private static final double MAX_ADD = 1000000;
 
   /** No-arg constructor is only for use by serialization **/
   public GenericDerivative() {}
@@ -51,7 +52,8 @@ public class GenericDerivative<N extends Measure, D extends Measure> implements 
 
   /** @param unit One of the constant units of  **/
   public final String getUnitName(int unit) {
-    return numerator.getUnitName(unit/denominator.getMaxUnit())+"/"+denominator.getUnitName(unit%denominator.getMaxUnit());
+    int maxUnit = denominator.getMaxUnit();
+    return numerator.getUnitName(unit/maxUnit)+"/"+denominator.getUnitName(unit%maxUnit);
   }
 
   /** @paramx num An instance of num to use as numerator
@@ -74,6 +76,12 @@ public class GenericDerivative<N extends Measure, D extends Measure> implements 
     return subtract((GenericDerivative<N, D>)toSubtract);
   }
 
+  /**
+   * Note that it doesn't throw away precision unless we're in danger of overflow.
+   *
+   * @param toAdd fraction to add to this fraction
+   * @return result of adding fractions
+   */
   public GenericDerivative<N, D> add(GenericDerivative<N, D> toAdd) {
     if (denominator.equals(toAdd.denominator)) {
       N newNumer = (N) numerator.add(toAdd.numerator);
@@ -87,6 +95,15 @@ public class GenericDerivative<N extends Measure, D extends Measure> implements 
     double rightNumerator = otherNumerUnitless * denominator.getNativeValue();
 
     N newNumer = (N) numerator.valueOf(leftNumerator + rightNumerator);
+
+    if (Math.abs(commonDenom.getNativeValue()) > MAX_ADD ||
+        Math.abs(newNumer.getNativeValue()) > MAX_ADD) {
+      // avoid overflow - cross-multiplying denominators
+      // over and over will eventually overflow
+      double d = newNumer.getNativeValue() / commonDenom.getNativeValue();
+      newNumer = (N) newNumer.valueOf(d);
+      commonDenom = (D) denominator.valueOf(1);
+    }
 
     return newInstance(newNumer, commonDenom);
   }
@@ -241,11 +258,11 @@ public class GenericDerivative<N extends Measure, D extends Measure> implements 
   }
 
   public Measure min(Measure other) {
-    return (compareTo(other) <= 0 ? this : other); 
+    return (compareTo(other) <= 0 ? this : other);
   }
 
   public Measure max(Measure other) {
-    return (compareTo(other) >= 0 ? this : other); 
+    return (compareTo(other) >= 0 ? this : other);
   }
 
   public Measure apply(UnaryOperator op) {
@@ -264,9 +281,9 @@ public class GenericDerivative<N extends Measure, D extends Measure> implements 
     } else {
       GenericDerivative<N, D> gd = (GenericDerivative<N, D>) o;
       if (!isSameClass(numerator, gd.numerator) ||
-          !isSameClass(denominator, gd.denominator)) {
+        !isSameClass(denominator, gd.denominator)) {
         throw new IllegalArgumentException(
-            "Incompatible types:\n  "+this+"\"  "+o);
+          "Incompatible types:\n  "+this+"\"  "+o);
       }
       db = gd.getNativeValue();
     }
@@ -275,7 +292,7 @@ public class GenericDerivative<N extends Measure, D extends Measure> implements 
   private static final boolean isSameClass(Object a, Object b) {
     return
       (a == null ? b == null :
-       b != null && a.getClass() == b.getClass());
+        b != null && a.getClass() == b.getClass());
   }
 
   // serialization

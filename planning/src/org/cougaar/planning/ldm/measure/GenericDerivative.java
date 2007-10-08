@@ -38,16 +38,6 @@ public class GenericDerivative<N extends Measure, D extends Measure> implements 
     return 0;
   }
 
-  /**
-   * TODO : Not sure what to do here.
-   * @paramx denom
-   * @return
-   */
-/*  public <D extends Measure> GenericDerivative newGenericDerivative(D denom) {
-    //return new GenericDerivative<<GenericDerivative<N,D>>,D>(this, denom);
-    return null;
-  }*/
-
   public int getMaxUnit() { return numerator.getMaxUnit()* denominator.getMaxUnit(); }
 
   /** @param unit One of the constant units of  **/
@@ -55,16 +45,6 @@ public class GenericDerivative<N extends Measure, D extends Measure> implements 
     int maxUnit = denominator.getMaxUnit();
     return numerator.getUnitName(unit/maxUnit)+"/"+denominator.getUnitName(unit%maxUnit);
   }
-
-  /** @paramx num An instance of num to use as numerator
-   *  @paramx den An instance of denom use as denominator
-   * @return generic rate
-   **/
-/*
-  public static final newGenericDerivative newGenericRate(Measure num, Measure den) {
-    return new newGenericDerivative(num.getValue(0)/den.getValue(0));
-  }
-*/
 
   // simple math : addition and subtraction
 
@@ -121,8 +101,9 @@ public class GenericDerivative<N extends Measure, D extends Measure> implements 
    **/
   public double getValue(int unit1, int unit2) {
     if (unit1 >= 0 && unit1 <= numerator.getMaxUnit() &&
-      unit2 >= 0 && unit2 <= denominator.getMaxUnit())
-      return (numerator.getValue(unit1)/denominator.getValue(unit2));
+      unit2 >= 0 && unit2 <= denominator.getMaxUnit()) {
+      return numerator.getValue(unit1) / denominator.getValue(unit2);
+    }
     else
       throw new UnknownUnitException();
   }
@@ -192,11 +173,15 @@ public class GenericDerivative<N extends Measure, D extends Measure> implements 
    * @return floor value
    */
   public Measure floor(int unit) {
-    return floor(unit%numerator.getMaxUnit(),unit/denominator.getMaxUnit());
+    return floor(unit/denominator.getMaxUnit(),unit%denominator.getMaxUnit());
   }
 
   public Measure floor(int numeratorUnit, int denominatorUnit) {
-    return newInstance((N)numerator.floor(numeratorUnit), (D)denominator.floor(denominatorUnit));
+    double combinedValue = getValue(numeratorUnit, denominatorUnit);
+    double floorValue = Math.floor(combinedValue);
+    double numerValue = floorValue*denominator.getValue(denominatorUnit);
+    N numer = (N)numerator.valueOf(numerValue,numeratorUnit);
+    return new GenericDerivative<N, D>(numer,denominator);
   }
 
   /**

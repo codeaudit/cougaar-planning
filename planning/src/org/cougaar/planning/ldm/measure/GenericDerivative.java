@@ -28,14 +28,12 @@ public class GenericDerivative<N extends Measure, D extends Measure> implements 
     double denInCommonUnit = den.getValue(den.getCommonUnit());
     theValue = numInCommonUnit / denInCommonUnit;
 
-    //System.err.println("num " + numInCommonUnit + " denom " + denInCommonUnit + " value " + theValue);
     numerator = num;
     denominator = den;
   }
 
-
   public int getCommonUnit() {
-    return 0;
+    return (numerator.getCommonUnit()*denominator.getMaxUnit())+denominator.getCommonUnit();
   }
 
   public int getMaxUnit() { return numerator.getMaxUnit()* denominator.getMaxUnit(); }
@@ -77,7 +75,7 @@ public class GenericDerivative<N extends Measure, D extends Measure> implements 
     N newNumer = (N) numerator.valueOf(leftNumerator + rightNumerator);
 
     if (Math.abs(commonDenom.getNativeValue()) > MAX_ADD ||
-        Math.abs(newNumer.getNativeValue()) > MAX_ADD) {
+      Math.abs(newNumer.getNativeValue()) > MAX_ADD) {
       // avoid overflow - cross-multiplying denominators
       // over and over will eventually overflow
       double d = newNumer.getNativeValue() / commonDenom.getNativeValue();

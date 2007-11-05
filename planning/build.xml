@@ -213,6 +213,7 @@
 
     <!-- Define paths for doing codegen stuff -->
     <path id="codegen.path">
+      <path location="${TARGETBASE}/build/tmp/classes"/>
       <pathelement path="${target.clib}/build.jar"/>
       <path refid="compile.classpath"/>
     </path>
@@ -333,6 +334,17 @@
 	</fileset>
       </apply>
     </target>
+	
+	<target name="eclipse-defrunner" depends="prepare-defrunner, prepare" unless="defrunner.notRequired">
+	      <apply executable="java"
+	         parallel="false"
+	         failonerror="false" >
+	    <arg line="-classpath ${genpath} org.cougaar.tools.build.DefRunner" />
+	    <fileset dir="${src}" >
+	      <include name="**/*.def" />
+	    </fileset>
+	      </apply>
+	    </target>
     
     <!-- ============================================================= -->
     <!-- Clean up generated code                             	-->

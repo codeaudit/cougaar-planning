@@ -335,7 +335,7 @@
       </apply>
     </target>
 	
-	<target name="eclipse-defrunner" depends="prepare-defrunner, prepare" unless="defrunner.notRequired">
+	<target name="eclipse-defrunner" depends="prepare-defrunner, prepare">
 	      <apply executable="java"
 	         parallel="false"
 	         failonerror="false" >
@@ -359,6 +359,17 @@
 	</fileset>
       </apply>
     </target>
+	
+	<target name="eclipse-clean-gencode" depends="prepare, prepare-defrunner" description="Delete generated code">
+	      <apply executable="java"
+	         parallel="false"
+	         failonerror="false" >
+	    <arg line="-classpath ${genpath} org.cougaar.tools.build.DefCleaner" />
+	    <fileset dir="${src}" >
+	      <include name="**/*.gen" />
+	    </fileset>
+	      </apply>
+	    </target>
     
     <!-- ========================================================== -->
     <!-- Compiles the example Code			                -->

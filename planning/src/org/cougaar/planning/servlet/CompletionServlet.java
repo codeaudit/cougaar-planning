@@ -218,23 +218,23 @@ extends BaseServletComponent
   public void load() {
     super.load();
     logger = (LoggingService)
-      serviceBroker.getService(this, LoggingService.class, null);
+      getService(this, LoggingService.class, null);
   }
 
   public void unload() {
     super.unload();
     if (whitePagesService != null) {
-      serviceBroker.releaseService(
+      releaseService(
           this, WhitePagesService.class, whitePagesService);
       whitePagesService = null;
     }
     if (blackboardQueryService != null) {
-      serviceBroker.releaseService(
+      releaseService(
           this, BlackboardQueryService.class, blackboardQueryService);
       blackboardQueryService = null;
     }
     if (agentIdService != null) {
-      serviceBroker.releaseService(
+      releaseService(
           this, AgentIdentificationService.class, agentIdService);
       agentIdService = null;
     }

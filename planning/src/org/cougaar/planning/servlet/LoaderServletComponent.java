@@ -134,17 +134,17 @@ extends BaseServletComponent
   // aquire services:
   public void load() {
     AgentIdentificationService ais = (AgentIdentificationService)
-      serviceBroker.getService(
+      getService(
           this, AgentIdentificationService.class, null);
     if (ais != null) {
       this.agentId = ais.getMessageAddress();
-      serviceBroker.releaseService(
+      releaseService(
           this, AgentIdentificationService.class, ais);
     }
 
     // get the nodeId
     this.nodeIdService = (NodeIdentificationService)
-      serviceBroker.getService(
+     getService(
           this,
           NodeIdentificationService.class,
           null);
@@ -162,7 +162,7 @@ extends BaseServletComponent
 
     // get the agent containment service
     this.agentContainer = (AgentContainmentService)
-      serviceBroker.getService(
+      getService(
           this,
           AgentContainmentService.class,
           null);
@@ -182,12 +182,12 @@ extends BaseServletComponent
   public void unload() {
     super.unload();
     if (agentContainer != null) {
-      serviceBroker.releaseService(
+      releaseService(
           this, AgentContainmentService.class, agentContainer);
       agentContainer = null;
     }
     if (nodeIdService != null) {
-      serviceBroker.releaseService(
+      releaseService(
           this, NodeIdentificationService.class, nodeIdService);
       nodeIdService = null;
     }

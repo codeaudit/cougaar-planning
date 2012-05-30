@@ -73,7 +73,7 @@
     Sortof clunky but it does work.  The main point is that the
     custom-build.xml file must contain all pre- and post-targets
     referenced in this file, even if they are empty.  E.g. for now,
-    {pre,post}.{install,clean,junit,rmic,codegen,compile,examples,javadocs}
+    {pre,post}.{install,clean,junit,rmic,compile,examples,javadocs}
     -->
     <property name="custom.xml" value="${MODSOURCE}/custom-build.xml"/>
 
@@ -211,14 +211,6 @@
       <pathelement path="${run.abs.jarlist}"/>
     </path>
 
-    <!-- Define paths for doing codegen stuff -->
-    <path id="codegen.path">
-      <path location="${TARGETBASE}/build/tmp/classes"/>
-      <pathelement path="${target.clib}/build.jar"/>
-      <path refid="compile.classpath"/>
-    </path>
-    <property name="genpath" refid="codegen.path"/>
-
     <!-- patterns -->
     <!-- ps.jar.extras are sourcefiles which will be added to the jar -->
     <patternset id="ps.jar.extras">
@@ -321,56 +313,6 @@
       </rmic>	    
     </target>
 
-    <!-- ============================================================= -->
-    <!-- Run the code generators                            	-->
-    <!-- ============================================================= -->
-    <target name="defrunner" depends="prepare-defrunner, prepare" unless="defrunner.notRequired" if="have.buildjar">
-      <apply executable="java"
-	     parallel="false"
-	     failonerror="false" >
-	<arg line="-classpath ${genpath} org.cougaar.tools.build.DefRunner" />
-	<fileset dir="${src}" >
-	  <include name="**/*.def" />
-	</fileset>
-      </apply>
-    </target>
-	
-	<target name="eclipse-defrunner" depends="prepare-defrunner, prepare">
-	      <apply executable="java"
-	         parallel="false"
-	         failonerror="false" >
-	    <arg line="-classpath ${genpath} org.cougaar.tools.build.DefRunner" />
-	    <fileset dir="${src}" >
-	      <include name="**/*.def" />
-	    </fileset>
-	      </apply>
-	    </target>
-    
-    <!-- ============================================================= -->
-    <!-- Clean up generated code                             	-->
-    <!-- ============================================================= -->
-    <target name="clean-gencode" depends="prepare, prepare-defrunner" description="Delete generated code" if="have.buildjar">
-      <apply executable="java"
-	     parallel="false"
-	     failonerror="false" >
-	<arg line="-classpath ${genpath} org.cougaar.tools.build.DefCleaner" />
-	<fileset dir="${src}" >
-	  <include name="**/*.gen" />
-	</fileset>
-      </apply>
-    </target>
-	
-	<target name="eclipse-clean-gencode" depends="prepare, prepare-defrunner" description="Delete generated code">
-	      <apply executable="java"
-	         parallel="false"
-	         failonerror="false" >
-	    <arg line="-classpath ${genpath} org.cougaar.tools.build.DefCleaner" />
-	    <fileset dir="${src}" >
-	      <include name="**/*.gen" />
-	    </fileset>
-	      </apply>
-	    </target>
-    
     <!-- ========================================================== -->
     <!-- Compiles the example Code			                -->
     <!-- ========================================================== -->	
@@ -423,25 +365,6 @@
       <tstamp/>
     </target>
     
-    <target name="prepare-defrunner" depends="prepare"
-	    if="has.src">
-      
-      <!-- Need build.jar -->
-      <available property="have.buildjar" file="${target.clib}/build.jar"/>
-      
-      <!-- Check if defrunner is required -->
-      <uptodate property="defrunner.notRequired">
-	<srcfiles dir="${src}" includes="**/*.def"/>
-	<!-- If file.gen newer than .def, don't rerun -->
-	<mapper type="glob" from="*.def" to="*.gen"/>
-	<!-- FIXME: even better: if above is true AND every file
-	listed in .gen exists and is newer than .def, dont
-	rerun -->
-	<!-- Even better: parse out the @generated tag and
-	ensure that the date is more recent than on the listed .def file -->
-      </uptodate>
-    </target>
-    
     <!-- See if files already RMICed, before re-RMICing -->
     <!-- FIXME: The identity mapper is not right!!! -->
     <!-- FIXME: In the meantime, do not use this!  -->
@@ -457,20 +380,20 @@
     <!-- ========================================================== -->
     <!-- Compiles the Module Code			                -->
     <!-- ========================================================== -->	
-    <target name="compile" depends="prepare, defrunner, custom.codegen, really-compile, rmic-source"
+    <target name="compile" depends="prepare, really-compile, rmic-source"
 	    description="Compile the source Code"> </target>
 
     <!-- See if the jarfile needs recompiling -->
     <!-- Note that module-date.jar is not checked, just module.jar -->
     <!-- Also the property set here is _not_ currently used. -->
-    <target name="check-sources" depends="prepare, defrunner" if="has.src">
+    <target name="check-sources" depends="prepare" if="has.src">
       <uptodate property="jarfile.uptodate" targetfile="${module.jar}">
 	<srcfiles dir="${src}" includes="**/*.java"/>
       </uptodate>
     </target>
 
     <!-- This really does the compilation. The above just calls this -->
-    <target name="really-compile" depends="prepare, defrunner, check-sources" if="has.src">
+    <target name="really-compile" depends="prepare, check-sources" if="has.src">
       <mkdir dir="${module.classes}" />
       <available property="has.build" file="${module.classes}"/>
       <javac srcdir="${src}" destdir="${module.classes}"
@@ -505,9 +428,6 @@
     </target>
     <target name="really.install" depends="install.jar, install.lib">
     </target>
-    <target name="custom.codegen" if="has.custom.xml">
-      <ant antfile="${custom.xml}" dir="${MODSOURCE}" target="codegen" inheritAll="true"/>
-    </target>
     <target name="custom.clean" if="has.custom.xml">
       <ant antfile="${custom.xml}" dir="${MODSOURCE}" target="clean" inheritAll="true"/>
     </target>
@@ -541,7 +461,7 @@
     <!-- ========================================================== -->
     <!-- Clean up all built code                    	-->
     <!-- ========================================================== -->
-    <target name="clean" depends="clean-gencode, custom.clean" description="Delete compiled code">
+    <target name="clean" depends="custom.clean" description="Delete compiled code">
       <delete dir="${module.classes}" />
       <delete>
 	<fileset dir="${target.dir}" includes="**/${module.jar}" />
@@ -613,7 +533,7 @@
     <!-- Generates the JavaDocs for the one module			          -->
     <!-- ====================================================================== -->	
     <!-- FIXME: Handle unified javadoc -->
-    <target name="javadocs" depends="prepare, defrunner, clean-docs" description="Create javadocs for this module" if="has.src">
+    <target name="javadocs" depends="prepare, clean-docs" description="Create javadocs for this module" if="has.src">
       <mkdir dir="${javadoc.target}"/>
       <!-- Note that we should go to breakiterator="true" when we
       assume Ant1.6 -->
@@ -662,7 +582,7 @@
     <!-- Zip up the source: src, examples, regress, dev		          -->
     <!-- ====================================================================== -->	
     <!-- Note: perl script includes doc dir for non-unified modules -->
-    <target name="zip-dev" depends="clean-gencode, set-zip-dirs,
+    <target name="zip-dev" depends="set-zip-dirs,
     zip-prep, zip-copy-root-files, zip-copy-src, zip-copy-ex, zip-copy-dev, zip-copy-test"
 	    description="Create -dev zip file">
     <!-- FIXME: Put zip files someplace relative to TARGETBASE? -->

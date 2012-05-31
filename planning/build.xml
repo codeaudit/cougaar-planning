@@ -313,6 +313,15 @@
       </rmic>	    
     </target>
 
+    <!-- ============================================================= -->
+    <!-- Clean up generated code (stubbed)                             -->
+    <!-- ============================================================= -->
+    <target name="clean-gencode" description="Delete generated code" if="have.buildjar">
+    </target>
+	
+	<target name="eclipse-clean-gencode" description="Delete generated code">
+	</target>
+    
     <!-- ========================================================== -->
     <!-- Compiles the example Code			                -->
     <!-- ========================================================== -->	

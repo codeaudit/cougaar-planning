@@ -123,7 +123,7 @@ public class Capacity extends AbstractMeasure {
    * what the concrete type of the quantity is.
    *
    * @exception UnknownUnitException if a bad unit in either argument.
-   * @exceptionx DivideByZero if duration is 0.
+   * @exception DivideByZero if duration is 0.
    * @exception NullPointerException if duration is null.
    **/
   public double getRate(int quantityUnits, int periodUnits) {

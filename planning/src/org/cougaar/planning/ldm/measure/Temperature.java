@@ -161,7 +161,7 @@ public final class Temperature extends AbstractMeasure
   /**
    * TODO : fill in
    * @param other
-   * @return
+   * @return Measure
    */
   public Measure add(Measure other) {
     return null;
@@ -170,7 +170,7 @@ public final class Temperature extends AbstractMeasure
   /**
    * TODO : fill in
    * @param other
-   * @return
+   * @return Measure
    */
   public Measure subtract(Measure other) {
     return null;

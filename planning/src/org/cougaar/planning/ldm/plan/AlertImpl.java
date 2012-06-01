@@ -148,8 +148,6 @@ public class AlertImpl implements Alert, NewAlert {
   /**
    * setOperatorResponseRequired - sets boolean indicating whether alert requires an
    * operator response.
-   *
-   * @return boolean
    */
   public void setOperatorResponseRequired(boolean req) {
     myResponseRequired = req;

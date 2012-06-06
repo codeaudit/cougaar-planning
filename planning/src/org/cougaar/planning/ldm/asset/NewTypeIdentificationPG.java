@@ -1,8 +1,8 @@
 /*
  * <copyright>
  *  
- *  Copyright 1997-2004 BBNT Solutions, LLC
- *  under sponsorship of the Defense Advanced Research Projects
+ *  Copyright 1997-2012 Raytheon BBN Technologies
+ *  under partial sponsorship of the Defense Advanced Research Projects
  *  Agency (DARPA).
  * 
  *  You can redistribute this software and/or modify it under the
@@ -24,7 +24,7 @@
  * </copyright>
  */
 
-/* @generated Wed May 30 15:01:14 EDT 2012 from /Users/djw/unbackedup/cougaar-tmp/repo/planning/planning/src/org/cougaar/planning/ldm/asset/properties.def - DO NOT HAND EDIT */
+/* @generated Wed Jun 06 07:52:59 EDT 2012 from properties.def - DO NOT HAND EDIT */
 /** Additional methods for TypeIdentificationPG
  * offering mutators (set methods) for the object's owner
  **/

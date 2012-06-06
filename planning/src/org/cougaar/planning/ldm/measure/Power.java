@@ -1,8 +1,8 @@
 /*
  * <copyright>
  *  
- *  Copyright 1997-2004 BBNT Solutions, LLC
- *  under sponsorship of the Defense Advanced Research Projects
+ *  Copyright 1997-2012 Raytheon BBN Technologies
+ *  under partial sponsorship of the Defense Advanced Research Projects
  *  Agency (DARPA).
  * 
  *  You can redistribute this software and/or modify it under the
@@ -24,12 +24,12 @@
  * </copyright>
  */
 
-/* @generated Wed May 30 15:01:15 EDT 2012 from /Users/djw/unbackedup/cougaar-tmp/repo/planning/planning/src/org/cougaar/planning/ldm/measure/measures.def - DO NOT HAND EDIT */
+/* @generated Wed Jun 06 07:55:05 EDT 2012 from measures.def - DO NOT HAND EDIT */
 /** Immutable implementation of Power.
  **/
 
 
-package org.cougaar.planning.ldm.measure;
+package .;
 import java.io.*;
 
 

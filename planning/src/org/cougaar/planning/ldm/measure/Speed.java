@@ -29,7 +29,7 @@
  **/
 
 
-package .;
+package org.cougaar.planning.ldm.measure;
 import java.io.*;
 
 

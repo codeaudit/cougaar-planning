@@ -30,6 +30,7 @@ import java.io.FilterWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
@@ -52,6 +53,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.rowset.spi.XmlWriter;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.xerces.dom.DocumentImpl;
 import org.apache.xml.serialize.OutputFormat;
@@ -113,6 +118,8 @@ import org.cougaar.util.TimeSpan;
 import org.cougaar.util.UnaryPredicate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * A <code>Servlet</code> that generates HTML views of an Agent's Blackboard.
@@ -3306,36 +3313,50 @@ extends ComponentPlugin
      * <p>
      * @param printAsHTML uses XMLtoHTMLOutputStream to pretty-print the XML
      */
-    private void printXMLDetails(
-        Object xo, boolean printAsHTML)
-    {
+    private void printXMLDetails(Object xo, boolean printAsHTML){
       try {
+         Document doc = new DocumentImpl();
+         Element element = XMLize.getPlanObjectXML(xo, doc);
+         
+         StringWriter stringWriter = new StringWriter();
+         XMLStreamWriter xmlWriter = XMLOutputFactory.newInstance().createXMLStreamWriter(stringWriter);
+         xmlWriter.writeStartDocument();
+         writeNode(element, xmlWriter);
+         xmlWriter.writeEndDocument();
+         xmlWriter.flush();
+         xmlWriter.close();
+         String xml = stringWriter.toString();
+         
+         PrintWriter pout2 = new PrintWriter(new XMLtoHTMLOutputStream(out));
+         out.print("<pre>\n");
+         pout2.append(xml);
+         out.print("\n</pre>\n");
+         pout2.flush();
+         
         // convert to XML
-        Document doc = new DocumentImpl();
-        Element element = XMLize.getPlanObjectXML(xo, doc);
-        doc.appendChild(element);
-
-        // print to output
-        if (printAsHTML) {
-          OutputFormat format = new OutputFormat();
-          format.setPreserveSpace(false);
-          format.setIndent(2);
-
-          PrintWriter pout = new PrintWriter(new XMLtoHTMLOutputStream(out));
-          XMLSerializer serializer = new XMLSerializer(pout, format);
-          out.print("<pre>\n");
-          serializer.serialize(doc);
-          out.print("\n</pre>\n");
-          pout.flush();
-        } else {
-          OutputFormat format = new OutputFormat();
-          format.setPreserveSpace(true);
-
-          PrintWriter pout = new PrintWriter(out);
-          XMLSerializer serializer = new XMLSerializer(pout, format);
-          serializer.serialize(doc);
-          pout.flush();
-        }
+//        doc.appendChild(element);
+//
+//        // print to output
+//        if (printAsHTML) {
+//          OutputFormat format = new OutputFormat();
+//          format.setPreserveSpace(false);
+//          format.setIndent(2);
+//
+//          PrintWriter pout = new PrintWriter(new XMLtoHTMLOutputStream(out));
+//          XMLSerializer serializer = new XMLSerializer(pout, format);
+//          out.print("<pre>\n");
+//          serializer.serialize(doc);
+//          out.print("\n</pre>\n");
+//          pout.flush();
+//        } else {
+//          OutputFormat format = new OutputFormat();
+//          format.setPreserveSpace(true);
+//
+//          PrintWriter pout = new PrintWriter(out);
+//          XMLSerializer serializer = new XMLSerializer(pout, format);
+//          serializer.serialize(doc);
+//          pout.flush();
+//        }
       } catch (Exception e) {
         if (printAsHTML) {
           out.print("\nException!\n\n");
@@ -3343,6 +3364,23 @@ extends ComponentPlugin
         }
       }
     }
+
+   private void writeNode(Node element, XMLStreamWriter xmlWriter) throws XMLStreamException {
+      switch (element.getNodeType()) {
+         case Node.TEXT_NODE:
+            xmlWriter.writeCharacters(element.getTextContent());
+            break;
+            
+         default:
+            xmlWriter.writeStartElement(element.getNodeName());
+            NodeList childNodes = element.getChildNodes();
+            for (int i=0; i<childNodes.getLength(); i++) {
+               Node child = childNodes.item(i);
+               writeNode(child, xmlWriter);
+            }
+            xmlWriter.writeEndElement();
+      }
+   }
 
     private void printListItemForStack(UID uid) {
       if (ENABLE_STACKS) {

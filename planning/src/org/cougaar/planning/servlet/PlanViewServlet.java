@@ -53,21 +53,17 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.sql.rowset.spi.XmlWriter;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import org.apache.xerces.dom.DocumentImpl;
-import org.apache.xml.serialize.OutputFormat;
-import org.apache.xml.serialize.XMLSerializer;
 import org.cougaar.core.blackboard.PublisherInfo;
 import org.cougaar.core.blackboard.PublisherSubscription;
 import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.plugin.ComponentPlugin;
-import org.cougaar.core.servlet.ServletUtil;
 import org.cougaar.core.service.BlackboardQueryService;
 import org.cougaar.core.service.ServletService;
+import org.cougaar.core.servlet.ServletUtil;
 import org.cougaar.core.util.UID;
 import org.cougaar.core.util.UniqueObject;
 import org.cougaar.planning.ldm.asset.AggregateAsset;
@@ -120,6 +116,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import com.sun.org.apache.xerces.internal.dom.DocumentImpl;
+import com.sun.xml.internal.txw2.output.IndentingXMLStreamWriter;
 
 /**
  * A <code>Servlet</code> that generates HTML views of an Agent's Blackboard.
@@ -3320,6 +3319,8 @@ extends ComponentPlugin
          
          StringWriter stringWriter = new StringWriter();
          XMLStreamWriter xmlWriter = XMLOutputFactory.newInstance().createXMLStreamWriter(stringWriter);
+         xmlWriter = new IndentingXMLStreamWriter(xmlWriter);
+         
          xmlWriter.writeStartDocument();
          writeNode(element, xmlWriter);
          xmlWriter.writeEndDocument();
@@ -3332,31 +3333,6 @@ extends ComponentPlugin
          pout2.append(xml);
          out.print("\n</pre>\n");
          pout2.flush();
-         
-        // convert to XML
-//        doc.appendChild(element);
-//
-//        // print to output
-//        if (printAsHTML) {
-//          OutputFormat format = new OutputFormat();
-//          format.setPreserveSpace(false);
-//          format.setIndent(2);
-//
-//          PrintWriter pout = new PrintWriter(new XMLtoHTMLOutputStream(out));
-//          XMLSerializer serializer = new XMLSerializer(pout, format);
-//          out.print("<pre>\n");
-//          serializer.serialize(doc);
-//          out.print("\n</pre>\n");
-//          pout.flush();
-//        } else {
-//          OutputFormat format = new OutputFormat();
-//          format.setPreserveSpace(true);
-//
-//          PrintWriter pout = new PrintWriter(out);
-//          XMLSerializer serializer = new XMLSerializer(pout, format);
-//          serializer.serialize(doc);
-//          pout.flush();
-//        }
       } catch (Exception e) {
         if (printAsHTML) {
           out.print("\nException!\n\n");

@@ -6,7 +6,5 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/core"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/util"/>
 	<classpathentry kind="lib" path="/jars/lib/servlet.jar"/>
-	<classpathentry kind="lib" path="/jars/lib/xercesImpl.jar"/>
-	<classpathentry kind="lib" path="/jars/lib/xml-apis.jar"/>
 	<classpathentry kind="output" path="tmp/classes"/>
 </classpath>

@@ -30,6 +30,7 @@ import java.io.FilterWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.Method;
@@ -56,6 +57,11 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 
 import org.cougaar.core.blackboard.PublisherInfo;
 import org.cougaar.core.blackboard.PublisherSubscription;
@@ -118,7 +124,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.sun.org.apache.xerces.internal.dom.DocumentImpl;
-import com.sun.xml.internal.txw2.output.IndentingXMLStreamWriter;
 
 /**
  * A <code>Servlet</code> that generates HTML views of an Agent's Blackboard.
@@ -3319,7 +3324,6 @@ extends ComponentPlugin
          
          StringWriter stringWriter = new StringWriter();
          XMLStreamWriter xmlWriter = XMLOutputFactory.newInstance().createXMLStreamWriter(stringWriter);
-         xmlWriter = new IndentingXMLStreamWriter(xmlWriter);
          
          xmlWriter.writeStartDocument();
          writeNode(element, xmlWriter);
@@ -3327,6 +3331,14 @@ extends ComponentPlugin
          xmlWriter.flush();
          xmlWriter.close();
          String xml = stringWriter.toString();
+         
+         TransformerFactory factory = TransformerFactory.newInstance();
+         Transformer transformer = factory.newTransformer();
+         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+         transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+         StringWriter formattedStringWriter = new StringWriter();
+         transformer.transform(new StreamSource(new StringReader(xml)), new StreamResult(formattedStringWriter));
+         xml = formattedStringWriter.toString();
          
          PrintWriter pout2 = new PrintWriter(new XMLtoHTMLOutputStream(out));
          out.print("<pre>\n");
